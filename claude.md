@@ -29,11 +29,15 @@ Claude-specific working rules that don't belong in the human-facing README.
 ## How to compose (default loop)
 
 1. Parse the user's mood/scene/genre into search terms.
-2. Look up matching `palettes/*.md` (tags/slug/title). Combine primitives for
-   specific vibes rather than inventing new stored palettes.
+2. Look up matching `palettes/<kind>/*.md` (tags/slug/title) — kinds are
+   `emotion` (mood + tonality), `genre` (groove), `timbre` (sound); see
+   [`docs/palette-authoring.md`](./docs/palette-authoring.md). Layer an emotion
+   with a genre/timbre for specific vibes rather than inventing new stored files.
 3. Write a **short** `compositions/<name>.json` (the moving core, not a full
-   song) using the palette's tonality + a progression. Shape:
-   `src/engine/composition.ts`.
+   song) using the **emotion** palette's tonality + a progression. Shape:
+   `src/engine/composition.ts`. (Only emotion palettes are directly composable;
+   layer others with the blend resolver.) Fastest path:
+   `npm run compose -- --mood "<scene>" --palette <emotion> --with <genre,timbre,…>`.
 4. Validate: `npm run composition:validate -- --file compositions/<name>.json`.
 5. Tell the user to `npm run dev`, Play, Export WAV — then ask for one
    adjustment. Be proactive first; refine after.

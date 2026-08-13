@@ -30,9 +30,11 @@ describe("parsePaletteFiles", () => {
 });
 
 describe("loadPalettesFromDir", () => {
-  it("reads every .md in filename order", () => {
+  it("reads every .md recursively, in path order", () => {
     const palettes = loadPalettesFromDir(fixturesDir);
-    expect(palettes.map((p) => p.frontmatter.slug)).toEqual(["alpha", "bravo"]);
+    // alpha.md + bravo.md are flat; genre/charlie.md lives in a subfolder, so its
+    // presence here proves the loader recurses into the per-kind directories.
+    expect(palettes.map((p) => p.frontmatter.slug)).toEqual(["alpha", "bravo", "charlie"]);
   });
 });
 

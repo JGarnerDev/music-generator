@@ -19,12 +19,15 @@ shipped; keep this list short and forward-looking.
 
 ## P1 — Make the core loop *good*
 
-- [ ] **Palette library breadth.** Author the primitives the design doc calls for:
-      `happy`, `tense`/`dread`, `epic`/`heroic`, `metal`/`badass`, `mysterious`,
-      `hopeful`, `spaghetti-western`, `battle`. Each frontmatter'd + prose.
-- [ ] **Palette combination.** Derive specific vibes ("samurai duel") by blending
-      2–3 primitives (tonality from one, tempo/rhythm from another). Document the
-      blend rules; test the resolver.
+- [ ] **Genre & timbre breadth.** The blend resolver ships
+      (`src/engine/blend.ts`, `compose --with`); now feed it. Only seed exemplars
+      exist (`jazz`, `funk`; `analog-synth`, `brown-sound`). Author the genres/
+      timbres it will lean on: `rock`, `hiphop`, `ambient`, `cinematic`; more
+      signature timbres.
+- [ ] **Blend depth.** v1 maps a timbre only to two coarse voices (`padVoice`/
+      `leadVoice`, piano>epiano>pluck) + lo-fi nudges — a guitar timbre still leads
+      on piano. Make voice selection honor timbre intent, and let genre `mode`/feel
+      shape rhythm, not just tempo/progressions.
 - [ ] **Drums / percussion track.** Lo-fi kit (kick/snare/hat) — a beat is what
       sells lo-fi. Needs an instrument type + pattern notation in the spec.
 - [ ] **Better lo-fi chain.** Sidechain/ducking, bitcrush option, tape stop,

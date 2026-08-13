@@ -9,6 +9,7 @@
  */
 import type { Palette } from "./palette";
 import type { Composition, Track } from "./composition";
+import { blendPalettes, type MusicalDirection } from "./blend";
 import {
   progressionChords,
   chordPitches,
@@ -25,26 +26,37 @@ export interface ComposeOptions {
 }
 
 /**
- * Compose a short piece (one pass over the palette's progression, plus a tonic
- * resolution bar) as a pad + piano arrangement. Deterministic in (palette, mood,
- * opts). Throws if the palette's scale isn't one `progressionChords` supports.
+ * Compose from a single emotion palette. Thin wrapper over `composeFromBlend` — a
+ * blend of one layer. Throws (via the blend) if the palette isn't an emotion.
  */
 export function composeFromPalette(
   palette: Palette,
   mood: string,
   opts: ComposeOptions = {},
 ): Composition {
-  const fm = palette.frontmatter;
-  const { tonic, scale } = fm.tonality;
-  const rng = makeRng(seedFromString(`${mood}|${opts.seed ?? ""}|${fm.slug}`));
+  return composeFromBlend(blendPalettes([palette]), mood, opts);
+}
 
-  const [tmin, tmax] = fm.tempo;
+/**
+ * Compose a short piece (one pass over the direction's progression, plus a tonic
+ * resolution bar) as a pad + lead arrangement. Deterministic in (direction, mood,
+ * opts). Throws if the direction's scale isn't one `progressionChords` supports.
+ */
+export function composeFromBlend(
+  dir: MusicalDirection,
+  mood: string,
+  opts: ComposeOptions = {},
+): Composition {
+  const { tonic, scale } = dir;
+  const rng = makeRng(seedFromString(`${mood}|${opts.seed ?? ""}|${dir.slugs.join("+")}`));
+
+  const [tmin, tmax] = dir.tempo;
   const bpm = randInt(rng, tmin, tmax);
-  const progression = pick(rng, fm.progressions);
+  const progression = pick(rng, dir.progressions);
   const chords = progressionChords(tonic, progression, scale);
 
-  const pad: Track = { instrument: "pad", gain: 0.5, notes: [] };
-  const piano: Track = { instrument: "piano", gain: 0.9, notes: [] };
+  const pad: Track = { instrument: dir.padVoice, gain: 0.5, notes: [] };
+  const lead: Track = { instrument: dir.leadVoice, gain: 0.9, notes: [] };
 
   // A ladder of concrete scale pitches for a stepwise melody that stays in key.
   const ladder = buildLadder(scaleNotes(tonic, scale), 4, 5);
@@ -54,33 +66,33 @@ export function composeFromPalette(
     const voicing = chordPitches(chord, 3);
     const root = voicing[0]!;
 
-    // Pad: one sustained root per bar, an octave below the piano voicing.
+    // Pad: one sustained root per bar, an octave below the lead voicing.
     pad.notes.push({ time: `${bar}:0`, pitch: transpose(root, -12), duration: "1m", velocity: 0.4 });
 
-    // Piano: the chord on the downbeat as a soft half-note bed.
+    // Lead: the chord on the downbeat as a soft half-note bed.
     for (const [i, pitch] of voicing.entries()) {
-      piano.notes.push({ time: `${bar}:0`, pitch, duration: "2n", velocity: i === 0 ? 0.55 : 0.45 });
+      lead.notes.push({ time: `${bar}:0`, pitch, duration: "2n", velocity: i === 0 ? 0.55 : 0.45 });
     }
 
     // Melody: two stepwise notes answering on beats 2 and 3.
     for (const beat of [2, 3]) {
       mi = clamp(mi + melodicStep(rng), 0, ladder.length - 1);
-      piano.notes.push({ time: `${bar}:${beat}`, pitch: ladder[mi]!, duration: "4n", velocity: 0.5 });
+      lead.notes.push({ time: `${bar}:${beat}`, pitch: ladder[mi]!, duration: "4n", velocity: 0.5 });
     }
   });
 
   // Land on the tonic so the loop resolves instead of stopping mid-phrase.
   const finalBar = chords.length;
   pad.notes.push({ time: `${finalBar}:0`, pitch: `${tonic}2`, duration: "1m", velocity: 0.4 });
-  piano.notes.push({ time: `${finalBar}:0`, pitch: `${tonic}4`, duration: "1m", velocity: 0.5 });
+  lead.notes.push({ time: `${finalBar}:0`, pitch: `${tonic}4`, duration: "1m", velocity: 0.5 });
 
   return {
-    name: opts.name ?? deriveName(mood, fm.slug),
+    name: opts.name ?? deriveName(mood, dir.slugs[0] ?? "piece"),
     bpm,
     key: `${tonic} ${scale}`,
-    palettes: [fm.slug],
-    lofi: { vinyl: true, wobble: 0.15, lowpassHz: 2600, reverb: 0.3 },
-    tracks: [pad, piano],
+    palettes: dir.slugs,
+    lofi: dir.lofi,
+    tracks: [pad, lead],
   };
 }
 

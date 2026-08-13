@@ -19,6 +19,9 @@ export interface Note {
 
 export type InstrumentName = "piano" | "epiano" | "pad" | "bass" | "pluck";
 
+/** The known instrument voices, in a stable order. Source of truth for validation + blending. */
+export const INSTRUMENT_NAMES = ["piano", "epiano", "pad", "bass", "pluck"] as const satisfies readonly InstrumentName[];
+
 export interface Track {
   instrument: InstrumentName;
   notes: Note[];
@@ -53,13 +56,7 @@ export interface ValidationIssue {
   message: string;
 }
 
-const INSTRUMENTS: ReadonlySet<string> = new Set<InstrumentName>([
-  "piano",
-  "epiano",
-  "pad",
-  "bass",
-  "pluck",
-]);
+const INSTRUMENTS: ReadonlySet<string> = new Set<InstrumentName>(INSTRUMENT_NAMES);
 
 /**
  * Structural validation for a composition parsed from untrusted JSON. Returns a

@@ -9,16 +9,18 @@ import { writeFileSync, existsSync, mkdirSync } from "node:fs";
 import { resolve } from "node:path";
 import { Command } from "commander";
 import { loadPalettesFromDir, findPalettes } from "../src/engine/palette-loader";
-import { composeFromPalette } from "../src/engine/composer";
+import { composeFromBlend } from "../src/engine/composer";
+import { blendPalettes } from "../src/engine/blend";
 import { validateComposition } from "../src/engine/composition";
-import type { Palette } from "../src/engine/palette";
+import { isEmotionPalette, type Palette } from "../src/engine/palette";
 
 const program = new Command();
 program
   .name("compose")
   .description("Compose a composition JSON from a palette + mood")
   .requiredOption("--mood <text>", 'mood/scene, e.g. "dog dies"')
-  .option("--palette <slug>", "palette slug to use (default: best match for --mood)")
+  .option("--palette <slug>", "emotion palette slug (default: best match for --mood)")
+  .option("--with <csv>", "extra palette slugs to layer, e.g. jazz,analog-synth", "")
   .option("--seed <text>", "extra entropy for a different take", "")
   .option("--name <name>", "override the output filename/name")
   .option("--force", "overwrite if the composition already exists", false)
@@ -27,6 +29,7 @@ program
 const opts = program.opts<{
   mood: string;
   palette?: string;
+  with: string;
   seed: string;
   name?: string;
   force: boolean;
@@ -44,15 +47,40 @@ if (opts.palette) {
     process.exit(2);
   }
 } else {
-  palette = findPalettes(palettesDir, opts.mood)[0];
+  // Only emotion palettes are directly composable; genre/timbre feed the blend.
+  palette = findPalettes(palettesDir, opts.mood).find(isEmotionPalette);
   if (!palette) {
-    console.error(`No palette matched "${opts.mood}". Pass --palette <slug> to choose one.`);
+    console.error(`No emotion palette matched "${opts.mood}". Pass --palette <slug> to choose one.`);
     process.exit(2);
   }
   console.log(`Matched palette "${palette.frontmatter.slug}" for mood "${opts.mood}".`);
 }
 
-const comp = composeFromPalette(palette, opts.mood, { seed: opts.seed, name: opts.name });
+if (!isEmotionPalette(palette)) {
+  console.error(
+    `Palette "${palette.frontmatter.slug}" is a ${palette.frontmatter.kind}, not an emotion. ` +
+      `compose needs an emotion palette (genre/timbre/… are blend layers, not directly composable).`,
+  );
+  process.exit(2);
+}
+
+// Layer any extra palettes (genre/timbre/…) named via --with onto the emotion.
+const layers: Palette[] = [palette];
+for (const slug of opts.with.split(",").map((s) => s.trim()).filter(Boolean)) {
+  const found = palettes.find((p) => p.frontmatter.slug === slug);
+  if (!found) {
+    const known = palettes.map((p) => p.frontmatter.slug).join(", ");
+    console.error(`No palette "${slug}" to layer. Known: ${known || "(none)"}`);
+    process.exit(2);
+  }
+  layers.push(found);
+}
+
+const direction = blendPalettes(layers);
+const comp = composeFromBlend(direction, opts.mood, { seed: opts.seed, name: opts.name });
+if (layers.length > 1) {
+  console.log(`Blended ${direction.slugs.join(" + ")} → ${direction.leadVoice}/${direction.padVoice}.`);
+}
 
 const issues = validateComposition(comp);
 if (issues.length > 0) {

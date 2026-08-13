@@ -7,7 +7,7 @@
  * without touching the filesystem; `loadPalettesFromDir` is the thin IO wrapper.
  */
 import { readdirSync, readFileSync } from "node:fs";
-import { join } from "node:path";
+import { join, relative } from "node:path";
 import { parsePalette, matchPalettes, type Palette } from "./palette";
 
 export interface PaletteFile {
@@ -31,13 +31,28 @@ export function parsePaletteFiles(files: PaletteFile[]): Palette[] {
   });
 }
 
-/** Read + parse every `*.md` in a directory into Palettes. Sorted by filename for stable order. */
+/**
+ * Read + parse every `*.md` under a directory into Palettes, recursing into the
+ * per-kind subfolders (`emotion/`, `genre/`, `timbre/`). Sorted by relative path
+ * for stable order; `filename` carries the subfolder so parse errors point at the
+ * real file (e.g. "genre/jazz.md").
+ */
 export function loadPalettesFromDir(dir: string): Palette[] {
-  const files = readdirSync(dir)
-    .filter((f) => f.endsWith(".md"))
+  const files = walkMarkdown(dir)
     .sort()
-    .map((filename) => ({ filename, raw: readFileSync(join(dir, filename), "utf8") }));
+    .map((full) => ({ filename: relative(dir, full), raw: readFileSync(full, "utf8") }));
   return parsePaletteFiles(files);
+}
+
+/** Absolute paths of every `*.md` under `dir`, recursing subdirectories. */
+function walkMarkdown(dir: string): string[] {
+  const out: string[] = [];
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    const full = join(dir, entry.name);
+    if (entry.isDirectory()) out.push(...walkMarkdown(full));
+    else if (entry.name.endsWith(".md")) out.push(full);
+  }
+  return out;
 }
 
 /**

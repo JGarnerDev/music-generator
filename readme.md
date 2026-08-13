@@ -4,7 +4,7 @@ purpose: Router and first-principles for the project. Read this before diving in
 audience: [claude, human]
 updated: 2026-08-12
 read_order: 1
-see_also: [claude.md, docs/vision.md, palettes/sad.md]
+see_also: [claude.md, docs/vision.md, docs/palette-authoring.md, palettes/emotion/sad.md]
 ---
 
 # music-generator
@@ -37,7 +37,7 @@ musical ideas into something you're pumped about.
 
 | Path | What | Notes |
 |---|---|---|
-| `palettes/*.md` | Emotion/genre → music theory | Frontmatter-queryable |
+| `palettes/<kind>/*.md` | Intent → music: `emotion`, `genre`, `timbre` | Per-kind schema; see [palette-authoring](docs/palette-authoring.md) |
 | `src/engine/` | Pure music brains | tonal, theory, arrange, validation — **tested** |
 | `src/utils/` | Promoted general helpers | rng, timing, wav — **tested** |
 | `src/app/` | Browser player + WAV export | Tone.js glue, thin, not unit-tested |
@@ -57,9 +57,12 @@ npm run typecheck  # tsc --noEmit
 
 - **Compose:** write/adjust a `compositions/<name>.json` using a palette's
   tonality + progressions. Validate it:
-  `npm run composition:validate -- --file compositions/<name>.json`.
+  `npm run composition:validate -- --file compositions/<name>.json`. Or generate
+  one: `npm run compose -- --mood "<scene>" [--palette <emotion>] [--with <genre,timbre,…>]`
+  — layers blend via [`blend.ts`](docs/palette-authoring.md#blending).
 - **Audition & export:** `npm run dev`, hit Play, then Export WAV.
-- **New palette:** `npm run palette:new -- --slug <slug> --title "<t>" --tags a,b,c`.
+- **New palette:** `npm run palette:new -- --kind emotion|genre|timbre --slug <slug> --title "<t>" --tags a,b,c`
+  (writes `palettes/<kind>/<slug>.md`). See [palette-authoring](docs/palette-authoring.md).
 
 ## Utils & testing culture
 

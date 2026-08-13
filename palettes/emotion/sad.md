@@ -1,4 +1,5 @@
 ---
+kind: emotion
 slug: sad
 title: Sad / Bittersweet
 tags: [sad, grief, loss, bittersweet, melancholy, death, friend, farewell, mourning, tender]
