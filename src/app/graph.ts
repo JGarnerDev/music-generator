@@ -12,7 +12,7 @@
 import * as Tone from "tone";
 import type { Composition, LoFiSettings } from "@engine/composition";
 import { loopWindowSeconds } from "@engine/arrange";
-import { createInstrument } from "./instruments";
+import { createVoice } from "./instruments";
 
 export interface ScheduleOptions {
   /**
@@ -69,9 +69,11 @@ export function scheduleComposition(comp: Composition, opts: ScheduleOptions = {
   const chainInput = buildLoFiChain(comp.lofi);
 
   for (const track of comp.tracks) {
-    const instrument = createInstrument(track.instrument);
+    const voice = createVoice(track.instrument);
     const trackGain = new Tone.Gain(track.gain ?? 1);
-    instrument.connect(trackGain);
+    // The voice's own effects sit between the synth and the track gain, so a
+    // track's gain still means "how loud is this part", not "how driven".
+    voice.output.connect(trackGain);
     trackGain.connect(chainInput);
 
     const events = track.notes.map((n) => ({
@@ -82,7 +84,7 @@ export function scheduleComposition(comp: Composition, opts: ScheduleOptions = {
     }));
 
     new Tone.Part((time, ev) => {
-      instrument.triggerAttackRelease(ev.pitch, ev.duration, time, ev.velocity);
+      voice.play.triggerAttackRelease(ev.pitch, ev.duration, time, ev.velocity);
     }, events).start(0);
   }
 }
