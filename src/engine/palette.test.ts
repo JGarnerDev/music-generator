@@ -5,8 +5,11 @@ import {
   isEmotionPalette,
   validatePaletteSet,
   PaletteParseError,
+  MODE_NAMES,
+  MODE_LEANS,
   type Palette,
 } from "./palette";
+import { SUPPORTED_MODES } from "./theory";
 
 const rawSad = `---
 kind: emotion
@@ -89,9 +92,44 @@ vintage subtractive.`;
     expect(() => parsePalette(bad)).toThrow(PaletteParseError);
   });
 
+  it("accepts a modal emotion tonality", () => {
+    const modal = rawSad.replace("scale: minor", "scale: dorian");
+    const p = parsePalette(modal);
+    if (!isEmotionPalette(p)) throw new Error("expected emotion");
+    expect(p.frontmatter.tonality.scale).toBe("dorian");
+  });
+
+  it("rejects a tonality whose scale harmony can't resolve", () => {
+    const bad = rawSad.replace("scale: minor", "scale: bebop");
+    expect(() => parsePalette(bad)).toThrow(/must be a mode/);
+  });
+
+  it("accepts a modal genre lean", () => {
+    const raw = `---\nkind: genre\nslug: folk\ntitle: Folk\ntags: [folk]\ntempo: [90, 120]\nmode: dorian\n---\nbody`;
+    expect(parsePalette(raw).frontmatter.kind).toBe("genre");
+  });
+
+  it("rejects a genre mode that isn't a mode or `either`", () => {
+    const bad = `---\nkind: genre\nslug: folk\ntitle: Folk\ntags: [folk]\ntempo: [90, 120]\nmode: modal\n---\nbody`;
+    expect(() => parsePalette(bad)).toThrow(PaletteParseError);
+  });
+
   it("rejects an emotion palette missing tonality", () => {
     const bad = `---\nkind: emotion\nslug: x\ntitle: X\ntags: [a]\ntempo: [60, 80]\nprogressions:\n  - [i, V]\n---\nbody`;
     expect(() => parsePalette(bad)).toThrow(PaletteParseError);
+  });
+});
+
+describe("mode names", () => {
+  it("accepts exactly the modes harmony can resolve", () => {
+    // Drift either way is a bug: a schema-only name fails at compose time, and a
+    // theory-only mode is unreachable from a palette.
+    expect([...MODE_NAMES].sort()).toEqual([...SUPPORTED_MODES].sort());
+  });
+
+  it("adds `either` for a genre that recolours both", () => {
+    expect(MODE_LEANS).toContain("either");
+    expect(MODE_LEANS.length).toBe(MODE_NAMES.length + 1);
   });
 });
 

@@ -11,7 +11,7 @@
 import { writeFileSync, existsSync, mkdirSync } from "node:fs";
 import { resolve } from "node:path";
 import { Command } from "commander";
-import { PALETTE_KINDS, type PaletteKind } from "../src/engine/palette";
+import { PALETTE_KINDS, MODE_NAMES, type PaletteKind } from "../src/engine/palette";
 
 const program = new Command();
 program
@@ -23,7 +23,7 @@ program
   .option("--kind <kind>", `palette kind: ${PALETTE_KINDS.join(" | ")}`, "emotion")
   .option("--parent <slug>", "broader palette this one specializes (same kind), e.g. rock")
   .option("--tonic <note>", "tonic note (emotion only)", "A")
-  .option("--scale <scale>", "scale name (emotion only)", "minor")
+  .option("--scale <scale>", `mode (emotion only): ${MODE_NAMES.join(" | ")}`, "minor")
   .option("--tempo <min,max>", "tempo range (emotion/genre)", "70,90")
   .option("--force", "overwrite if the file already exists", false)
   .parse(process.argv);
@@ -51,6 +51,11 @@ if (opts.parent && kind === "emotion") {
     "--parent is not allowed on an emotion: the blend takes exactly one emotion, " +
       "so an inherited key would be ambiguous. Subtype a genre or timbre instead.",
   );
+  process.exit(2);
+}
+
+if (kind === "emotion" && !(MODE_NAMES as readonly string[]).includes(opts.scale)) {
+  console.error(`--scale must be one of: ${MODE_NAMES.join(", ")}. Got "${opts.scale}".`);
   process.exit(2);
 }
 

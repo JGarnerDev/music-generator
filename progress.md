@@ -47,8 +47,9 @@ shipped; keep this list short and forward-looking.
       `whimsical` (comic, bouncy).
 
 - [ ] **Genre breadth.** Shipped: `funk`, `jazz`, `lofi`, `metal`, `ambient`,
-      `blues`, `cinematic`, `spaghetti-western`, `reggae` — all now carrying a
-      `groove:`. What's left is authoring time or the two engine unlocks below.
+      `blues`, `cinematic`, `spaghetti-western`, `reggae`, `folk`, `flamenco` —
+      all now carrying a `groove:`. What's left is authoring time, or the meter
+      unlock below.
   - [ ] **Authorable today** (identity carried by harmony/tempo/chord-rhythm):
         `soul`, `gospel`, `post-rock`, `minimalism`, `baroque`, `ragtime`,
         `bossa`, `synthwave`, `city-pop`, `shoegaze`, `doom`.
@@ -57,21 +58,19 @@ shipped; keep this list short and forward-looking.
         `dnb`, `jungle`, `breakbeat`, `disco`, `punk`, `trap`, `afrobeat`,
         `samba`, `garage`. `hiphop` is half-covered by `lofi`.
   - [ ] **Gated on meter**: `waltz`, `celtic` jigs, gospel shuffle, doo-wop.
-  - [ ] **Gated on modes**: `folk` (dorian), `flamenco` (phrygian), `celtic`
-        (mixolydian), `klezmer`, `medieval`.
+  - [ ] **Authorable now that modes ship** (state the mode in frontmatter —
+        `mode: dorian` — instead of describing it in prose): `celtic`
+        (mixolydian), `medieval` (dorian/mixolydian). `klezmer` wants
+        phrygian-dominant, which is a harmonic-minor mode and still unsupported —
+        `MODE_FAMILY` covers the seven church modes only. Emotion palettes
+        can take a modal `scale` too — none does yet, and until one does a modal
+        genre only gets its colour from the numerals it writes.
 
 - [ ] **Meter support beyond 4/4.** `src/utils/timing.ts` is 4/4-only by
       construction ("Pure timing math for 4/4 music"). Add a time signature to
       the composition spec and thread it through timing + arrange. Unlocks the
       3/4, 6/8 and 12/8 genres above, and waltz/jig cues for D&D. Pure logic —
       testable.
-
-- [ ] **Modal harmony.** `theory.ts:diatonicTriads` throws on anything but
-      major/minor, and the genre `mode` enum is `major|minor|either`, so every
-      modal genre has to fake it in prose (per `docs/palette-authoring.md`).
-      Widen both to the church modes (dorian, phrygian, lydian, mixolydian,
-      aeolian). Unlocks the modal genres above and gives emotion palettes real
-      color. Pure logic — testable.
 
 - [ ] **Timbre breadth.** `tape` ships; still to author: `felt-piano`, `rhodes`,
       `nylon-guitar`, `strings`, `choir`, `music-box`, `808`, `pipe-organ`.

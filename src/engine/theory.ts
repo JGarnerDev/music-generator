@@ -3,7 +3,45 @@
  * in human terms ("A minor", ["i","VI","III","VII"]); these functions turn that
  * into concrete pitches a track can play. Pure + deterministic → unit tested.
  */
-import { Scale, Chord, Note, Key, RomanNumeral } from "tonal";
+import { Scale, Chord, Note, RomanNumeral } from "tonal";
+
+/**
+ * The modes harmony resolves in, mapped to the quality of their tonic triad —
+ * which is the only thing the rest of the engine needs to know about a mode.
+ * `major`/`minor` are the aliases palettes write for ionian/aeolian.
+ *
+ * Locrian is filed under minor for its minor third; its tonic triad is actually
+ * diminished, so it has no stable tonic to cadence on. It resolves rather than
+ * throws, but nothing here makes it sound settled.
+ */
+const MODE_FAMILY: Record<string, "major" | "minor"> = {
+  major: "major",
+  ionian: "major",
+  lydian: "major",
+  mixolydian: "major",
+  minor: "minor",
+  aeolian: "minor",
+  dorian: "minor",
+  phrygian: "minor",
+  locrian: "minor",
+};
+
+/** Every mode name a palette's `scale`/`mode` may use. */
+export const SUPPORTED_MODES = Object.keys(MODE_FAMILY);
+
+/**
+ * Whether a mode's tonic triad is major or minor — the "idiom" a progression is
+ * matched against, and which parallel scale a borrowed numeral draws from.
+ */
+export function modeFamily(scaleType: string): "major" | "minor" {
+  const family = MODE_FAMILY[scaleType.toLowerCase()];
+  if (!family) {
+    throw new Error(
+      `unsupported mode: "${scaleType}" — expected one of ${SUPPORTED_MODES.join(", ")}`,
+    );
+  }
+  return family;
+}
 
 /** Notes of a scale as pitch classes, e.g. scaleNotes("A", "minor") -> ["A","B","C",...]. */
 export function scaleNotes(tonic: string, type: string): string[] {
@@ -24,6 +62,10 @@ export function scaleNotes(tonic: string, type: string): string[] {
  * it renders the first as `F Edim Dm Edim` in F major and flattens the second's
  * leading tone. See `resolveNumeral` for the borrowing rule.
  *
+ * `scaleType` is any mode in `MODE_FAMILY`, so the same numerals recolour with
+ * the key: `[i, IV, i, VII]` gives `Dm G Dm C` in D dorian (the major IV is the
+ * mode's whole point) and `Dm Gm Dm C` in D minor.
+ *
  * progressionChords("A", ["i", "VI", "III", "VII"]) -> ["Am", "F", "C", "G"].
  */
 export function progressionChords(
@@ -33,7 +75,7 @@ export function progressionChords(
 ): string[] {
   const triads = diatonicTriads(tonic, scaleType);
   const scale = keyScale(tonic, scaleType);
-  const parallel = keyScale(tonic, scaleType === "major" ? "minor" : "major");
+  const parallel = keyScale(tonic, modeFamily(scaleType) === "major" ? "minor" : "major");
   return romanNumerals.map((rn) => resolveNumeral(rn, triads, scale, parallel));
 }
 
@@ -103,18 +145,44 @@ function triadQuality(symbol: string): "major" | "minor" | "diminished" | "augme
   return "major";
 }
 
-/** Diatonic triads of a key, indexed by scale degree (0 = tonic). */
+/**
+ * Diatonic triads of a key, indexed by scale degree (0 = tonic).
+ *
+ * Built by stacking thirds out of the scale itself rather than read off tonal's
+ * `Key` helpers, because those only know ionian and aeolian. Stacking works for
+ * any seven-note mode and gives the same answers for major/minor — D dorian's
+ * degree 4 comes out `A` where D aeolian's is `Am`, which *is* the mode.
+ */
 function diatonicTriads(tonic: string, scaleType: string): string[] {
-  if (scaleType === "minor") return Key.minorKey(tonic).natural.triads as string[];
-  if (scaleType === "major") return Key.majorKey(tonic).triads as string[];
-  throw new Error(`progressionChords supports major/minor keys, got "${scaleType}"`);
+  const scale = keyScale(tonic, scaleType);
+  return scale.map((root, degree) => {
+    const third = scale[(degree + 2) % scale.length]!;
+    const fifth = scale[(degree + 4) % scale.length]!;
+    return `${root}${triadSuffix(semitonesBetween(root, third), semitonesBetween(root, fifth))}`;
+  });
 }
 
-/** Pitch classes of a key's scale, indexed by degree. */
+/** Ascending semitone distance between two pitch classes (D -> C is 10, not -2). */
+function semitonesBetween(from: string, to: string): number {
+  const a = Note.chroma(from);
+  const b = Note.chroma(to);
+  if (a === undefined || b === undefined) throw new Error(`not a pitch class: "${from}"/"${to}"`);
+  return (b - a + 12) % 12;
+}
+
+/** Chord-symbol suffix for a triad's third + fifth, in semitones from the root. */
+function triadSuffix(third: number, fifth: number): string {
+  if (third === 4 && fifth === 7) return "";
+  if (third === 3 && fifth === 7) return "m";
+  if (third === 3 && fifth === 6) return "dim";
+  if (third === 4 && fifth === 8) return "aug";
+  throw new Error(`not a triad: third ${third}, fifth ${fifth} semitones`);
+}
+
+/** Pitch classes of a key's scale, indexed by degree. Modes only — see `MODE_FAMILY`. */
 function keyScale(tonic: string, scaleType: string): string[] {
-  if (scaleType === "minor") return Key.minorKey(tonic).natural.scale as string[];
-  if (scaleType === "major") return Key.majorKey(tonic).scale as string[];
-  throw new Error(`progressionChords supports major/minor keys, got "${scaleType}"`);
+  modeFamily(scaleType); // gate: keeps pentatonics/bebop scales out of triad stacking
+  return scaleNotes(tonic, scaleType);
 }
 
 /**
@@ -290,11 +358,16 @@ export function progressionIdiom(numerals: string[]): "major" | "minor" | null {
  * variants; this picks the one that fits instead of leaving it to the dice.
  * Falls back to the full list when nothing matches, so a genre with a single
  * idiom still composes.
+ *
+ * Matching is on the *family* of the mode, not its name: a dorian key takes the
+ * minor-idiom progressions, a mixolydian one the major-idiom set. The mode's own
+ * colour then comes from how the numerals resolve against its scale.
  */
 export function progressionsInIdiom(progressions: string[][], scaleType: string): string[][] {
+  const family = modeFamily(scaleType);
   const matching = progressions.filter((p) => {
     const idiom = progressionIdiom(p);
-    return idiom === null || idiom === scaleType;
+    return idiom === null || idiom === family;
   });
   return matching.length > 0 ? matching : progressions;
 }

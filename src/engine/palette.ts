@@ -26,11 +26,41 @@ import { DRUM_PIECES } from "./composition";
 import { validateGroove } from "./groove";
 
 // --- shared field schemas -------------------------------------------------
-const tonality = z.object({ tonic: z.string().min(1), scale: z.string().min(1) });
+/**
+ * Mode names harmony resolves — an emotion's `scale` and a genre's `mode` lean
+ * both draw from this list. `palette.test.ts` keeps it in step with `theory.ts`'s
+ * `SUPPORTED_MODES`, so a name the schema accepts but harmony can't resolve
+ * can't slip through to compose time.
+ */
+export const MODE_NAMES = [
+  "major",
+  "ionian",
+  "lydian",
+  "mixolydian",
+  "minor",
+  "aeolian",
+  "dorian",
+  "phrygian",
+  "locrian",
+] as const;
+const isMode = (s: string): boolean => (MODE_NAMES as readonly string[]).includes(s);
+
+const tonality = z.object({
+  tonic: z.string().min(1),
+  // A mode name, not free text: this scale is what `progressionChords` resolves
+  // numerals against, so an unresolvable one should fail at load, not at compose.
+  scale: z.string().min(1).refine(isMode, {
+    message: `must be a mode: ${MODE_NAMES.join(", ")}`,
+  }),
+});
 const progressions = z.array(z.array(z.string().min(1)).min(1)).min(1);
 const tempo = z.tuple([z.number().positive(), z.number().positive()]);
 const tags = z.array(z.string().min(1)).min(1);
 const instruments = z.array(z.string().min(1)).optional();
+
+/** Harmonic lean: any mode, or `either` for a genre that recolours both. */
+export const MODE_LEANS = [...MODE_NAMES, "either"] as const;
+const modeLean = z.enum(MODE_LEANS);
 
 /**
  * A genre's beat, in drum-machine step notation (see `groove.ts`). Shape is
@@ -111,7 +141,7 @@ export const genreSchema = base
     /** Optional signature progressions in roman numerals (major/minor-diatonic). */
     progressions: progressions.optional(),
     /** Harmonic lean, so the blend knows which mode this genre wants. */
-    mode: z.enum(["major", "minor", "either"]).optional(),
+    mode: modeLean.optional(),
     /** The beat. Optional — a genre defined by harmony alone needn't state one. */
     groove: groove.optional(),
     instruments,
@@ -147,7 +177,7 @@ export const genericSchema = base.extend({
   tonality: tonality.optional(),
   progressions: progressions.optional(),
   tempo: tempo.optional(),
-  mode: z.enum(["major", "minor", "either"]).optional(),
+  mode: modeLean.optional(),
   groove: groove.optional(),
   instruments,
   signal: z.array(z.string().min(1)).optional(),

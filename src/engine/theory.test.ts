@@ -4,6 +4,7 @@ import {
   progressionChords,
   progressionIdiom,
   progressionsInIdiom,
+  modeFamily,
   chordPitches,
   fitToBand,
   scaleLadder,
@@ -88,8 +89,73 @@ describe("progressionChords", () => {
     expect(() => progressionChords("A", ["nope"], "minor")).toThrow();
   });
 
-  it("throws on an unsupported scale", () => {
-    expect(() => progressionChords("A", ["i"], "dorian")).toThrow();
+  it("throws on a scale that isn't a mode", () => {
+    expect(() => progressionChords("A", ["i"], "harmonic minor")).toThrow(/unsupported mode/);
+    expect(() => progressionChords("A", ["i"], "major pentatonic")).toThrow(/unsupported mode/);
+  });
+});
+
+describe("progressionChords — modes", () => {
+  it("gives dorian its natural 6 where minor flattens it", () => {
+    // The whole point of dorian: the VI is B, not Bb.
+    expect(progressionChords("D", ["i", "VI", "i", "VII"], "dorian")).toEqual([
+      "Dm",
+      "B",
+      "Dm",
+      "C",
+    ]);
+    expect(progressionChords("D", ["i", "VI", "i", "VII"], "minor")).toEqual([
+      "Dm",
+      "Bb",
+      "Dm",
+      "C",
+    ]);
+  });
+
+  it("gives phrygian its b2 as a diatonic chord, not a borrowed one", () => {
+    expect(progressionChords("E", ["i", "II", "i"], "phrygian")).toEqual(["Em", "F", "Em"]);
+    expect(progressionChords("E", ["i", "II", "i"], "minor")).toEqual(["Em", "F#", "Em"]);
+  });
+
+  it("keeps lydian's #4 on the fourth degree", () => {
+    expect(progressionChords("C", ["I", "iv", "I"], "lydian")).toEqual(["C", "F#dim", "C"]);
+  });
+
+  it("resolves mixolydian's b7 as a plain diatonic VII", () => {
+    expect(progressionChords("G", ["I", "VII", "IV", "I"], "mixolydian")).toEqual([
+      "G",
+      "F",
+      "C",
+      "G",
+    ]);
+  });
+
+  it("aliases ionian/aeolian to major/minor", () => {
+    expect(progressionChords("C", ["I", "V", "vi", "IV"], "ionian")).toEqual([
+      ...progressionChords("C", ["I", "V", "vi", "IV"], "major"),
+    ]);
+    expect(progressionChords("A", ["i", "VI", "III", "VII"], "aeolian")).toEqual([
+      ...progressionChords("A", ["i", "VI", "III", "VII"], "minor"),
+    ]);
+  });
+
+  it("resolves locrian's diminished tonic instead of faking a triad", () => {
+    expect(progressionChords("B", ["i", "IV", "i"], "locrian")).toEqual(["Bdim", "E", "Bdim"]);
+  });
+});
+
+describe("modeFamily", () => {
+  it("files each mode by the quality of its tonic triad", () => {
+    expect(modeFamily("dorian")).toBe("minor");
+    expect(modeFamily("phrygian")).toBe("minor");
+    expect(modeFamily("aeolian")).toBe("minor");
+    expect(modeFamily("lydian")).toBe("major");
+    expect(modeFamily("mixolydian")).toBe("major");
+    expect(modeFamily("ionian")).toBe("major");
+  });
+
+  it("throws on anything that isn't a supported mode", () => {
+    expect(() => modeFamily("blues")).toThrow(/unsupported mode/);
   });
 });
 
@@ -129,6 +195,16 @@ describe("progressionsInIdiom", () => {
   it("falls back to the full list when a genre has only one idiom", () => {
     const minorOnly = [["i", "VII", "VI", "VII"]];
     expect(progressionsInIdiom(minorOnly, "major")).toEqual(minorOnly);
+  });
+
+  it("matches a mode by its family, not its name", () => {
+    // Dorian has a minor tonic, so it takes the minor-idiom set; mixolydian's is
+    // major. Neither mode names an idiom of its own.
+    expect(progressionsInIdiom(lofi, "dorian")).toEqual([["i", "VI", "ii", "V"]]);
+    expect(progressionsInIdiom(lofi, "mixolydian")).toEqual([
+      ["ii", "V", "I", "I"],
+      ["I", "vi", "ii", "V"],
+    ]);
   });
 
   it("keeps idiom-agnostic progressions in either key", () => {

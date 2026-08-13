@@ -223,6 +223,46 @@ describe("melody", () => {
   });
 });
 
+describe("modal keys", () => {
+  const dorian: Palette = parsePalette(`---
+slug: seafarer
+title: Seafarer
+tags: [folk, sea]
+tonality:
+  tonic: D
+  scale: dorian
+progressions:
+  - [i, VII, i, IV]
+tempo: [96, 96]
+instruments: [piano, pad]
+---
+body`);
+
+  it("plays the mode's own chords, not its parallel minor's", () => {
+    const comp = composeFromPalette(dorian, "modal harmony");
+    const pad = trackNotes(comp, "pad");
+    const pitchClasses = new Set(pad.map((n) => n.pitch.replace(/\d+$/, "")));
+    // The IV is G major and the melody's 6th is B natural — Bb anywhere means
+    // the key collapsed back to D minor.
+    expect(pitchClasses.has("B")).toBe(true);
+    expect(pitchClasses.has("Bb")).toBe(false);
+  });
+
+  it("draws the melody from the mode's ladder", () => {
+    const comp = composeFromPalette(dorian, "modal melody");
+    const dDorian = new Set(["D", "E", "F", "G", "A", "B", "C"]);
+    const melody = comp.tracks.at(-1)!.notes;
+    expect(melody.length).toBeGreaterThan(0);
+    for (const note of melody) {
+      expect(dDorian.has(note.pitch.replace(/\d+$/, ""))).toBe(true);
+    }
+  });
+
+  it("records the mode in the composition's key", () => {
+    expect(composeFromPalette(dorian, "key line").key).toBe("D dorian");
+  });
+});
+
 describe("composeFromPalette", () => {
   it("produces a structurally valid composition", () => {
     expect(validateComposition(composeFromPalette(sad, "dog dies"))).toEqual([]);

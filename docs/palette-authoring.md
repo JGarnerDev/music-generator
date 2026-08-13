@@ -92,7 +92,7 @@ title: Jazz
 tags: [jazz, swing, ...]
 parent: <slug>                 # optional: makes this a subtype of another genre
 tempo: [80, 132]               # required, unless `parent` supplies it
-mode: either                   # optional: major | minor | either — the harmonic lean
+mode: either                   # optional harmonic lean: any mode name, or `either`
 progressions:                  # optional signature progressions
   - [ii, V, I]
 groove:                        # optional: the beat, in step notation
@@ -154,9 +154,15 @@ Rules (small on purpose, all unit-tested):
 - Files stay in `palettes/<kind>/` regardless of depth — the folder is the kind,
   and `parent:` carries the hierarchy. There is no subtype folder.
 - Write the prose body: *when to reach for it* and *how to voice it*. Keep it short.
-- **Rules:** emotion `scale` is still major or minor (the engine has no modes yet —
-  see progress.md). Progressions, though, are read as written: **numeral case and
-  accidentals are instructions, not decoration.**
+- **Rules:** emotion `scale` (and a genre's `mode`) is any church mode —
+  `major`/`ionian`, `dorian`, `phrygian`, `lydian`, `mixolydian`,
+  `minor`/`aeolian`, `locrian`. Anything else fails at load. Numerals resolve
+  against the mode's own scale, so `[i, VII, i, IV]` in D dorian gives
+  `Dm C Dm G` — the natural-6 major IV that makes it dorian rather than D minor.
+  A mode is filed as major- or minor-idiom by its tonic triad, and that is what
+  progression-picking matches on (`locrian`'s tonic is diminished — it resolves,
+  but nothing will make it cadence). Progressions are read as written: **numeral
+  case and accidentals are instructions, not decoration.**
   - Uppercase = major triad, lowercase = minor. `[i, iv, i, V]` gets the major V of
     a harmonic-minor cadence; write `v` if you want the natural-minor one.
   - An uppercase numeral on a degree that isn't diatonically major **borrows** —
@@ -171,5 +177,7 @@ Rules (small on purpose, all unit-tested):
     major emotion. That is deliberate — see `resolveNumeral` in
     [`src/engine/theory.ts`](../src/engine/theory.ts) — but the melody is still
     drawn from the emotion's scale, so a mode-crossed blend can rub. Prefer
-    pairing a genre with an emotion whose scale matches its `mode`.
+    pairing a genre with an emotion whose scale matches its `mode` — and now that
+    modes resolve, a modal genre should say so (`mode: dorian`) instead of
+    describing the colour in prose.
 - Timbre never carries harmony; that belongs to emotion/genre.
