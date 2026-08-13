@@ -13,35 +13,9 @@ status: living
 Ordered by priority. **P0** = foundation is incomplete without it. **P1** = makes
 the core loop good. **P2** = depth/polish. **P3** = nice-to-have / speculative.
 
-Legend: `[ ]` todo · `[~]` in progress · `[x]` done.
-
-## Done (v0.1 scaffold)
-
-- [x] Vite + TS + vitest project, path aliases, gitignore.
-- [x] Composition JSON contract + `validateComposition` (tested).
-- [x] Theory helpers over tonal: scales, diatonic progressions, voicings (tested).
-- [x] Palette parse + tag match, `palettes/sad.md` demo (tested).
-- [x] Timing + arrangement math, seeded RNG, WAV encoder (all tested).
-- [x] Browser bench: Play / Stop / Export WAV via offline render.
-- [x] Scripts: `composition:validate`, `palette:new` (named flags).
-- [x] readme / claude routers with frontmatter.
-
----
-
-## P0 — Core loop must-haves
-
-- [ ] **Composer engine** (`src/engine/composer.ts`, tested). Input: palette +
-      mood string + seed → output: valid Composition JSON. Uses progressions,
-      voicings, seeded RNG for melody/rhythm. This is the heart — turns "sad dog
-      scene" into a playable piece without hand-authoring JSON.
-- [ ] **`compose` script** (`npm run compose -- --palette sad --seed "dog dies"`).
-      Writes `compositions/<name>.json`, validates it. The everyday entry point.
-- [ ] **Palette loader from disk** (`src/engine/palette-loader.ts`, tested with a
-      fixtures dir). Reads all `palettes/*.md`, parses, exposes `matchPalettes`.
-      App + scripts share it. Right now matching logic exists but nothing loads
-      files.
-- [ ] **App: pick/drop a composition** — load any `compositions/*.json` from a
-      dropdown or file input, not just the hard-coded demo import.
+Legend: `[ ]` todo · `[~]` in progress. **Delete an item once it's done** — this
+doc is the *remaining* backlog, not a changelog. Git history is the record of what
+shipped; keep this list short and forward-looking.
 
 ## P1 — Make the core loop *good*
 

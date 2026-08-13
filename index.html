@@ -19,6 +19,26 @@
       h1 { font-size: 1.1rem; color: #b6a6e6; letter-spacing: 0.02em; }
       #title { opacity: 0.85; margin-bottom: 1rem; }
       .row { display: flex; gap: 0.6rem; margin-bottom: 1rem; }
+      select {
+        flex: 1;
+        padding: 0.6rem 0.7rem;
+        background: #2a2440;
+        color: #e8e4f0;
+        border: 1px solid #443a66;
+        border-radius: 8px;
+        font: inherit;
+      }
+      #drop {
+        border: 1px dashed #443a66;
+        border-radius: 8px;
+        padding: 0.9rem;
+        text-align: center;
+        font-size: 0.85rem;
+        opacity: 0.6;
+        margin-bottom: 1rem;
+        cursor: pointer;
+      }
+      #drop.over { border-color: #b6a6e6; opacity: 1; background: #221d33; }
       button {
         flex: 1;
         padding: 0.7rem 1rem;
@@ -38,6 +58,11 @@
     <main>
       <h1>music-generator · workshop bench</h1>
       <div id="title">loading…</div>
+      <div class="row">
+        <select id="composition" aria-label="Choose a composition"></select>
+      </div>
+      <div id="drop">Drop a composition .json here, or click to browse</div>
+      <input id="file" type="file" accept="application/json,.json" hidden />
       <div class="row">
         <button id="play">▶ Play</button>
         <button id="stop">■ Stop</button>
