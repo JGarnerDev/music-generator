@@ -2,7 +2,7 @@
 title: Progress & Roadmap
 purpose: Prioritized backlog of what to build. Living doc — check items off, reorder as reality shifts.
 audience: [claude, human]
-updated: 2026-08-12
+updated: 2026-08-13
 read_order: 2
 see_also: [readme.md, docs/vision.md]
 status: living
@@ -17,13 +17,28 @@ Legend: `[ ]` todo · `[~]` in progress. **Delete an item once it's done** — t
 doc is the *remaining* backlog, not a changelog. Git history is the record of what
 shipped; keep this list short and forward-looking.
 
+## P0 — App architecture & hosting
+
+- [ ] **Split the web app into its own deployable folder.** Composition happens
+      through Claude in the repo; the app only needs to *play and export*. Carve
+      `src/app` (+ its entry/HTML/build config) into a self-contained package so
+      it deploys without the generation toolchain (`scripts/`, palette loader,
+      `src/engine`'s authoring path) riding along.
+- [ ] **Migrate the app to React.** Adopt a practical `components/` `hooks/`
+      `helpers/` layout inside the app package. Keep audio glue thin — engine
+      logic still belongs in `src/engine`/`src/utils` with tests.
+- [ ] **Host on Cloudflare.** Deploy the split app (Pages/Workers) so it's usable
+      from a phone, not just `npm run dev` on the desktop.
+
 ## P1 — Make the core loop *good*
 
 - [ ] **Genre & timbre breadth.** The blend resolver ships
       (`src/engine/blend.ts`, `compose --with`); now feed it. Only seed exemplars
       exist (`jazz`, `funk`; `analog-synth`, `brown-sound`). Author the genres/
       timbres it will lean on: `rock`, `hiphop`, `ambient`, `cinematic`; more
-      signature timbres.
+      signature timbres. Grow `palettes/` in breadth *and* shape — more entries
+      per kind, and new sub-folders beyond `emotion`/`genre`/`timbre` where a
+      dimension doesn't fit the existing three.
 - [ ] **Blend depth.** v1 maps a timbre only to two coarse voices (`padVoice`/
       `leadVoice`, piano>epiano>pluck) + lo-fi nudges — a guitar timbre still leads
       on piano. Make voice selection honor timbre intent, and let genre `mode`/feel
@@ -47,6 +62,10 @@ shipped; keep this list short and forward-looking.
 - [ ] **Waveform / piano-roll preview** in the bench for quick visual feedback.
 - [ ] **`docs/` progressive-disclosure set**: `composition-spec.md`,
       `palette-authoring.md`, `lofi-chain.md` — split out of README as they grow.
+- [ ] **In-app song-idea submission.** Let the user type a text prompt/idea in the
+      hosted app and have it persist somewhere free and low-friction (e.g. a
+      Cloudflare KV/D1 binding, or an issue/gist write) for Claude to pick up and
+      compose from later. Depends on the Cloudflare host.
 - [ ] **Melody quality passes.** Motif repetition, tension/resolution, phrase
       contour rules so generated tunes feel composed, not random.
 
