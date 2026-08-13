@@ -13,7 +13,6 @@
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve, basename, dirname } from "node:path";
 import { Command } from "commander";
-import { Note as TonalNote } from "tonal";
 import { COMPOSITION_KINDS, isCompositionKind } from "../src/engine/library";
 import {
   validateComposition,
@@ -23,8 +22,9 @@ import {
   type Track,
 } from "../src/engine/composition";
 import { gallopLine, powerChordGallop, sustainLine, tremoloLine } from "../src/engine/riff";
+import { approachNotes } from "../src/engine/parts";
 import { grooveNotes, validateGroove, type Groove } from "../src/engine/groove";
-import { chordPitches, transpose } from "../src/engine/theory";
+import { chordPitches, fitToBand, transpose } from "../src/engine/theory";
 
 const BEATS_PER_BAR = 4;
 /** Bass roots are fitted into one tight octave so the riff never jumps register. */
@@ -155,7 +155,9 @@ function buildComposition(plan: Plan): Composition {
   const bars = plan.sections.flatMap((s) => s.chords);
   const loopStartBar = findLoopStart(plan);
   const bassRoots = bars.map((chord) => fitToBand(rootOf(chord), BASS_BAND));
-  const approaches = buildApproaches(bassRoots, loopStartBar);
+  // The last bar approaches the *loop start*, not the intro — that is the bar
+  // that actually follows it on every lap but the first.
+  const approaches = approachNotes(bassRoots, loopStartBar);
 
   const voices: Voices = { pad: [], bass: [], rhythm: [], lead: [], piano: [], drums: [] };
 
@@ -230,26 +232,6 @@ function findLoopStart(plan: Plan): number | null {
   }
   console.error(`loopFrom "${plan.loopFrom}" matches no section id`);
   process.exit(2);
-}
-
-/**
- * A chromatic step into each following root — the detail that stops a repeated
- * riff sounding like a stuck record.
- *
- * The last bar of the loop approaches the *loop start*, not the intro, because
- * that is the bar that actually follows it on every lap but the first. Getting
- * this wrong is audible: the seam is the one bar the listener hears most.
- */
-function buildApproaches(roots: string[], loopStartBar: number | null): (string | null)[] {
-  return roots.map((root, i) => {
-    const isLastBar = i === roots.length - 1;
-    const nextIndex = isLastBar ? loopStartBar : i + 1;
-    if (nextIndex === null) return null;
-    const next = roots[nextIndex];
-    if (next === undefined || next === root) return null;
-    // step down onto a lower target, up onto a higher one
-    return transpose(next, midi(next) < midi(root) ? 1 : -1);
-  });
 }
 
 function buildSection(ctx: SectionContext, voices: Voices): void {
@@ -425,16 +407,3 @@ function rootOf(chordSymbol: string): string {
   return chordPitches(chordSymbol, 2)[0]!;
 }
 
-/** Shift by octaves until the pitch sits inside a MIDI band, keeping its pitch class. */
-function fitToBand(pitch: string, [low, high]: [number, number]): string {
-  let p = pitch;
-  while (midi(p) < low) p = transpose(p, 12);
-  while (midi(p) > high) p = transpose(p, -12);
-  return p;
-}
-
-function midi(pitch: string): number {
-  const n = TonalNote.midi(pitch);
-  if (n === null) throw new Error(`not a pitch: "${pitch}"`);
-  return n;
-}

@@ -39,6 +39,38 @@ export function notationToSeconds(notation: string, bpm: number): number {
   return beats * spb;
 }
 
+/**
+ * Longest note value that fits in a span of sixteenths, from longest down.
+ * Anything not in the table falls back to the largest entry that fits, so an
+ * awkward 5-sixteenth gap rings for 4 and leaves a hair of space rather than
+ * overlapping the next note.
+ */
+const NOTATION_BY_SIXTEENTHS: ReadonlyArray<readonly [number, string]> = [
+  [16, "1m"],
+  [12, "2n."],
+  [8, "2n"],
+  [6, "4n."],
+  [4, "4n"],
+  [3, "8n."],
+  [2, "8n"],
+  [1, "16n"],
+];
+
+/**
+ * A length in sixteenths → the note notation that fills it. The inverse of
+ * `notationToSeconds` for the grid-aligned lengths a step sequencer produces:
+ * a part built from step strings knows its durations in steps, but a `Note`
+ * carries notation.
+ */
+export function sixteenthsToNotation(sixteenths: number): string {
+  const n = Math.floor(sixteenths);
+  if (!Number.isFinite(n) || n < 1) {
+    throw new Error(`length must be at least one sixteenth, got ${sixteenths}`);
+  }
+  if (n % 16 === 0) return `${n / 16}m`;
+  return NOTATION_BY_SIXTEENTHS.find(([len]) => len <= n)![1];
+}
+
 /** Convert "bars:beats:sixteenths" transport time to seconds. Missing parts = 0. */
 export function barsBeatsToSeconds(time: string, bpm: number): number {
   const parts = time.trim().split(":");

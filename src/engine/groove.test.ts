@@ -1,8 +1,39 @@
 import { describe, it, expect } from "vitest";
-import { grooveNotes, validateGroove, grooveBars, type Groove } from "./groove";
+import { grooveNotes, stepEvents, validateGroove, grooveBars, type Groove } from "./groove";
 import { validateComposition } from "./composition";
 
 const fourOnTheFloor: Groove = { patterns: { kick: "X...x...X...x..." } };
+
+describe("stepEvents", () => {
+  it("reports the absolute step index alongside the time", () => {
+    const events = stepEvents("X...x...........", { startBar: 0, bars: 2 });
+    expect(events.map((e) => [e.step, e.time])).toEqual([
+      [0, "0:0:0"],
+      [4, "0:1:0"],
+      [16, "1:0:0"],
+      [20, "1:1:0"],
+    ]);
+  });
+
+  it("applies the same swing the kit gets, so pitched parts lock to it", () => {
+    const events = stepEvents("x.x.x.x.x.x.x.x.", {
+      startBar: 0,
+      bars: 1,
+      swing: 1,
+      swingUnit: "8n",
+    });
+    expect(events.map((e) => e.time).slice(0, 4)).toEqual([
+      "0:0:0",
+      "0:0:2.6667",
+      "0:1:0",
+      "0:1:2.6667",
+    ]);
+  });
+
+  it("is empty for an empty pattern rather than throwing", () => {
+    expect(stepEvents("", { startBar: 0, bars: 4 })).toEqual([]);
+  });
+});
 
 describe("grooveNotes", () => {
   it("places one note per struck step, on the beat", () => {

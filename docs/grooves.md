@@ -72,7 +72,15 @@ all, so it plays perfectly straight and the palette looks like it did nothing.
    crashes on the final tonic bar. An emotion palette states no groove, so
    `--palette sad` alone stays a bare piano piece; `--with lofi` arrives with a
    kit.
-3. [`src/app/drums.ts`](../src/app/drums.ts) plays it. Per-piece levels live
+3. **The groove also decides how the harmony is played.** The bass takes the
+   kick lane as its own pattern (via `parts.ts:bassPatternFromKick`), so bass and
+   kick land together — most of what "tight" means. The kick+snare density then
+   picks the chord rhythm: a busy kit gets pushed off-beat stabs, a moderate one
+   gets backbeat comping, no kit at all gets sustained chords. And the swing is
+   shared, because a bass on its own grid under a shuffled kit flams on every
+   off-beat. This is why `--with funk` changes the chords' *feel* without funk
+   having to describe it twice.
+4. [`src/app/drums.ts`](../src/app/drums.ts) plays it. Per-piece levels live
    there, not in the pattern: a groove says *where* the hits are and how they're
    accented, while how loud a hat sits under a kick is a property of the kit.
 

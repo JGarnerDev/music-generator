@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { composeFromPalette, composeFromBlend } from "./composer";
 import { blendPalettes } from "./blend";
 import { parsePalette, type Palette } from "./palette";
-import { validateComposition } from "./composition";
+import { validateComposition, type Composition, type Note } from "./composition";
 
 const sad: Palette = parsePalette(`---
 slug: sad
@@ -35,6 +35,120 @@ groove:
 ---
 body`);
 
+const busyBeat: Palette = parsePalette(`---
+kind: genre
+slug: funk
+title: Funk
+tags: [funk]
+tempo: [95, 110]
+groove:
+  patterns:
+    kick: "X..x..X...x..x.."
+    snare: "....X.......X..x"
+    hat: "x.x.x.x.x.x.x.x."
+---
+body`);
+
+const barOf = (note: Note): number => Number(note.time.split(":")[0]);
+const trackNotes = (comp: Composition, instrument: string): Note[] =>
+  comp.tracks.filter((t) => t.instrument === instrument).flatMap((t) => t.notes);
+
+describe("form", () => {
+  it("states the progression twice and lands on a tonic bar", () => {
+    // [i, VI, III, VII] and [i, iv, i, V] are both 4 bars: 4 + 4 + resolution.
+    const comp = composeFromPalette(sad, "two passes");
+    const lastBar = Math.max(...comp.tracks.flatMap((t) => t.notes.map(barOf)));
+    expect(lastBar).toBe(8);
+  });
+
+  it("resolves every voice together on the final bar", () => {
+    const comp = composeFromPalette(sad, "landing");
+    const final = comp.tracks.flatMap((t) => t.notes.filter((n) => barOf(n) === 8));
+    expect(final.every((n) => n.time === "8:0:0")).toBe(true);
+    expect(trackNotes(comp, "bass").at(-1)!.pitch).toBe("A2");
+  });
+
+  it("voice-leads the chords instead of leaping to root position each bar", () => {
+    // One progression, so the assertion doesn't depend on which the seed picks.
+    const aeolian: Palette = parsePalette(`---
+slug: aeolian
+title: Aeolian
+tags: [aeolian]
+tonality:
+  tonic: A
+  scale: minor
+progressions:
+  - [i, VI, III, VII]
+tempo: [70, 70]
+instruments: [piano, pad]
+---
+body`);
+    // Am -> F holds A and C; root position would restate the whole hand lower.
+    const bar1 = trackNotes(composeFromPalette(aeolian, "smooth"), "pad").filter(
+      (n) => barOf(n) === 1,
+    );
+    expect(new Set(bar1.map((n) => n.pitch))).toEqual(new Set(["A2", "C3", "F3"]));
+  });
+});
+
+describe("layers", () => {
+  it("always writes a bass — the bottom the old composer had none of", () => {
+    const bass = trackNotes(composeFromPalette(sad, "bottom"), "bass");
+    expect(bass.length).toBeGreaterThan(0);
+    // A1..A2, the one octave `parts` fits roots into.
+    for (const note of bass) expect(note.pitch).toMatch(/^[A-G][b#]?[12]$/);
+  });
+
+  it("locks the bass to the kick when the blend has one", () => {
+    const comp = composeFromBlend(blendPalettes([sad, withBeat]), "locked");
+    const kicks = new Set(
+      trackNotes(comp, "drums")
+        .filter((n) => n.pitch === "kick" && barOf(n) < 8)
+        .map((n) => n.time),
+    );
+    const bassHits = trackNotes(comp, "bass").filter((n) => barOf(n) < 8);
+    expect(bassHits.length).toBeGreaterThan(0);
+    for (const hit of bassHits) expect(kicks.has(hit.time)).toBe(true);
+  });
+
+  it("comps the harmony in rhythm rather than one block chord per bar", () => {
+    const comp = composeFromBlend(blendPalettes([sad, withBeat]), "comping");
+    const chordHits = new Set(
+      trackNotes(comp, "piano")
+        .filter((n) => barOf(n) === 0)
+        .map((n) => n.time),
+    );
+    expect(chordHits.size).toBeGreaterThan(1);
+  });
+
+  it("plays the chords in the busy genre's feel, not the quiet one's", () => {
+    const quiet = composeFromBlend(blendPalettes([sad, withBeat]), "feel");
+    const busy = composeFromBlend(blendPalettes([sad, busyBeat]), "feel");
+    const times = (c: Composition) =>
+      new Set(
+        trackNotes(c, "piano")
+          .filter((n) => barOf(n) === 0)
+          .map((n) => n.time),
+      );
+    expect(times(quiet)).not.toEqual(times(busy));
+  });
+
+  it("arranges the restatement up rather than repeating it flat", () => {
+    const comp = composeFromBlend(blendPalettes([sad, withBeat]), "restate");
+    const notesIn = (lo: number, hi: number) =>
+      comp.tracks.flatMap((t) => t.notes.filter((n) => barOf(n) >= lo && barOf(n) < hi)).length;
+    expect(notesIn(4, 8)).toBeGreaterThan(notesIn(0, 4));
+  });
+
+  it("swings the pitched parts with the kit, not against it", () => {
+    const comp = composeFromBlend(blendPalettes([sad, withBeat]), "swung");
+    const swungDrums = trackNotes(comp, "drums").some((n) => n.time.includes("."));
+    const swungBass = trackNotes(comp, "bass").some((n) => n.time.includes("."));
+    expect(swungDrums).toBe(true);
+    expect(swungBass).toBe(true);
+  });
+});
+
 describe("drum track", () => {
   it("stays drumless when no layer states a groove", () => {
     const comp = composeFromPalette(sad, "quiet farewell");
@@ -51,22 +165,67 @@ describe("drum track", () => {
     expect(validateComposition(comp)).toEqual([]);
   });
 
-  it("covers every bar of the progression and crashes on the resolution", () => {
+  it("covers every bar of the form and crashes on the resolution", () => {
     const comp = composeFromBlend(blendPalettes([sad, withBeat]), "rainy window");
     const drums = comp.tracks.find((t) => t.instrument === "drums")!;
-    const lastBar = Number(comp.tracks[1]!.notes.at(-1)!.time.split(":")[0]);
-    const bars = new Set(drums.notes.map((n) => Number(n.time.split(":")[0])));
+    const lastBar = Math.max(...comp.tracks.flatMap((t) => t.notes.map(barOf)));
+    const bars = new Set(drums.notes.map(barOf));
     expect(bars.size).toBe(lastBar + 1);
     expect(drums.notes.filter((n) => n.pitch === "crash").map((n) => n.time)).toEqual([
       `${lastBar}:0:0`,
     ]);
   });
+
+  it("plays the restatement harder than the statement", () => {
+    const comp = composeFromBlend(blendPalettes([sad, withBeat]), "lift");
+    const drums = trackNotes(comp, "drums");
+    const loudest = (lo: number, hi: number) =>
+      Math.max(...drums.filter((n) => barOf(n) >= lo && barOf(n) < hi).map((n) => n.velocity!));
+    expect(loudest(4, 8)).toBeGreaterThan(loudest(0, 4));
+  });
+});
+
+describe("melody", () => {
+  it("answers the statement with the motif inverted, not a new tune", () => {
+    const comp = composeFromPalette(sad, "call and response");
+    const melody = comp.tracks.at(-1)!.notes;
+    const rhythm = (bar: number) =>
+      melody.filter((n) => barOf(n) === bar).map((n) => n.time.split(":").slice(1).join(":"));
+    // Same rhythm across the form — it is one idea restated, so the phrase
+    // placement holds even though the contour flips.
+    expect(rhythm(4)).toEqual(rhythm(0));
+  });
+
+  it("starts each bar on a tone of that bar's chord", () => {
+    const comp = composeFromPalette(sad, "chord tones");
+    const melody = comp.tracks.at(-1)!.notes;
+    const pad = trackNotes(comp, "pad");
+    for (const bar of [0, 1, 2, 3]) {
+      const chordTones = new Set(
+        pad.filter((n) => barOf(n) === bar).map((n) => n.pitch.replace(/\d+$/, "")),
+      );
+      const first = melody.find((n) => barOf(n) === bar)!;
+      expect(chordTones.has(first.pitch.replace(/\d+$/, ""))).toBe(true);
+    }
+  });
+
+  it("stays in key: every melody pitch is a scale tone", () => {
+    const comp = composeFromPalette(sad, "stepwise");
+    const aMinor = new Set(["A", "B", "C", "D", "E", "F", "G"]);
+    // Only the melody is scale-bound. Chord voicings legitimately carry
+    // accidentals — `[i, iv, i, V]` resolves its V as a major triad, so the
+    // harmonic-minor leading tone G# shows up there.
+    const melody = comp.tracks.at(-1)!.notes;
+    expect(melody.length).toBeGreaterThan(0);
+    for (const note of melody) {
+      expect(aMinor.has(note.pitch.replace(/\d+$/, ""))).toBe(true);
+    }
+  });
 });
 
 describe("composeFromPalette", () => {
   it("produces a structurally valid composition", () => {
-    const comp = composeFromPalette(sad, "dog dies");
-    expect(validateComposition(comp)).toEqual([]);
+    expect(validateComposition(composeFromPalette(sad, "dog dies"))).toEqual([]);
   });
 
   it("is deterministic for the same inputs", () => {
@@ -94,19 +253,6 @@ describe("composeFromPalette", () => {
     expect(composeFromPalette(sad, "x", { name: "custom" }).name).toBe("custom");
   });
 
-  it("stays in key: every melody pitch is a scale tone", () => {
-    const comp = composeFromPalette(sad, "stepwise");
-    const aMinor = new Set(["A", "B", "C", "D", "E", "F", "G"]);
-    // Only the stepwise melody (quarter notes off the ladder) is scale-bound.
-    // Chord voicings legitimately carry accidentals — `[i, iv, i, V]` resolves its
-    // V as a major triad, so the harmonic-minor leading tone G# shows up there.
-    const melody = comp.tracks.flatMap((t) => t.notes.filter((n) => n.duration === "4n"));
-    expect(melody.length).toBeGreaterThan(0);
-    for (const note of melody) {
-      expect(aMinor.has(note.pitch.replace(/\d+$/, ""))).toBe(true);
-    }
-  });
-
   it("picks a progression in the key's own idiom", () => {
     // The major-idiom turnaround would resolve to a Picardy A-major tonic here;
     // the minor-idiom one is the right pick for a minor emotion.
@@ -126,8 +272,12 @@ instruments: [piano, pad]
 body`);
     for (const seed of ["1", "2", "3", "4", "5"]) {
       const comp = composeFromPalette(mixed, "idiom", { seed });
-      const opening = comp.tracks[1]!.notes.filter((n) => n.time === "0:0").map((n) => n.pitch);
-      expect(opening).toEqual(["A3", "C4", "E4"]); // Am, never A major
+      const opening = trackNotes(comp, "piano")
+        .filter((n) => barOf(n) === 0)
+        .map((n) => n.pitch);
+      // Am, never A major — the C natural is the tell.
+      expect(opening).toContain("C4");
+      expect(opening).not.toContain("C#4");
     }
   });
 });

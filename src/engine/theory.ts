@@ -139,6 +139,136 @@ export function chordPitches(chordSymbol: string, startOctave = 3): string[] {
 }
 
 /**
+ * A scale as concrete ascending pitches — the ladder a stepwise melody climbs.
+ *
+ * The subtlety is the octave number. Naming every pitch class in one octave
+ * (`F4 G4 A4 Bb4 C4 D4 E4`) looks right and is not: C4 sits *below* F4, so a
+ * melody stepping "up" the list drops a seventh in the middle of every scale.
+ * Only C major hides the bug. The octave advances where the scale passes back
+ * through C, because that is where scientific pitch notation increments it.
+ *
+ * The wrap is decided on the **letter**, not the chroma: `Cb` sounds a semitone
+ * below `C` but is still a C, so `Cb4` is the octave above `Bb3` by name even
+ * though its chroma (11) says otherwise. Eb minor is the scale that catches it.
+ *
+ * `scaleLadder("F", "major", 4, 4)` -> F4 G4 A4 Bb4 C5 D5 E5.
+ */
+export function scaleLadder(
+  tonic: string,
+  scaleType: string,
+  loOctave: number,
+  hiOctave: number,
+): string[] {
+  const pitchClasses = scaleNotes(tonic, scaleType);
+  const tonicStep = letterStep(tonic);
+  const ladder: string[] = [];
+
+  for (let octave = loOctave; octave <= hiOctave; octave++) {
+    for (const pc of pitchClasses) {
+      const wrapped = letterStep(pc) < tonicStep;
+      ladder.push(`${pc}${octave + (wrapped ? 1 : 0)}`);
+    }
+  }
+  return ladder;
+}
+
+/** Letter index of a pitch class, C=0 … B=6 — what the octave number counts. */
+function letterStep(pitchClass: string): number {
+  const step = Note.get(pitchClass).step;
+  if (step === undefined) throw new Error(`not a pitch class: "${pitchClass}"`);
+  return step;
+}
+
+/**
+ * The same chord, revoiced to sit near where the last one was — the difference
+ * between a pianist and a machine.
+ *
+ * `chordPitches` always builds root-position upward from a fixed octave, so
+ * `Am → F` drops the whole hand a third and every chord change is heard as a
+ * leap. Real voice leading keeps common tones where they are and moves the rest
+ * by a step. This tries each inversion (and its octave neighbours), scores it by
+ * how far the voices travel from `previous`, and keeps the cheapest.
+ *
+ * The *distance* is what's minimised, not the register: `startOctave` only
+ * anchors the very first chord, when there is no previous voicing to move from.
+ */
+export function voiceLead(
+  chordSymbol: string,
+  previous: string[] | null,
+  startOctave = 3,
+): string[] {
+  const base = chordPitches(chordSymbol, startOctave);
+  if (previous === null || previous.length === 0) return base;
+
+  const prevMidi = previous.map(pitchToMidi);
+  let best = base;
+  let bestCost = Infinity;
+
+  // Every rotation of the chord, in every octave that could plausibly be near
+  // the previous voicing. Small search: 3-4 notes × 3 octaves.
+  for (let rotation = 0; rotation < base.length; rotation++) {
+    const rotated = rotate(base, rotation);
+    for (const shift of [-12, 0, 12]) {
+      const candidate = rotated.map((p) => transpose(p, shift));
+      const cost = voicingDistance(candidate.map(pitchToMidi), prevMidi);
+      // Ties go to the earlier candidate, which keeps the result deterministic
+      // and prefers the less-inverted voicing.
+      if (cost < bestCost) {
+        bestCost = cost;
+        best = candidate;
+      }
+    }
+  }
+  return best;
+}
+
+/**
+ * Total semitone travel from one voicing to the next, each note costed against
+ * its nearest neighbour in the previous chord. Nearest-neighbour rather than
+ * index-to-index because the chords may not have the same number of voices, and
+ * a held common tone should cost nothing whichever position it moved to.
+ */
+function voicingDistance(candidate: number[], previous: number[]): number {
+  return candidate.reduce((sum, note) => {
+    const nearest = Math.min(...previous.map((p) => Math.abs(p - note)));
+    return sum + nearest;
+  }, 0);
+}
+
+/** Rotate a voicing up: the bottom note moves an octave above the top. */
+function rotate(pitches: string[], by: number): string[] {
+  let out = pitches;
+  for (let i = 0; i < by; i++) {
+    const [lowest, ...rest] = out;
+    out = [...rest, transpose(lowest!, 12)];
+  }
+  return out;
+}
+
+/** MIDI number of a pitch, throwing on anything that isn't one. */
+export function pitchToMidi(pitch: string): number {
+  const n = Note.midi(pitch);
+  if (n === null) throw new Error(`not a pitch: "${pitch}"`);
+  return n;
+}
+
+/**
+ * Shift a pitch by whole octaves until it sits inside a MIDI band, keeping its
+ * pitch class — how a bass line stays in one register while its roots wander.
+ *
+ * A band narrower than an octave can't hold every pitch class; there the result
+ * lands just under `low` rather than looping forever. Give bands an octave of
+ * room and this doesn't come up.
+ */
+export function fitToBand(pitch: string, [low, high]: [number, number]): string {
+  if (low > high) throw new Error(`empty band: [${low}, ${high}]`);
+  let p = pitch;
+  while (pitchToMidi(p) < low) p = transpose(p, 12);
+  while (pitchToMidi(p) > high) p = transpose(p, -12);
+  return p;
+}
+
+/**
  * Which idiom a progression is written in, read off the case of its tonic numeral
  * (`[i, VII, VI]` -> minor, `[I, vi, ii, V]` -> major). Returns null when the
  * progression never states a tonic, so callers can treat it as idiom-agnostic.

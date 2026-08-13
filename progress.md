@@ -79,7 +79,8 @@ shipped; keep this list short and forward-looking.
       `leadVoice`, piano>epiano>pluck) + lo-fi nudges — a guitar timbre still leads
       on piano (reproducer: `--palette battle --with metal,brown-sound` resolves
       to piano/pad). Make voice selection honor timbre intent. (Genre feel now
-      shapes rhythm via `groove:`; what's left here is voices.) **Note:** `mode` is
+      shapes rhythm via `groove:` — the kit, the bass pattern and the chord
+      rhythm all read off it; what's left here is voices.) **Note:** `mode` is
       declared in the genre schema and read by *nothing* — `grep mode
       src/engine/blend.ts` is empty. Every genre palette declares it inertly.
 
@@ -90,11 +91,13 @@ shipped; keep this list short and forward-looking.
       *major* emotion under a minor-only genre. 12 of 81 emotion×genre pairs
       (`calm`/`epic`/`happy`/`hopeful` × `funk`/`metal`/`spaghetti-western`),
       where the genre has no major idiom to fall back to and honestly shouldn't.
-      There the chords go minor while `composer.ts:63` still draws the melodic
-      ladder from `scaleNotes(tonic, dir.scale)` — the *emotion's* major scale —
-      so an A natural rubs against an Ab. Pick one: derive the ladder from the
-      resolved chords, or have `blend` warn when a genre's `mode` contradicts the
-      emotion's scale (the honest job for the inert `mode` field above).
+      There the chords go minor while `composer.ts:melodyFor` still draws its
+      ladder from `scaleLadder(tonic, dir.scale)` — the *emotion's* major scale —
+      so an A natural rubs against an Ab. **Narrower than it was:** the melody
+      now re-anchors to a chord tone on every bar, so the clash is confined to
+      the motif's passing notes instead of running through the whole line. What's
+      left: have `blend` warn when a genre's `mode` contradicts the emotion's
+      scale (the honest job for the inert `mode` field above).
 - [ ] **Drums, remaining work.** The kit, the `groove:` step notation and the
       blend rule shipped (see `docs/grooves.md`). Left over:
   - [ ] Author grooves for the genres that still have none — `ambient` is
@@ -103,23 +106,13 @@ shipped; keep this list short and forward-looking.
         an eight-bar phrase, which is what makes a long loop read as a machine.
   - [ ] Sampled kit via `smplr`. Synth drums audition instantly and sound it.
 
-- [ ] **`compose` can't reach the good machinery.** `riff.ts` + `build-song.ts`
-      write real parts (gallops, tremolo, approach notes); `composer.ts` writes a
-      pad root, a block triad on the downbeat and two random-walk quarter notes —
-      every bar, ~5 bars, no bass. `npm run compose` is the advertised fast path
-      and it is the weakest generator in the repo. Share the builders: composer
-      emits bass/rhythm layers through the same primitives the plans use.
-
 - [ ] **Promote `build-song.ts`'s section builders to `src/engine/sections.ts`.**
-      397 lines — the largest and most musical file in the repo — living in a
+      ~390 lines — the largest and most musical file in the repo — living in a
       script with no test, against this repo's own promote-&-test rule. The six
       `Style` builders are pure functions of (chords, startBar) and want a
-      `*.test.ts`. Prereq for "Song sections" below.
-
-- [ ] **Voice leading.** `theory.ts:chordPitches` always voices root-position
-      ascending from a fixed octave, so consecutive chords leap instead of moving
-      by common tone. A nearest-inversion pass is small, pure, testable, and
-      audible on every piece the composer writes.
+      `*.test.ts`. Note they are metal/western-specific (gallop, power chords,
+      tolling bell), so this is a promotion, not a generalisation. Prereq for
+      "Song sections" below.
 
 - [ ] **Timbre `signal` → real audio nodes.** `blend.ts:deriveLofi` regex-matches
       the chain into four lo-fi numbers and stops; `graph.ts` builds one shared
@@ -134,12 +127,17 @@ shipped; keep this list short and forward-looking.
       character shows up" — that needs a pure `quoteMotif(motif, key, atBar)` in
       the engine, else the field is a label.
 - [ ] **Better lo-fi chain.** Sidechain/ducking, bitcrush option, tape stop.
-      Tune the defaults so exports sound intentional. Swing ships (per groove);
-      **humanize does not** — every note in every track is still dead on the
-      grid at a fixed velocity, which is the other half of why a render reads as
-      programmed. Wants a seeded `engine/humanize.ts`, pure and testable.
-- [ ] **Song sections.** Grow past one 4-bar loop: intro / A / B / outro with
-      repeats, so "sample" can become a short arrangement on demand.
+      Tune the defaults so exports sound intentional. Swing ships (per groove),
+      and accent characters give parts step-level dynamics; **micro-timing
+      humanize does not** — every note still lands exactly on its (possibly
+      swung) grid position, and two notes on the same accent char are bit-identical
+      in velocity. That's the other half of why a render reads as programmed.
+      Wants a seeded `engine/humanize.ts`, pure and testable.
+- [ ] **Song sections.** `compose` now writes statement / restatement /
+      resolution, which is a form but not an arrangement. Grow to intro / A / B /
+      outro with repeats, so "sample" can become a short piece on demand. The
+      restatement currently varies by arrangement only (added arp, louder kit,
+      inverted motif) — B wants different *harmony*.
 - [ ] **Sampled instruments via `smplr`.** Swap synth piano/pad for real samples
       (SoundFonts in `assets/samples/`) behind the same instrument interface.
 

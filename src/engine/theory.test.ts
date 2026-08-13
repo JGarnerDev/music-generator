@@ -5,8 +5,20 @@ import {
   progressionIdiom,
   progressionsInIdiom,
   chordPitches,
+  fitToBand,
+  scaleLadder,
   transpose,
+  voiceLead,
 } from "./theory";
+import { Note } from "tonal";
+
+/** Total semitone travel between two voicings, nearest-neighbour costed. */
+function travel(from: string[], to: string[]): number {
+  return to.reduce((sum, pitch) => {
+    const m = Note.midi(pitch)!;
+    return sum + Math.min(...from.map((p) => Math.abs(Note.midi(p)! - m)));
+  }, 0);
+}
 
 describe("scaleNotes", () => {
   it("returns natural minor pitch classes", () => {
@@ -141,5 +153,87 @@ describe("chordPitches", () => {
 describe("transpose", () => {
   it("moves up an octave", () => {
     expect(transpose("A3", 12)).toBe("A4");
+  });
+});
+
+describe("scaleLadder", () => {
+  it("ascends past the octave where the pitch classes wrap", () => {
+    // The whole point: C and up belong to octave 5 here, not 4.
+    expect(scaleLadder("F", "major", 4, 4)).toEqual(["F4", "G4", "A4", "Bb4", "C5", "D5", "E5"]);
+  });
+
+  it("is monotonically ascending across every octave it spans", () => {
+    for (const tonic of ["C", "F", "A", "Eb", "B"]) {
+      const ladder = scaleLadder(tonic, "minor", 3, 5);
+      const midis = ladder.map((p) => Note.midi(p)!);
+      for (let i = 1; i < midis.length; i++) {
+        expect(midis[i]).toBeGreaterThan(midis[i - 1]!);
+      }
+    }
+  });
+
+  it("spans one scale per octave asked for", () => {
+    expect(scaleLadder("A", "minor", 4, 5)).toHaveLength(14);
+  });
+
+  it("starts on the tonic at the low octave", () => {
+    expect(scaleLadder("A", "minor", 3, 4)[0]).toBe("A3");
+  });
+});
+
+describe("voiceLead", () => {
+  it("voices the first chord in root position at the start octave", () => {
+    expect(voiceLead("Am", null, 3)).toEqual(chordPitches("Am", 3));
+  });
+
+  it("keeps the common tone and moves the rest by a step", () => {
+    // Am -> F share A and C; root position (F3 A3 C4) would leap the whole hand
+    // down a third, the second inversion holds both and moves E4 up to F4.
+    expect(voiceLead("F", ["A3", "C4", "E4"])).toEqual(["A3", "C4", "F4"]);
+  });
+
+  it("travels less than root-position voicing over a progression", () => {
+    const chords = progressionChords("A", ["i", "VI", "III", "VII"], "minor");
+
+    let led: string[] | null = null;
+    let ledCost = 0;
+    let rootCost = 0;
+    let prevRoot: string[] | null = null;
+
+    for (const chord of chords) {
+      const next: string[] = voiceLead(chord, led, 3);
+      if (led) ledCost += travel(led, next);
+      led = next;
+
+      const root = chordPitches(chord, 3);
+      if (prevRoot) rootCost += travel(prevRoot, root);
+      prevRoot = root;
+    }
+
+    expect(ledCost).toBeLessThan(rootCost);
+  });
+
+  it("stays near the previous chord instead of near the start octave", () => {
+    const high = voiceLead("F", ["A5", "C6", "E6"]);
+    expect(high.every((p) => Note.midi(p)! > Note.midi("A4")!)).toBe(true);
+  });
+
+  it("is deterministic", () => {
+    expect(voiceLead("G", ["C4", "E4", "G4"])).toEqual(voiceLead("G", ["C4", "E4", "G4"]));
+  });
+});
+
+describe("fitToBand", () => {
+  it("raises a pitch that sits below the band", () => {
+    expect(fitToBand("D0", [31, 43])).toBe("D2");
+  });
+  it("lowers a pitch that sits above the band", () => {
+    expect(fitToBand("D5", [31, 43])).toBe("D2");
+  });
+  it("leaves a pitch already inside the band alone", () => {
+    expect(fitToBand("C2", [31, 43])).toBe("C2");
+  });
+  it("throws on an inverted band rather than looping", () => {
+    expect(() => fitToBand("C2", [43, 31])).toThrow();
   });
 });

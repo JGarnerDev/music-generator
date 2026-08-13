@@ -1,5 +1,46 @@
 import { describe, it, expect } from "vitest";
-import { secondsPerBeat, notationToSeconds, barsBeatsToSeconds } from "./timing";
+import {
+  secondsPerBeat,
+  notationToSeconds,
+  barsBeatsToSeconds,
+  sixteenthsToNotation,
+} from "./timing";
+
+describe("sixteenthsToNotation", () => {
+  it("names the exact grid lengths", () => {
+    expect(sixteenthsToNotation(1)).toBe("16n");
+    expect(sixteenthsToNotation(2)).toBe("8n");
+    expect(sixteenthsToNotation(4)).toBe("4n");
+    expect(sixteenthsToNotation(8)).toBe("2n");
+    expect(sixteenthsToNotation(16)).toBe("1m");
+  });
+
+  it("names dotted lengths", () => {
+    expect(sixteenthsToNotation(3)).toBe("8n.");
+    expect(sixteenthsToNotation(6)).toBe("4n.");
+  });
+
+  it("counts whole measures past the bar", () => {
+    expect(sixteenthsToNotation(32)).toBe("2m");
+  });
+
+  it("falls back to the longest value that fits, leaving space", () => {
+    expect(sixteenthsToNotation(5)).toBe("4n");
+    expect(sixteenthsToNotation(7)).toBe("4n.");
+  });
+
+  it("round-trips through notationToSeconds", () => {
+    for (const steps of [1, 2, 3, 4, 6, 8, 12, 16, 32]) {
+      expect(notationToSeconds(sixteenthsToNotation(steps), 120)).toBeCloseTo(
+        (steps / 4) * secondsPerBeat(120),
+      );
+    }
+  });
+
+  it("rejects a length under one sixteenth", () => {
+    expect(() => sixteenthsToNotation(0)).toThrow();
+  });
+});
 
 describe("secondsPerBeat", () => {
   it("computes quarter-note length", () => {

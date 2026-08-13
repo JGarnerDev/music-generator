@@ -14,6 +14,10 @@
  * 16-char kick the way two loops of different length do on hardware — that is a
  * feature, not a mistake to validate away.
  *
+ * The step reader (`stepEvents`) is exported because pitched parts want the same
+ * notation and, more importantly, the *same swing*: a bass written on its own
+ * grid under a shuffled kit flams on every off-beat. See `parts.ts`.
+ *
  * Pure and deterministic → unit tested. Nothing here touches audio; the kit that
  * makes the sounds lives in `src/app/drums.ts`.
  */
@@ -72,6 +76,57 @@ export interface GrooveNotesOptions {
   intensity?: number;
 }
 
+/** One struck step: where it lands and how hard. What a lane reduces to. */
+export interface StepEvent {
+  /** Transport time, "bar:beat:sixteenth", swing already applied. */
+  time: string;
+  /** 0..1, from the step's accent character scaled by `intensity`. */
+  velocity: number;
+  /** Absolute step index from `startBar`, for callers that need the position. */
+  step: number;
+}
+
+export interface StepEventOptions {
+  startBar: number;
+  bars: number;
+  /** Scales every velocity. Default 1. */
+  intensity?: number;
+  /** 0 straight … 1 full triplet shuffle. Default 0. */
+  swing?: number;
+  /** Which subdivision the swing applies to. Default `16n`. */
+  swingUnit?: SwingUnit;
+}
+
+/**
+ * Read one step string into timed events across `bars` bars.
+ *
+ * The lane is an endless cycle of its own length, so a two-bar pattern over a
+ * one-bar span states only its first half, and a one-bar pattern over four bars
+ * repeats — which is what lets a two-bar snare and a one-bar kick coexist
+ * without either lane knowing about the other.
+ */
+export function stepEvents(pattern: string, opts: StepEventOptions): StepEvent[] {
+  const { startBar, bars, intensity = 1, swingUnit } = opts;
+  if (pattern.length === 0) return [];
+  const swing = clampUnit(opts.swing ?? 0);
+  const swingPeriod = swingUnit === "8n" ? 4 : 2;
+  const steps = [...pattern] as StepChar[];
+  const events: StepEvent[] = [];
+
+  for (let step = 0; step < bars * STEPS_PER_BAR; step++) {
+    const char = steps[step % steps.length]!;
+    const level = ACCENT_VELOCITY[char as keyof typeof ACCENT_VELOCITY];
+    if (level === undefined) continue; // "." and anything else = rest
+
+    events.push({
+      time: stepTime(startBar, step, swing, swingPeriod),
+      velocity: round(clampUnit(level * intensity), 3),
+      step,
+    });
+  }
+  return events;
+}
+
 /**
  * Render a groove into drum notes across `bars` bars.
  *
@@ -81,26 +136,20 @@ export interface GrooveNotesOptions {
  */
 export function grooveNotes(groove: Groove, opts: GrooveNotesOptions): Note[] {
   const { startBar, bars, intensity = 1 } = opts;
-  const swing = clampUnit(groove.swing ?? 0);
-  const swingPeriod = groove.swingUnit === "8n" ? 4 : 2;
   const notes: Note[] = [];
 
   for (const [piece, pattern] of Object.entries(groove.patterns)) {
     if (!pattern) continue;
-    const steps = [...pattern] as StepChar[];
     const duration = PIECE_DURATION[piece as DrumPiece] ?? DEFAULT_DURATION;
-
-    for (let step = 0; step < bars * STEPS_PER_BAR; step++) {
-      const char = steps[step % steps.length]!;
-      const level = ACCENT_VELOCITY[char as keyof typeof ACCENT_VELOCITY];
-      if (level === undefined) continue; // "." and anything else = rest
-
-      notes.push({
-        time: stepTime(startBar, step, swing, swingPeriod),
-        pitch: piece,
-        duration,
-        velocity: round(clampUnit(level * intensity), 3),
-      });
+    const events = stepEvents(pattern, {
+      startBar,
+      bars,
+      intensity,
+      swing: groove.swing,
+      swingUnit: groove.swingUnit,
+    });
+    for (const { time, velocity } of events) {
+      notes.push({ time, pitch: piece, duration, velocity });
     }
   }
 
