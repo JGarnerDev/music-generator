@@ -1,0 +1,17 @@
+node_modules/
+dist/
+coverage/
+
+# Ephemeral render output — regenerated from composition specs, never source of truth
+exports/*
+!exports/.gitkeep
+
+# SoundFont / sample packs are large binaries; fetch locally, don't commit
+assets/samples/*
+!assets/samples/.gitkeep
+
+# Local env / editor
+.env
+.env.local
+.DS_Store
+*.log

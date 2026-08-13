@@ -1,0 +1,44 @@
+---
+title: CLAUDE.md
+purpose: Operating instructions for Claude in this repo. Routes to readme.md.
+audience: [claude]
+updated: 2026-08-12
+read_order: 0
+see_also: [readme.md]
+---
+
+# CLAUDE.md
+
+**Read [`readme.md`](./readme.md) first — it is the router.** This file only adds
+Claude-specific working rules that don't belong in the human-facing README.
+
+## Non-negotiables
+
+- **Frontmatter first.** Every markdown file opens with frontmatter; read it
+  before the body to stay context-efficient. Add frontmatter to any md you
+  create.
+- **No positional CLI args.** Scripts use named flags (commander). Match that
+  when adding scripts.
+- **Promote & test.** Reusable logic → `src/utils` (general) or `src/engine`
+  (music). Add a `*.test.ts` beside it. Keep `src/app` (audio glue) thin.
+- **Script the repeatable.** If you do a deterministic chore twice, make it an
+  npm script under `scripts/`.
+- **Keep this file and the README small.** When a topic outgrows a screen, split
+  it into its own frontmatter'd doc and link it.
+
+## How to compose (default loop)
+
+1. Parse the user's mood/scene/genre into search terms.
+2. Look up matching `palettes/*.md` (tags/slug/title). Combine primitives for
+   specific vibes rather than inventing new stored palettes.
+3. Write a **short** `compositions/<name>.json` (the moving core, not a full
+   song) using the palette's tonality + a progression. Shape:
+   `src/engine/composition.ts`.
+4. Validate: `npm run composition:validate -- --file compositions/<name>.json`.
+5. Tell the user to `npm run dev`, Play, Export WAV — then ask for one
+   adjustment. Be proactive first; refine after.
+
+## Before you finish
+
+- `npm test` and `npm run typecheck` pass.
+- New pure logic has a test. New md has frontmatter. New chore has a script.
