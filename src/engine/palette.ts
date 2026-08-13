@@ -34,28 +34,69 @@ const base = z.object({
   slug: z.string().min(1),
   title: z.string().min(1),
   tags,
+  /**
+   * Optional subtype link: the slug of the broader palette this one specializes
+   * (`desert-rock` → `rock`). One-way, child → parent, so adding a subtype is a
+   * single new file — a parent never lists its children. The parent must exist
+   * and share this palette's kind; `validatePaletteSet` enforces both. A subtype
+   * only states what *differs*: the blend layers ancestors first, so unstated
+   * fields are inherited.
+   */
+  parent: z.string().min(1).optional(),
 });
 
 // --- per-kind schemas -----------------------------------------------------
-/** Mood primitive: the tonality + progression source. */
-export const emotionSchema = base.extend({
-  kind: z.literal("emotion"),
-  tonality,
-  progressions,
-  tempo,
-  instruments,
-});
+/**
+ * Mood primitive: the tonality + progression source.
+ *
+ * Emotions may **not** declare a `parent`. The blend takes exactly one emotion
+ * (it is the sole source of tonality), so layering an emotion's ancestor would
+ * make the key ambiguous — the very thing that rule exists to prevent. Subtyping
+ * is for `genre`, `timbre` and any generic kind.
+ */
+export const emotionSchema = base
+  .extend({
+    kind: z.literal("emotion"),
+    tonality,
+    progressions,
+    tempo,
+    instruments,
+  })
+  .superRefine((fm, ctx) => {
+    if (fm.parent != null) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["parent"],
+        message:
+          "emotion palettes cannot declare a parent — the blend takes exactly one emotion, so an inherited key would be ambiguous",
+      });
+    }
+  });
 
-/** Genre: groove + harmonic vocabulary. No fixed tonic — an emotion supplies it. */
-export const genreSchema = base.extend({
-  kind: z.literal("genre"),
-  tempo,
-  /** Optional signature progressions in roman numerals (major/minor-diatonic). */
-  progressions: progressions.optional(),
-  /** Harmonic lean, so the blend knows which mode this genre wants. */
-  mode: z.enum(["major", "minor", "either"]).optional(),
-  instruments,
-});
+/**
+ * Genre: groove + harmonic vocabulary. No fixed tonic — an emotion supplies it.
+ * `tempo` is required, *unless* the genre is a subtype, in which case it may be
+ * left out and inherited from the parent.
+ */
+export const genreSchema = base
+  .extend({
+    kind: z.literal("genre"),
+    tempo: tempo.optional(),
+    /** Optional signature progressions in roman numerals (major/minor-diatonic). */
+    progressions: progressions.optional(),
+    /** Harmonic lean, so the blend knows which mode this genre wants. */
+    mode: z.enum(["major", "minor", "either"]).optional(),
+    instruments,
+  })
+  .superRefine((fm, ctx) => {
+    if (fm.tempo == null && fm.parent == null) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["tempo"],
+        message: "required unless the genre declares a parent to inherit it from",
+      });
+    }
+  });
 
 /** Timbre: pure sound. Instrument voices + a signal chain. No harmony/tempo. */
 export const timbreSchema = base.extend({
@@ -146,6 +187,69 @@ function formatIssues(error: z.ZodError): string {
   return error.issues
     .map((i) => `${i.path.join(".") || "(root)"}: ${i.message}`)
     .join("; ");
+}
+
+export interface PaletteSetIssue {
+  /** The offending palette's slug (or "(root)" for set-wide problems). */
+  path: string;
+  message: string;
+}
+
+/**
+ * Whole-set invariants that a single file can't check on its own. Pure: palettes
+ * in, issues out, empty list means valid. The loader runs this after parsing a
+ * directory so a bad `parent:` fails at load rather than at blend time.
+ *
+ * Slugs must be unique because `parent` (and `--palette`/`--with`) resolve by
+ * slug; a subtype's parent must exist and share its kind, since layering a genre
+ * under a timbre would silently change what the blend inherits.
+ */
+export function validatePaletteSet(palettes: Palette[]): PaletteSetIssue[] {
+  const issues: PaletteSetIssue[] = [];
+  const bySlug = new Map<string, Palette>();
+
+  for (const p of palettes) {
+    const { slug } = p.frontmatter;
+    if (bySlug.has(slug)) issues.push({ path: slug, message: `duplicate slug "${slug}"` });
+    else bySlug.set(slug, p);
+  }
+
+  for (const p of palettes) {
+    const { slug, parent, kind } = p.frontmatter;
+    if (parent == null) continue;
+    if (parent === slug) {
+      issues.push({ path: slug, message: `parent "${parent}" is itself` });
+      continue;
+    }
+    const found = bySlug.get(parent);
+    if (!found) {
+      issues.push({ path: slug, message: `parent "${parent}" does not exist` });
+      continue;
+    }
+    if (found.frontmatter.kind !== kind) {
+      issues.push({
+        path: slug,
+        message: `parent "${parent}" is a ${found.frontmatter.kind}, but this is a ${kind} — a subtype must share its parent's kind`,
+      });
+      continue;
+    }
+    const cycle = findCycle(slug, bySlug);
+    if (cycle) issues.push({ path: slug, message: `parent chain is a cycle: ${cycle.join(" → ")}` });
+  }
+
+  return issues;
+}
+
+/** Walk the parent chain from `slug`; return the looping path if it revisits a slug. */
+function findCycle(slug: string, bySlug: Map<string, Palette>): string[] | undefined {
+  const seen: string[] = [];
+  let cursor: string | undefined = slug;
+  while (cursor) {
+    if (seen.includes(cursor)) return [...seen, cursor];
+    seen.push(cursor);
+    cursor = bySlug.get(cursor)?.frontmatter.parent;
+  }
+  return undefined;
 }
 
 /** Rank palettes by how many query terms hit their tags/slug/title. Case-insensitive. */

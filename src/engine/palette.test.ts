@@ -3,6 +3,7 @@ import {
   parsePalette,
   matchPalettes,
   isEmotionPalette,
+  validatePaletteSet,
   PaletteParseError,
   type Palette,
 } from "./palette";
@@ -107,5 +108,60 @@ describe("matchPalettes", () => {
 
   it("returns empty when nothing matches", () => {
     expect(matchPalettes(palettes, "polka accordion")).toEqual([]);
+  });
+});
+
+describe("parsePalette + parent", () => {
+  it("lets a genre subtype omit tempo and inherit it", () => {
+    const raw = `---\nkind: genre\nslug: desert-rock\ntitle: Desert Rock\ntags: [x]\nparent: rock\n---\nbody`;
+    expect(parsePalette(raw).frontmatter.parent).toBe("rock");
+  });
+
+  it("still requires tempo on a parentless genre", () => {
+    const raw = `---\nkind: genre\nslug: rock\ntitle: Rock\ntags: [x]\n---\nbody`;
+    expect(() => parsePalette(raw)).toThrow(PaletteParseError);
+  });
+
+  it("rejects a parent on an emotion (the blend takes exactly one)", () => {
+    const raw = `---\nkind: emotion\nslug: wistful\ntitle: Wistful\ntags: [x]\nparent: sad\ntonality:\n  tonic: A\n  scale: minor\nprogressions:\n  - [i, VI]\ntempo: [60, 78]\n---\nbody`;
+    expect(() => parsePalette(raw)).toThrow(PaletteParseError);
+  });
+});
+
+describe("validatePaletteSet", () => {
+  const genre = (slug: string, extra = ""): Palette =>
+    parsePalette(`---\nkind: genre\nslug: ${slug}\ntitle: ${slug}\ntags: [x]\ntempo: [80, 100]\n${extra}---\nbody`);
+
+  it("accepts a set whose parents resolve to the same kind", () => {
+    expect(validatePaletteSet([genre("rock"), genre("desert-rock", "parent: rock\n")])).toEqual([]);
+  });
+
+  it("accepts a set with no parents at all", () => {
+    expect(validatePaletteSet([genre("rock"), genre("funk")])).toEqual([]);
+  });
+
+  it("flags a duplicate slug", () => {
+    const issues = validatePaletteSet([genre("rock"), genre("rock")]);
+    expect(issues).toHaveLength(1);
+    expect(issues[0]?.message).toContain("duplicate slug");
+  });
+
+  it("flags a parent that does not exist", () => {
+    const issues = validatePaletteSet([genre("desert-rock", "parent: rock\n")]);
+    expect(issues[0]).toMatchObject({ path: "desert-rock" });
+    expect(issues[0]?.message).toContain("does not exist");
+  });
+
+  it("flags a parent of a different kind", () => {
+    const timbre = parsePalette(`---\nkind: timbre\nslug: fuzz\ntitle: Fuzz\ntags: [x]\n---\nbody`);
+    const issues = validatePaletteSet([timbre, genre("desert-rock", "parent: fuzz\n")]);
+    expect(issues[0]?.message).toContain("must share its parent's kind");
+  });
+
+  it("flags a self-parent and a cycle", () => {
+    expect(validatePaletteSet([genre("rock", "parent: rock\n")])[0]?.message).toContain("is itself");
+
+    const cyclic = [genre("a", "parent: b\n"), genre("b", "parent: a\n")];
+    expect(validatePaletteSet(cyclic).some((i) => i.message.includes("cycle"))).toBe(true);
   });
 });

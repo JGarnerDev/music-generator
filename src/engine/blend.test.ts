@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { blendPalettes, BlendError } from "./blend";
+import { blendPalettes, withAncestors, BlendError } from "./blend";
 import { parsePalette, type Palette } from "./palette";
 
 const emotion = (over = ""): Palette =>
@@ -38,6 +38,18 @@ title: Analog Synth
 tags: [synth]
 instruments: [pluck]
 signal: [overdrive, tape-echo, plate-reverb]
+---
+body`);
+
+/** A genre subtype: `parent: jazz`, restating only its own progressions. */
+const subtype: Palette = parsePalette(`---
+kind: genre
+slug: acid-jazz
+title: Acid Jazz
+tags: [acid]
+parent: jazz
+progressions:
+  - [i, bII, i]
 ---
 body`);
 
@@ -96,6 +108,11 @@ body`);
     expect(d.lofi.reverb).toBeGreaterThanOrEqual(0.45); // plate/echo → wetter
   });
 
+  it("lets the last progression-carrying layer win, so a subtype overrides its parent", () => {
+    const d = blendPalettes([emotion(), jazz, subtype]);
+    expect(d.progressions).toEqual([["i", "bII", "i"]]);
+  });
+
   it("blends through a generic (unknown-kind) layer without error", () => {
     const era = parsePalette(`---
 kind: era
@@ -108,5 +125,46 @@ gated reverb everywhere.`);
     const d = blendPalettes([emotion(), era]);
     expect(d.slugs).toEqual(["sad", "eighties"]);
     expect(d.instruments).toContain("epiano");
+  });
+});
+
+describe("withAncestors", () => {
+  const all = [emotion(), jazz, synth, subtype];
+
+  it("puts a parent before its subtype", () => {
+    const layers = withAncestors([subtype], all);
+    expect(layers.map((p) => p.frontmatter.slug)).toEqual(["jazz", "acid-jazz"]);
+  });
+
+  it("leaves a parentless palette alone", () => {
+    const layers = withAncestors([synth], all);
+    expect(layers.map((p) => p.frontmatter.slug)).toEqual(["analog-synth"]);
+  });
+
+  it("dedupes when the parent is also selected explicitly", () => {
+    const layers = withAncestors([jazz, subtype], all);
+    expect(layers.map((p) => p.frontmatter.slug)).toEqual(["jazz", "acid-jazz"]);
+  });
+
+  it("skips an unresolvable parent rather than throwing", () => {
+    const orphan = parsePalette(`---
+kind: genre
+slug: orphan
+title: Orphan
+tags: [orphan]
+parent: nowhere
+tempo: [90, 100]
+---
+body`);
+    const layers = withAncestors([orphan], [orphan]);
+    expect(layers.map((p) => p.frontmatter.slug)).toEqual(["orphan"]);
+  });
+
+  it("lets a subtype inherit what it does not restate", () => {
+    // acid-jazz carries no tempo/instruments — they come from jazz.
+    const d = blendPalettes(withAncestors([emotion(), subtype], all));
+    expect(d.tempo).toEqual([70, 78]); // emotion [60,78] ∩ jazz [70,120]
+    expect(d.instruments).toEqual(["piano", "pad", "epiano", "bass"]);
+    expect(d.progressions).toEqual([["i", "bII", "i"]]); // but its own harmony wins
   });
 });

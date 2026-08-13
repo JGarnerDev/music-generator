@@ -4,6 +4,8 @@
  *     --tags haunted,tense,horror --tonic D --scale minor --tempo 70,96
  *   npm run palette:new -- --kind genre --slug funk --title Funk --tags funk,groovy --tempo 96,116
  *   npm run palette:new -- --kind timbre --slug brown-sound --title "Brown Sound" --tags guitar,rock
+ *   npm run palette:new -- --kind genre --slug desert-rock --title "Desert Rock" \
+ *     --tags desert,fuzz --parent rock   # a subtype: states only its deltas
  * Writes palettes/<kind>/<slug>.md. Named flags only (repo convention: no positional args).
  */
 import { writeFileSync, existsSync, mkdirSync } from "node:fs";
@@ -19,6 +21,7 @@ program
   .requiredOption("--title <title>", "human title")
   .requiredOption("--tags <csv>", "comma-separated search tags")
   .option("--kind <kind>", `palette kind: ${PALETTE_KINDS.join(" | ")}`, "emotion")
+  .option("--parent <slug>", "broader palette this one specializes (same kind), e.g. rock")
   .option("--tonic <note>", "tonic note (emotion only)", "A")
   .option("--scale <scale>", "scale name (emotion only)", "minor")
   .option("--tempo <min,max>", "tempo range (emotion/genre)", "70,90")
@@ -30,6 +33,7 @@ const opts = program.opts<{
   title: string;
   tags: string;
   kind: string;
+  parent?: string;
   tonic: string;
   scale: string;
   tempo: string;
@@ -41,6 +45,14 @@ if (!(PALETTE_KINDS as readonly string[]).includes(opts.kind)) {
   process.exit(2);
 }
 const kind = opts.kind as PaletteKind;
+
+if (opts.parent && kind === "emotion") {
+  console.error(
+    "--parent is not allowed on an emotion: the blend takes exactly one emotion, " +
+      "so an inherited key would be ambiguous. Subtype a genre or timbre instead.",
+  );
+  process.exit(2);
+}
 
 const tags = opts.tags.split(",").map((t) => t.trim()).filter(Boolean);
 const tempo = opts.tempo.split(",").map((t) => Number(t.trim()));
@@ -62,7 +74,8 @@ console.log(`Created ${out}`);
 
 /** Kind-appropriate frontmatter + prose skeleton. */
 function scaffold(): string {
-  const head = `---\nkind: ${kind}\nslug: ${opts.slug}\ntitle: ${opts.title}\ntags: [${tags.join(", ")}]`;
+  const parent = opts.parent ? `\nparent: ${opts.parent}` : "";
+  const head = `---\nkind: ${kind}\nslug: ${opts.slug}\ntitle: ${opts.title}\ntags: [${tags.join(", ")}]${parent}`;
   if (kind === "emotion") {
     return `${head}
 tonality:

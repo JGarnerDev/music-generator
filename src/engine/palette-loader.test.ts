@@ -1,5 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { fileURLToPath } from "node:url";
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import {
   parsePaletteFiles,
@@ -35,6 +37,20 @@ describe("loadPalettesFromDir", () => {
     // alpha.md + bravo.md are flat; genre/charlie.md lives in a subfolder, so its
     // presence here proves the loader recurses into the per-kind directories.
     expect(palettes.map((p) => p.frontmatter.slug)).toEqual(["alpha", "bravo", "charlie"]);
+  });
+
+  it("rejects a set whose subtype names a parent that isn't there", () => {
+    // A whole-set rule, so it can only fail here — the file itself parses fine.
+    const dir = mkdtempSync(join(tmpdir(), "palettes-"));
+    try {
+      writeFileSync(
+        join(dir, "orphan.md"),
+        "---\nkind: genre\nslug: orphan\ntitle: Orphan\ntags: [x]\nparent: nowhere\n---\nbody",
+      );
+      expect(() => loadPalettesFromDir(dir)).toThrow(/orphan: parent "nowhere" does not exist/);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
   });
 });
 

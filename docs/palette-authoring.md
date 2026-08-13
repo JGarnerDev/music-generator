@@ -2,7 +2,7 @@
 title: Palette Authoring
 purpose: The palette taxonomy (kinds), the hard schema for each, and how to add one. Read before writing or editing a palettes/*.md.
 audience: [claude, human]
-updated: 2026-08-12
+updated: 2026-08-13
 read_order: 4
 see_also: [readme.md, ../src/engine/palette.ts]
 status: living
@@ -36,9 +36,40 @@ structured hints it wants (`tempo`, `instruments`, `signal`, …). Add a folder 
 file with prose; no code change. Promote a kind to a strict schema (in
 `SCHEMAS`) once its shape settles.
 
+## Subtypes
+
+A palette may name a broader one it specializes:
+
+```yaml
+kind: genre
+slug: desert-rock
+parent: rock        # must exist, and be the same kind
+```
+
+The reference is **one-way, child → parent**. A parent never lists its children,
+so adding a subtype is one new file and nothing to keep in sync;
+`npm run palette:tree` derives the hierarchy from the set (`--kind genre` to
+narrow it).
+
+A subtype is a **delta**. `withAncestors` (in [`blend.ts`](../src/engine/blend.ts))
+expands `desert-rock` into `[rock, desert-rock]` before blending, so the parent
+layers first and the normal blend rules do the rest: the child's tempo intersects
+the parent's, its progressions override, its instruments and signal append. State
+only what differs — a genre subtype may omit `tempo` entirely and inherit it.
+`--with desert-rock` is enough; naming both is harmless (the parent is deduped).
+
+**Emotions cannot have a parent.** The blend takes exactly one emotion because it
+is the sole source of tonality; layering an ancestor emotion would make the key
+ambiguous. Subtype `genre`, `timbre`, or a generic kind.
+
+Whole-set rules (unique slugs, parent exists, parent shares the child's kind, no
+cycles) are checked by `validatePaletteSet` when the loader reads `palettes/`, so
+a bad link fails at load with the offending slug named.
+
 ## Schema per kind
 
-All kinds share `kind`, `slug`, `title`, `tags` (non-empty). Then:
+All kinds share `kind`, `slug`, `title`, `tags` (non-empty), and an optional
+`parent`. Then:
 
 **emotion** — the composable primitive (only kind `compose` accepts):
 ```yaml
@@ -59,7 +90,8 @@ kind: genre
 slug: jazz
 title: Jazz
 tags: [jazz, swing, ...]
-tempo: [80, 132]
+parent: <slug>                 # optional: makes this a subtype of another genre
+tempo: [80, 132]               # required, unless `parent` supplies it
 mode: either                   # optional: major | minor | either — the harmonic lean
 progressions:                  # optional signature progressions
   - [ii, V, I]
@@ -93,7 +125,9 @@ Rules (small on purpose, all unit-tested):
 - **Tempo** — intersect every layer's range; if two layers don't overlap, the
   later (more specific) layer wins.
 - **Progressions** — a non-emotion layer's progressions (a genre's harmonic
-  vocabulary) override the emotion's; otherwise the emotion's are used.
+  vocabulary) override the emotion's; otherwise the emotion's are used. Among
+  several such layers the **last** wins, same "later is more specific" principle
+  as tempo — which is what lets a subtype override its parent.
 - **Instruments** — merge every layer's list in order, keep known voices, dedupe;
   pick a sustained `padVoice` + a `leadVoice` (piano > epiano > pluck) for the two
   tracks.
@@ -104,7 +138,10 @@ Rules (small on purpose, all unit-tested):
 ## Adding one
 
 - Scaffold: `npm run palette:new -- --kind <kind> --slug <slug> --title "<t>" --tags a,b,c`
-  (emotion also takes `--tonic --scale --tempo`). Writes `palettes/<kind>/<slug>.md`.
+  (emotion also takes `--tonic --scale --tempo`; genre/timbre take `--parent <slug>`
+  for a subtype). Writes `palettes/<kind>/<slug>.md`.
+- Files stay in `palettes/<kind>/` regardless of depth — the folder is the kind,
+  and `parent:` carries the hierarchy. There is no subtype folder.
 - Write the prose body: *when to reach for it* and *how to voice it*. Keep it short.
 - **Rules:** emotion `scale` is still major or minor (the engine has no modes yet —
   see progress.md). Progressions, though, are read as written: **numeral case and
@@ -114,7 +151,9 @@ Rules (small on purpose, all unit-tested):
   - An uppercase numeral on a degree that isn't diatonically major **borrows** —
     `VII` in a major key resolves to the Aeolian `bVII` (C major → Bb), and `iv`
     in major gives the borrowed minor iv. Write the accidental explicitly
-    (`bII`, `#iv`) whenever you want to be unambiguous; it is honoured.
+    (`bII`, `#iv`) whenever you want to be unambiguous; it is honoured. **Quote
+    any sharp** — bare `#iv` inside a YAML flow list starts a comment and the
+    file fails to parse: write `[i, i, "#iv", i]`.
   - Bare lowercase on a diminished degree stays diminished, so a minor `ii-V-i`
     keeps its half-diminished colour.
   - This means a minor-idiom progression stays minor even when it lands on a

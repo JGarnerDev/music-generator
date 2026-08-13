@@ -11,7 +11,10 @@
  *   - Tempo: intersect every layer's range; if layers disagree with no overlap,
  *     the later (more specific) layer wins.
  *   - Progressions: a non-emotion layer's progressions (a genre's harmonic
- *     vocabulary) override the emotion's; otherwise use the emotion's.
+ *     vocabulary) override the emotion's; otherwise use the emotion's. Among
+ *     several, the last (most specific) wins.
+ *   - Subtypes: `withAncestors` expands a `parent:` chain into layers, ancestors
+ *     first, so a subtype states only its deltas and inherits the rest.
  *   - Instruments: merge every layer's list in blend order, keep known voices,
  *     dedupe. Pick a sustained `padVoice` + a `leadVoice` for the two tracks.
  *   - Signal: concat every layer's fx chain (timbres), then nudge the lo-fi
@@ -48,6 +51,40 @@ export interface MusicalDirection {
 }
 
 export class BlendError extends Error {}
+
+/**
+ * Expand each selected palette into its `parent:` lineage, ancestors first
+ * (`desert-rock` → `[rock, desert-rock]`), deduped and order-preserving. This is
+ * what makes a subtype a *delta*: the parent layers first, the child's own fields
+ * override it, and anything the child leaves out is inherited.
+ *
+ * `all` is the registry to resolve parent slugs against. An unresolvable parent is
+ * skipped rather than thrown — the loader already rejects those, and blend stays
+ * usable with a partial set. Cycles terminate on the first repeat.
+ */
+export function withAncestors(selected: Palette[], all: Palette[]): Palette[] {
+  const bySlug = new Map(all.map((p) => [p.frontmatter.slug, p]));
+  const out: Palette[] = [];
+  const emitted = new Set<string>();
+
+  for (const palette of selected) {
+    const chain: Palette[] = [];
+    const seen = new Set<string>();
+    let cursor: Palette | undefined = palette;
+    while (cursor && !seen.has(cursor.frontmatter.slug)) {
+      seen.add(cursor.frontmatter.slug);
+      chain.unshift(cursor); // ancestors end up first
+      const parent: string | undefined = cursor.frontmatter.parent;
+      cursor = parent ? bySlug.get(parent) : undefined;
+    }
+    for (const link of chain) {
+      if (emitted.has(link.frontmatter.slug)) continue;
+      emitted.add(link.frontmatter.slug);
+      out.push(link);
+    }
+  }
+  return out;
+}
 
 const KNOWN_VOICES = new Set<string>(INSTRUMENT_NAMES);
 const LEAD_PREFERENCE: InstrumentName[] = ["piano", "epiano", "pluck"];
@@ -102,14 +139,20 @@ function resolveTempo(palettes: Palette[]): [number, number] {
   return range ?? [70, 90];
 }
 
-/** A non-emotion layer's progressions override the emotion's; else use emotion's. */
+/**
+ * A non-emotion layer's progressions override the emotion's; else use emotion's.
+ * With several such layers the **last** one wins — same "later is more specific"
+ * principle as tempo, and what makes a subtype work: `withAncestors` puts the
+ * parent before the child, so the child's progressions override the parent's.
+ */
 function resolveProgressions(palettes: Palette[], fallback: string[][]): string[][] {
+  let resolved: string[][] | undefined;
   for (const p of palettes) {
     if (p.frontmatter.kind === "emotion") continue;
     const prog = hints(p).progressions;
-    if (prog && prog.length > 0) return prog;
+    if (prog && prog.length > 0) resolved = prog;
   }
-  return fallback;
+  return resolved ?? fallback;
 }
 
 /** Merge every layer's instruments in order, keep known voices, dedupe. */

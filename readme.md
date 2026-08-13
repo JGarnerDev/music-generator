@@ -67,7 +67,10 @@ npm run typecheck  # tsc --noEmit
   section plan: `npm run song:build -- --plan plans/<name>.json`. Rules for the
   seam and for fighting fatigue: [looping](docs/looping.md).
 - **New palette:** `npm run palette:new -- --kind emotion|genre|timbre --slug <slug> --title "<t>" --tags a,b,c`
-  (writes `palettes/<kind>/<slug>.md`). See [palette-authoring](docs/palette-authoring.md).
+  (writes `palettes/<kind>/<slug>.md`). Add `--parent <slug>` for a **subtype**
+  (`desert-rock` → `rock`): it states only its deltas and inherits the rest.
+  `npm run palette:tree` prints the hierarchy. See
+  [palette-authoring](docs/palette-authoring.md).
 
 ## Utils & testing culture
 

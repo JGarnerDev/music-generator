@@ -10,7 +10,7 @@ import { resolve } from "node:path";
 import { Command } from "commander";
 import { loadPalettesFromDir, findPalettes } from "../src/engine/palette-loader";
 import { composeFromBlend } from "../src/engine/composer";
-import { blendPalettes } from "../src/engine/blend";
+import { blendPalettes, withAncestors } from "../src/engine/blend";
 import { validateComposition } from "../src/engine/composition";
 import { isEmotionPalette, type Palette } from "../src/engine/palette";
 
@@ -76,9 +76,12 @@ for (const slug of opts.with.split(",").map((s) => s.trim()).filter(Boolean)) {
   layers.push(found);
 }
 
-const direction = blendPalettes(layers);
+// A subtype pulls in its parent first (desert-rock → rock, desert-rock), so it
+// inherits everything it didn't restate.
+const lineage = withAncestors(layers, palettes);
+const direction = blendPalettes(lineage);
 const comp = composeFromBlend(direction, opts.mood, { seed: opts.seed, name: opts.name });
-if (layers.length > 1) {
+if (lineage.length > 1) {
   console.log(`Blended ${direction.slugs.join(" + ")} → ${direction.leadVoice}/${direction.padVoice}.`);
 }
 

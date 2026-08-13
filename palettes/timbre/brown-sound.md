@@ -3,6 +3,7 @@ kind: timbre
 slug: brown-sound
 title: Brown Sound (Van Halen)
 tags: [guitar, rock, metal, distortion, crunch, van-halen, brown-sound, amp, saturated, warm]
+parent: electric-guitar
 instruments: [pluck]
 signal: [variac-sag, overdrive, plate-reverb, slap-echo]
 character: saturated-but-woody EL34 crunch — heavy without fizz, warm and thick
@@ -10,9 +11,10 @@ character: saturated-but-woody EL34 crunch — heavy without fizz, warm and thic
 
 # Brown Sound (Van Halen)
 
-A *sound* — Eddie's saturated-but-woody guitar tone. A timbre only: apply it to an
-`angry`/`battle` emotion plus the `metal` (or a future `rock`) genre for the
-notes and feel.
+A subtype of [`electric-guitar`](./electric-guitar.md) — Eddie's
+saturated-but-woody guitar tone. A timbre only: apply it to an `angry`/`battle`
+emotion plus the `metal` or [`rock`](../genre/rock.md) genre for the notes and
+feel.
 
 ## Sound
 

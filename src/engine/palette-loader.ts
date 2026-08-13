@@ -8,7 +8,7 @@
  */
 import { readdirSync, readFileSync } from "node:fs";
 import { join, relative } from "node:path";
-import { parsePalette, matchPalettes, type Palette } from "./palette";
+import { parsePalette, matchPalettes, validatePaletteSet, type Palette } from "./palette";
 
 export interface PaletteFile {
   /** Source filename, e.g. "sad.md" — used in parse-error messages. */
@@ -36,12 +36,24 @@ export function parsePaletteFiles(files: PaletteFile[]): Palette[] {
  * per-kind subfolders (`emotion/`, `genre/`, `timbre/`). Sorted by relative path
  * for stable order; `filename` carries the subfolder so parse errors point at the
  * real file (e.g. "genre/jazz.md").
+ *
+ * Whole-set invariants (unique slugs, resolvable `parent:` links) are checked
+ * here rather than in the per-file parse, since only the full directory can see
+ * them.
  */
 export function loadPalettesFromDir(dir: string): Palette[] {
   const files = walkMarkdown(dir)
     .sort()
     .map((full) => ({ filename: relative(dir, full), raw: readFileSync(full, "utf8") }));
-  return parsePaletteFiles(files);
+  const palettes = parsePaletteFiles(files);
+
+  const issues = validatePaletteSet(palettes);
+  if (issues.length > 0) {
+    throw new Error(
+      `invalid palette set in ${dir}:\n` + issues.map((i) => `  ${i.path}: ${i.message}`).join("\n"),
+    );
+  }
+  return palettes;
 }
 
 /** Absolute paths of every `*.md` under `dir`, recursing subdirectories. */
