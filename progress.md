@@ -47,15 +47,15 @@ shipped; keep this list short and forward-looking.
       `whimsical` (comic, bouncy).
 
 - [ ] **Genre breadth.** Shipped: `funk`, `jazz`, `lofi`, `metal`, `ambient`,
-      `blues`, `cinematic`, `spaghetti-western`, `reggae`. What's left is gated
-      on engine work, not on authoring time — see the two unlocks below.
+      `blues`, `cinematic`, `spaghetti-western`, `reggae` — all now carrying a
+      `groove:`. What's left is authoring time or the two engine unlocks below.
   - [ ] **Authorable today** (identity carried by harmony/tempo/chord-rhythm):
         `soul`, `gospel`, `post-rock`, `minimalism`, `baroque`, `ragtime`,
         `bossa`, `synthwave`, `city-pop`, `shoegaze`, `doom`.
-  - [ ] **Gated on the drums track** (their identity *is* the kit pattern —
-        authored now, they all render as generic chord loops): `house`,
-        `techno`, `dnb`, `jungle`, `breakbeat`, `disco`, `punk`, `trap`,
-        `afrobeat`, `samba`, `garage`. `hiphop` is half-covered by `lofi`.
+  - [ ] **Authorable now that grooves ship** (their identity *is* the kit
+        pattern, so each is a `groove:` block plus prose): `house`, `techno`,
+        `dnb`, `jungle`, `breakbeat`, `disco`, `punk`, `trap`, `afrobeat`,
+        `samba`, `garage`. `hiphop` is half-covered by `lofi`.
   - [ ] **Gated on meter**: `waltz`, `celtic` jigs, gospel shuffle, doo-wop.
   - [ ] **Gated on modes**: `folk` (dorian), `flamenco` (phrygian), `celtic`
         (mixolydian), `klezmer`, `medieval`.
@@ -78,8 +78,8 @@ shipped; keep this list short and forward-looking.
 - [ ] **Blend depth.** v1 maps a timbre only to two coarse voices (`padVoice`/
       `leadVoice`, piano>epiano>pluck) + lo-fi nudges — a guitar timbre still leads
       on piano (reproducer: `--palette battle --with metal,brown-sound` resolves
-      to piano/pad). Make voice selection honor timbre intent, and let genre
-      `mode`/feel shape rhythm, not just tempo/progressions. **Note:** `mode` is
+      to piano/pad). Make voice selection honor timbre intent. (Genre feel now
+      shapes rhythm via `groove:`; what's left here is voices.) **Note:** `mode` is
       declared in the genre schema and read by *nothing* — `grep mode
       src/engine/blend.ts` is empty. Every genre palette declares it inertly.
 
@@ -95,10 +95,49 @@ shipped; keep this list short and forward-looking.
       so an A natural rubs against an Ab. Pick one: derive the ladder from the
       resolved chords, or have `blend` warn when a genre's `mode` contradicts the
       emotion's scale (the honest job for the inert `mode` field above).
-- [ ] **Drums / percussion track.** Lo-fi kit (kick/snare/hat) — a beat is what
-      sells lo-fi. Needs an instrument type + pattern notation in the spec.
-- [ ] **Better lo-fi chain.** Sidechain/ducking, bitcrush option, tape stop,
-      swing/humanize on timing. Tune the defaults so exports sound intentional.
+- [ ] **Drums, remaining work.** The kit, the `groove:` step notation and the
+      blend rule shipped (see `docs/grooves.md`). Left over:
+  - [ ] Author grooves for the genres that still have none — `ambient` is
+        deliberately drumless, but every genre added from here needs one.
+  - [ ] Fills. A groove states one bar and repeats it; nothing marks the end of
+        an eight-bar phrase, which is what makes a long loop read as a machine.
+  - [ ] Sampled kit via `smplr`. Synth drums audition instantly and sound it.
+
+- [ ] **`compose` can't reach the good machinery.** `riff.ts` + `build-song.ts`
+      write real parts (gallops, tremolo, approach notes); `composer.ts` writes a
+      pad root, a block triad on the downbeat and two random-walk quarter notes —
+      every bar, ~5 bars, no bass. `npm run compose` is the advertised fast path
+      and it is the weakest generator in the repo. Share the builders: composer
+      emits bass/rhythm layers through the same primitives the plans use.
+
+- [ ] **Promote `build-song.ts`'s section builders to `src/engine/sections.ts`.**
+      397 lines — the largest and most musical file in the repo — living in a
+      script with no test, against this repo's own promote-&-test rule. The six
+      `Style` builders are pure functions of (chords, startBar) and want a
+      `*.test.ts`. Prereq for "Song sections" below.
+
+- [ ] **Voice leading.** `theory.ts:chordPitches` always voices root-position
+      ascending from a fixed octave, so consecutive chords leap instead of moving
+      by common tone. A nearest-inversion pass is small, pure, testable, and
+      audible on every piece the composer writes.
+
+- [ ] **Timbre `signal` → real audio nodes.** `blend.ts:deriveLofi` regex-matches
+      the chain into four lo-fi numbers and stops; `graph.ts` builds one shared
+      lowpass→reverb for the whole mix. So `fuzz`, `plate-reverb` and
+      `amp-cabinet` are prose. Map signal tokens to Tone node factories, and give
+      tracks their own fx/pan instead of a single summed chain. Pairs with
+      "Blend depth" above (voices) — this is the other half (sound).
+
+- [ ] **Leitmotif quoting is metadata-only.** `motifs:` gets a chip in the bench
+      and a dangling-link check; nothing transposes a theme into a host piece's
+      key and tempo. `docs/library.md` promises "written once, quoted wherever the
+      character shows up" — that needs a pure `quoteMotif(motif, key, atBar)` in
+      the engine, else the field is a label.
+- [ ] **Better lo-fi chain.** Sidechain/ducking, bitcrush option, tape stop.
+      Tune the defaults so exports sound intentional. Swing ships (per groove);
+      **humanize does not** — every note in every track is still dead on the
+      grid at a fixed velocity, which is the other half of why a render reads as
+      programmed. Wants a seeded `engine/humanize.ts`, pure and testable.
 - [ ] **Song sections.** Grow past one 4-bar loop: intro / A / B / outro with
       repeats, so "sample" can become a short arrangement on demand.
 - [ ] **Sampled instruments via `smplr`.** Swap synth piano/pad for real samples
@@ -112,6 +151,14 @@ shipped; keep this list short and forward-looking.
       embeddings (sqlite + a small model) so freeform prose maps to palettes.
       Defer until keyword match visibly fails — YAGNI gate.
 - [ ] **Waveform / piano-roll preview** in the bench for quick visual feedback.
+- [ ] **Record a built piece's source plan.** A composition expanded by
+      `song:build` keeps no pointer back to `plans/<name>.json`, so knowing which
+      file to edit and rebuild is tribal knowledge. Add a `source` field, written
+      by the builder.
+- [ ] **`compositions:list` CLI** (`--kind`, `--tag`, `--motif`). `library.ts`
+      already has the search/index functions and the bench uses them; the terminal
+      can't, so Claude greps JSON to answer "what have we written for this
+      campaign".
 - [ ] **`docs/` progressive-disclosure set**: `composition-spec.md`,
       `palette-authoring.md`, `lofi-chain.md` — split out of README as they grow.
 - [ ] **In-app song-idea submission.** Let the user type a text prompt/idea in the
