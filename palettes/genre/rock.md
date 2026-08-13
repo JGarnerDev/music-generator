@@ -9,6 +9,12 @@ progressions:
   - [I, bVII, IV, I]
   - [i, bVII, IV, i]
   - [I, V, vi, IV]
+groove:
+  patterns:
+    kick:  "X.....x.X......."
+    snare: "....X.......X..."
+    hat:   "x.x.x.x.x.x.x.x."
+    crash: "X..............................."
 instruments: [bass, pluck, piano]
 ---
 

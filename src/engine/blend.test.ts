@@ -53,6 +53,90 @@ progressions:
 ---
 body`);
 
+/** Two genres with different beats, for testing which one the blend keeps. */
+const boomBap: Palette = parsePalette(`---
+kind: genre
+slug: lofi
+title: Lo-Fi
+tags: [lofi]
+tempo: [70, 90]
+groove:
+  swing: 0.4
+  swingUnit: 8n
+  patterns:
+    kick: "X.....x........."
+    snare: "........X......."
+---
+body`);
+
+const fourFloor: Palette = parsePalette(`---
+kind: genre
+slug: house
+title: House
+tags: [house]
+tempo: [118, 128]
+groove:
+  patterns:
+    kick: "X...X...X...X..."
+---
+body`);
+
+describe("groove resolution", () => {
+  it("has no groove when no layer states one — an emotion alone is drumless", () => {
+    expect(blendPalettes([emotion()]).groove).toBeUndefined();
+  });
+
+  it("takes the groove from the genre that states one", () => {
+    const d = blendPalettes([emotion(), boomBap]);
+    expect(d.groove?.patterns.kick).toBe("X.....x.........");
+    expect(d.groove?.swing).toBe(0.4);
+    expect(d.groove?.swingUnit).toBe("8n");
+  });
+
+  it("keeps the last groove whole rather than merging lanes", () => {
+    const d = blendPalettes([emotion(), boomBap, fourFloor]);
+    expect(d.groove?.patterns).toEqual({ kick: "X...X...X...X..." });
+    expect(d.groove?.swing).toBeUndefined();
+  });
+
+  it("survives a layer that states no groove on top of one that does", () => {
+    const d = blendPalettes([emotion(), boomBap, synth]);
+    expect(d.groove?.patterns.snare).toBe("........X.......");
+  });
+
+  it("rejects a groove with a bad step string at parse time", () => {
+    expect(() =>
+      parsePalette(`---
+kind: genre
+slug: broken
+title: Broken
+tags: [broken]
+tempo: [90, 100]
+groove:
+  patterns:
+    kick: "X..."
+---
+body`),
+    ).toThrow(/multiple of 16/);
+  });
+
+  it("never treats drums as a melodic voice", () => {
+    const withDrums = parsePalette(`---
+kind: genre
+slug: kit-only
+title: Kit Only
+tags: [kit]
+tempo: [90, 100]
+instruments: [drums, bass]
+---
+body`);
+    const d = blendPalettes([emotion(), withDrums]);
+    expect(d.instruments).not.toContain("drums");
+    expect(d.instruments).toContain("bass");
+    expect(d.leadVoice).not.toBe("drums");
+  });
+});
+
 describe("blendPalettes", () => {
   it("takes tonality from the one emotion layer", () => {
     const d = blendPalettes([emotion()]);

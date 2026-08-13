@@ -10,6 +10,7 @@
 import type { Palette } from "./palette";
 import type { Composition, Track } from "./composition";
 import { blendPalettes, type MusicalDirection } from "./blend";
+import { grooveNotes } from "./groove";
 import {
   progressionChords,
   progressionsInIdiom,
@@ -95,8 +96,27 @@ export function composeFromBlend(
     key: `${tonic} ${scale}`,
     palettes: dir.slugs,
     lofi: dir.lofi,
-    tracks: [pad, lead],
+    tracks: [...drumTrack(dir, chords.length, finalBar), pad, lead],
   };
+}
+
+/**
+ * The beat, when the blend resolved one — a genre states its groove, an emotion
+ * on its own doesn't, so `--palette sad` stays a bare piano piece and
+ * `--with lofi` arrives with a kit.
+ *
+ * The pattern runs over the progression only. The final tonic bar gets a crash
+ * and a downbeat kick instead: the piece is resolving, and a hat pattern ticking
+ * through the last chord makes it sound cut off rather than finished.
+ */
+function drumTrack(dir: MusicalDirection, bars: number, finalBar: number): Track[] {
+  if (!dir.groove) return [];
+  const notes = grooveNotes(dir.groove, { startBar: 0, bars });
+  notes.push(
+    { time: `${finalBar}:0:0`, pitch: "crash", duration: "2n", velocity: 0.6 },
+    { time: `${finalBar}:0:0`, pitch: "kick", duration: "16n", velocity: 0.8 },
+  );
+  return [{ instrument: "drums", gain: 0.8, notes }];
 }
 
 /** Concrete scale pitches from `loOctave` up to and including `hiOctave`. */

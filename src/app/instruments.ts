@@ -8,11 +8,14 @@
  */
 import * as Tone from "tone";
 import type { InstrumentName } from "@engine/composition";
+import { DrumKit } from "./drums";
 
-export type Playable = Tone.PolySynth | Tone.Sampler;
+export type Playable = Tone.PolySynth | Tone.Sampler | DrumKit;
 
 export function createInstrument(name: InstrumentName): Playable {
   switch (name) {
+    case "drums":
+      return new DrumKit();
     case "piano":
       return new Tone.PolySynth(Tone.Synth, {
         oscillator: { type: "triangle" },

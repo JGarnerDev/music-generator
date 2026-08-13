@@ -9,6 +9,11 @@ progressions:
   - [i, i, i, i]
   - [i, i, bII, i]
   - [i, i, "#iv", i]
+groove:
+  patterns:
+    kick:  "X..x....X..x...."
+    snare: "........X......."
+    hat:   "x.x.x.x.x.x.x.x."
 ---
 
 # Desert Rock

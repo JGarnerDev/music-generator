@@ -9,6 +9,12 @@ progressions:
   - [I, IV, I, IV]
   - [i, VII, i, VII]
   - [I, V, IV, V]
+groove:
+  swing: 0.1
+  patterns:
+    kick:  "........X......."
+    rim:   "........X......."
+    hat:   "..x...x...x...x."
 instruments: [epiano, bass, pluck, pad]
 ---
 

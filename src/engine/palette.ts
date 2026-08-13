@@ -22,6 +22,8 @@
  */
 import matter from "gray-matter";
 import { z } from "zod";
+import { DRUM_PIECES } from "./composition";
+import { validateGroove } from "./groove";
 
 // --- shared field schemas -------------------------------------------------
 const tonality = z.object({ tonic: z.string().min(1), scale: z.string().min(1) });
@@ -29,6 +31,30 @@ const progressions = z.array(z.array(z.string().min(1)).min(1)).min(1);
 const tempo = z.tuple([z.number().positive(), z.number().positive()]);
 const tags = z.array(z.string().min(1)).min(1);
 const instruments = z.array(z.string().min(1)).optional();
+
+/**
+ * A genre's beat, in drum-machine step notation (see `groove.ts`). Shape is
+ * checked by zod; the step strings themselves are checked by `validateGroove`,
+ * so the notation has exactly one definition and a bad lane fails at load with
+ * the same message whether it came from frontmatter or from JSON.
+ */
+const groove = z
+  .object({
+    swing: z.number().optional(),
+    swingUnit: z.enum(["8n", "16n"]).optional(),
+    // partialRecord, not record: a groove names the pieces it plays, and zod's
+    // plain record over an enum demands every key.
+    patterns: z.partialRecord(z.enum(DRUM_PIECES), z.string()),
+  })
+  .superRefine((value, ctx) => {
+    for (const issue of validateGroove(value)) {
+      ctx.addIssue({
+        code: "custom",
+        path: issue.path.split(".").slice(1), // drop the leading "groove"
+        message: issue.message,
+      });
+    }
+  });
 
 const base = z.object({
   slug: z.string().min(1),
@@ -86,6 +112,8 @@ export const genreSchema = base
     progressions: progressions.optional(),
     /** Harmonic lean, so the blend knows which mode this genre wants. */
     mode: z.enum(["major", "minor", "either"]).optional(),
+    /** The beat. Optional — a genre defined by harmony alone needn't state one. */
+    groove: groove.optional(),
     instruments,
   })
   .superRefine((fm, ctx) => {
@@ -120,6 +148,7 @@ export const genericSchema = base.extend({
   progressions: progressions.optional(),
   tempo: tempo.optional(),
   mode: z.enum(["major", "minor", "either"]).optional(),
+  groove: groove.optional(),
   instruments,
   signal: z.array(z.string().min(1)).optional(),
   character: z.string().min(1).optional(),

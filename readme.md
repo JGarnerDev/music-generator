@@ -61,7 +61,9 @@ npm run typecheck  # tsc --noEmit
   tonality + progressions. Validate it:
   `npm run composition:validate -- --file compositions/<kind>/<name>.json`. Or generate
   one: `npm run compose -- --mood "<scene>" [--palette <emotion>] [--with <genre,timbre,…>] [--kind <kind>]`
-  — layers blend via [`blend.ts`](docs/palette-authoring.md#blending).
+  — layers blend via [`blend.ts`](docs/palette-authoring.md#blending). The beat
+  rides along with the genre: an emotion alone is drumless, `--with lofi` arrives
+  with a kit. See [grooves](docs/grooves.md).
 - **File it:** kind is the folder, and the bench tabs mirror it. Sweep or
   promote with `npm run compositions:organize` — see [library](docs/library.md),
   which also covers **leitmotifs** (themes other pieces quote via `motifs`).
@@ -94,6 +96,8 @@ npm run typecheck  # tsc --noEmit
   seam rules, tail-wrapped exports, section plans.
 - [`docs/library.md`](docs/library.md) — how `compositions/` is filed by kind,
   and how leitmotifs are written once and quoted by other pieces.
+- [`docs/grooves.md`](docs/grooves.md) — the drum step notation a genre palette
+  carries, the kit pieces, and the swing rule that fails silently.
 
 Progressive disclosure — split a section into its own frontmatter'd doc once it
 outgrows a screen here. Planned: `docs/composition-spec.md`,

@@ -9,6 +9,13 @@ progressions:
   - [ii, V, I, I]
   - [I, vi, ii, V]
   - [i, VI, ii, V]
+groove:
+  swing: 0.45
+  swingUnit: 8n
+  patterns:
+    kick:  "X.....x.........X.....x.....x..."
+    snare: "........X.............o.X......."
+    hat:   "x.o.x.o.x.o.x.o."
 instruments: [epiano, piano, bass, pad]
 ---
 

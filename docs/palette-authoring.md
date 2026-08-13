@@ -95,8 +95,17 @@ tempo: [80, 132]               # required, unless `parent` supplies it
 mode: either                   # optional: major | minor | either — the harmonic lean
 progressions:                  # optional signature progressions
   - [ii, V, I]
+groove:                        # optional: the beat, in step notation
+  swing: 0.7                   #   0 straight … 1 full triplet shuffle
+  swingUnit: 8n                #   which off-beats move: 8n | 16n (default 16n)
+  patterns:                    #   one lane per kit piece; X accent, x hit, o ghost, . rest
+    ride: "X...x.x.X...x.x."   #   16 chars = one bar; lanes cycle independently
 instruments: [epiano, bass]    # optional
 ```
+
+A genre's beat is most of its identity — see [grooves](grooves.md) for the
+notation, the kit pieces, and the swing rule that fails silently if you get it
+wrong.
 
 **timbre** — pure sound, no tonality/progressions/tempo:
 ```yaml
@@ -128,6 +137,8 @@ Rules (small on purpose, all unit-tested):
   vocabulary) override the emotion's; otherwise the emotion's are used. Among
   several such layers the **last** wins, same "later is more specific" principle
   as tempo — which is what lets a subtype override its parent.
+- **Groove** — the last layer stating one wins, taken **whole**; lanes are never
+  merged across genres. No layer states one → no drum track.
 - **Instruments** — merge every layer's list in order, keep known voices, dedupe;
   pick a sustained `padVoice` + a `leadVoice` (piano > epiano > pluck) for the two
   tracks.

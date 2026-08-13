@@ -17,10 +17,46 @@ export interface Note {
   velocity?: number;
 }
 
-export type InstrumentName = "piano" | "epiano" | "pad" | "bass" | "pluck";
+export type InstrumentName = "piano" | "epiano" | "pad" | "bass" | "pluck" | "drums";
 
 /** The known instrument voices, in a stable order. Source of truth for validation + blending. */
-export const INSTRUMENT_NAMES = ["piano", "epiano", "pad", "bass", "pluck"] as const satisfies readonly InstrumentName[];
+export const INSTRUMENT_NAMES = ["piano", "epiano", "pad", "bass", "pluck", "drums"] as const satisfies readonly InstrumentName[];
+
+/**
+ * Pitched voices — the ones a chord, a scale ladder or a transpose applies to.
+ * `drums` is deliberately excluded: its notes carry a kit piece, not a pitch.
+ */
+export const PITCHED_INSTRUMENTS = INSTRUMENT_NAMES.filter(
+  (i): i is Exclude<InstrumentName, "drums"> => i !== "drums",
+);
+
+/**
+ * Kit pieces a `drums` track can play. A drum note's `pitch` is one of these
+ * names instead of a scientific pitch — the kit is one instrument with many
+ * sounds, so naming the piece is what "which note" means for percussion.
+ */
+export const DRUM_PIECES = [
+  "kick",
+  "snare",
+  "rim",
+  "clap",
+  "hat",
+  "open-hat",
+  "ride",
+  "crash",
+  "tom-lo",
+  "tom-mid",
+  "tom-hi",
+  "shaker",
+] as const;
+
+export type DrumPiece = (typeof DRUM_PIECES)[number];
+
+const DRUM_PIECE_SET: ReadonlySet<string> = new Set<string>(DRUM_PIECES);
+
+export function isDrumPiece(value: unknown): value is DrumPiece {
+  return typeof value === "string" && DRUM_PIECE_SET.has(value);
+}
 
 export interface Track {
   instrument: InstrumentName;
@@ -138,6 +174,7 @@ export function validateComposition(input: unknown): ValidationIssue[] {
       push(`${base}.notes`, "must be a non-empty array");
       return;
     }
+    const isDrums = t.instrument === "drums";
     t.notes.forEach((note, ni) => {
       const nb = `${base}.notes[${ni}]`;
       if (typeof note !== "object" || note === null) {
@@ -146,7 +183,14 @@ export function validateComposition(input: unknown): ValidationIssue[] {
       }
       const n = note as Record<string, unknown>;
       if (typeof n.time !== "string") push(`${nb}.time`, "must be a string");
-      if (typeof n.pitch !== "string") push(`${nb}.pitch`, "must be a string");
+      // A drum note names a kit piece where a pitched note names a pitch. Checked
+      // here because a typo'd "kicks" is silent at play time and silence is the
+      // one bug an ear can't localise.
+      if (isDrums && !isDrumPiece(n.pitch)) {
+        push(`${nb}.pitch`, `unknown drum piece "${String(n.pitch)}"`);
+      } else if (!isDrums && typeof n.pitch !== "string") {
+        push(`${nb}.pitch`, "must be a string");
+      }
       if (typeof n.duration !== "string") push(`${nb}.duration`, "must be a string");
       if (n.velocity !== undefined && !isUnit(n.velocity)) {
         push(`${nb}.velocity`, "must be a number in 0..1");

@@ -9,6 +9,13 @@ progressions:
   - [i, i, i, i]
   - [i, iv, i, i]
   - [i, VII, i, i]
+groove:
+  swing: 0.15
+  patterns:
+    kick:     "X.....x...X..x.."
+    snare:    "..o.X..o..o.X.o."
+    hat:      "XoxoXoxoXoxoXoxo"
+    open-hat: "..............x."
 instruments: [bass, pluck, epiano]
 ---
 

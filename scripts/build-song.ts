@@ -23,6 +23,7 @@ import {
   type Track,
 } from "../src/engine/composition";
 import { gallopLine, powerChordGallop, sustainLine, tremoloLine } from "../src/engine/riff";
+import { grooveNotes, validateGroove, type Groove } from "../src/engine/groove";
 import { chordPitches, transpose } from "../src/engine/theory";
 
 const BEATS_PER_BAR = 4;
@@ -39,6 +40,12 @@ interface PlanSection {
   style: Style;
   note?: string;
   chords: string[];
+  /** Override the plan's beat for this section (a half-time chorus, a new kit). */
+  groove?: Groove;
+  /** `false` drops the kit for this section — a breakdown is defined by its silence. */
+  drums?: boolean;
+  /** Scales the kit's dynamics here: 0.6 for a verse, 1 for the chorus. */
+  intensity?: number;
   /** Whistle/bell voice (piano), times relative to the section start. */
   melody?: PlanNote[];
   /** Guitar lead voice (pluck), times relative to the section start. */
@@ -51,6 +58,13 @@ interface Plan {
   key: string;
   palettes?: string[];
   lofi?: LoFiSettings;
+  /**
+   * The kit pattern, in the same step notation the genre palettes use (see
+   * `docs/grooves.md`). Stated once here and restated per section only where the
+   * beat actually changes — a plan is a description of what happens, and "the
+   * drums keep doing what they were doing" is most bars.
+   */
+  groove?: Groove;
   /** Section id where the loop body begins; everything before it is the intro. */
   loopFrom?: string;
   sections: PlanSection[];
@@ -68,13 +82,14 @@ interface SectionContext {
   approaches: (string | null)[];
 }
 
-/** The five voices every section writes into. */
+/** The voices every section writes into. */
 interface Voices {
   pad: Note[];
   bass: Note[];
   rhythm: Note[];
   lead: Note[];
   piano: Note[];
+  drums: Note[];
 }
 
 const program = new Command();
@@ -142,7 +157,7 @@ function buildComposition(plan: Plan): Composition {
   const bassRoots = bars.map((chord) => fitToBand(rootOf(chord), BASS_BAND));
   const approaches = buildApproaches(bassRoots, loopStartBar);
 
-  const voices: Voices = { pad: [], bass: [], rhythm: [], lead: [], piano: [] };
+  const voices: Voices = { pad: [], bass: [], rhythm: [], lead: [], piano: [], drums: [] };
 
   let bar = 0;
   for (const section of plan.sections) {
@@ -155,10 +170,12 @@ function buildComposition(plan: Plan): Composition {
       approaches: approaches.slice(span.start, span.end),
     };
     buildSection(ctx, voices);
+    voices.drums.push(...sectionDrums(plan, ctx));
     bar = span.end;
   }
 
   const tracks: Track[] = [
+    { instrument: "drums", gain: 0.85, notes: voices.drums },
     { instrument: "pad", gain: 0.35, notes: voices.pad },
     { instrument: "bass", gain: 0.95, notes: voices.bass },
     { instrument: "pluck", gain: 0.7, notes: voices.rhythm },
@@ -175,6 +192,32 @@ function buildComposition(plan: Plan): Composition {
     ...(loopStartBar === null ? {} : { loop: { startBar: loopStartBar, endBar: bar } }),
     tracks,
   };
+}
+
+/**
+ * The kit for one section. A section inherits the plan's groove, overrides it
+ * with its own, or drops out entirely with `drums: false`.
+ *
+ * Lane cycling is per section, not per song: the pattern restarts at each
+ * section's first bar so a two-bar groove never lands on its second bar at the
+ * top of a chorus. Sections are the phrase boundaries a listener hears, so they
+ * are where the pattern should reset.
+ */
+function sectionDrums(plan: Plan, ctx: SectionContext): Note[] {
+  const groove = ctx.section.groove ?? plan.groove;
+  if (!groove || ctx.section.drums === false) return [];
+
+  const issues = validateGroove(groove);
+  if (issues.length > 0) {
+    console.error(`section "${ctx.section.id}": invalid groove`);
+    for (const i of issues) console.error(`  ${i.path}: ${i.message}`);
+    process.exit(2);
+  }
+  return grooveNotes(groove, {
+    startBar: ctx.startBar,
+    bars: ctx.section.chords.length,
+    intensity: ctx.section.intensity ?? 1,
+  });
 }
 
 /** Bar index where the named section starts, or null when the plan doesn't loop. */

@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { composeFromPalette } from "./composer";
+import { composeFromPalette, composeFromBlend } from "./composer";
+import { blendPalettes } from "./blend";
 import { parsePalette, type Palette } from "./palette";
 import { validateComposition } from "./composition";
 
@@ -17,6 +18,50 @@ tempo: [60, 78]
 instruments: [piano, pad]
 ---
 body`);
+
+const withBeat: Palette = parsePalette(`---
+kind: genre
+slug: lofi
+title: Lo-Fi
+tags: [lofi]
+tempo: [70, 90]
+groove:
+  swing: 0.4
+  swingUnit: 8n
+  patterns:
+    kick: "X.....x........."
+    snare: "........X......."
+    hat: "x.o.x.o.x.o.x.o."
+---
+body`);
+
+describe("drum track", () => {
+  it("stays drumless when no layer states a groove", () => {
+    const comp = composeFromPalette(sad, "quiet farewell");
+    expect(comp.tracks.map((t) => t.instrument)).not.toContain("drums");
+  });
+
+  it("plays the blended groove, and validates as drums", () => {
+    const comp = composeFromBlend(blendPalettes([sad, withBeat]), "rainy window");
+    const drums = comp.tracks.find((t) => t.instrument === "drums");
+    expect(drums).toBeDefined();
+    expect(new Set(drums!.notes.map((n) => n.pitch))).toEqual(
+      new Set(["kick", "snare", "hat", "crash"]),
+    );
+    expect(validateComposition(comp)).toEqual([]);
+  });
+
+  it("covers every bar of the progression and crashes on the resolution", () => {
+    const comp = composeFromBlend(blendPalettes([sad, withBeat]), "rainy window");
+    const drums = comp.tracks.find((t) => t.instrument === "drums")!;
+    const lastBar = Number(comp.tracks[1]!.notes.at(-1)!.time.split(":")[0]);
+    const bars = new Set(drums.notes.map((n) => Number(n.time.split(":")[0])));
+    expect(bars.size).toBe(lastBar + 1);
+    expect(drums.notes.filter((n) => n.pitch === "crash").map((n) => n.time)).toEqual([
+      `${lastBar}:0:0`,
+    ]);
+  });
+});
 
 describe("composeFromPalette", () => {
   it("produces a structurally valid composition", () => {

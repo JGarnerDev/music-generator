@@ -9,6 +9,11 @@ progressions:
   - [i, VI, VII, i]
   - [i, i, VI, VII]
   - [I, V, vi, IV]
+groove:
+  patterns:
+    tom-lo: "X.......X...X..."
+    kick:   "X...............X.......X......."
+    crash:  "X..............................."
 instruments: [pad, piano, bass, pluck]
 ---
 

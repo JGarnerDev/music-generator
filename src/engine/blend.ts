@@ -15,6 +15,7 @@
  *     several, the last (most specific) wins.
  *   - Subtypes: `withAncestors` expands a `parent:` chain into layers, ancestors
  *     first, so a subtype states only its deltas and inherits the rest.
+ *   - Groove: the last layer stating one wins, taken whole (never lane-merged).
  *   - Instruments: merge every layer's list in blend order, keep known voices,
  *     dedupe. Pick a sustained `padVoice` + a `leadVoice` for the two tracks.
  *   - Signal: concat every layer's fx chain (timbres), then nudge the lo-fi
@@ -22,10 +23,11 @@
  */
 import { isEmotionPalette, type Palette, type GenericFrontmatter } from "./palette";
 import {
-  INSTRUMENT_NAMES,
+  PITCHED_INSTRUMENTS,
   type InstrumentName,
   type LoFiSettings,
 } from "./composition";
+import type { Groove } from "./groove";
 
 /** Read a palette's optional structured hints regardless of its kind. */
 const hints = (p: Palette): GenericFrontmatter => p.frontmatter as GenericFrontmatter;
@@ -42,6 +44,8 @@ export interface MusicalDirection {
   leadVoice: InstrumentName;
   /** Full merged voice set (provenance + room for future tracks). */
   instruments: InstrumentName[];
+  /** The beat, from the most specific layer that states one. Absent = no drums. */
+  groove?: Groove;
   /** Ordered fx/processing hints gathered from timbre layers. */
   signal: string[];
   /** Lo-fi chain, emotion baseline nudged by the signal hints. */
@@ -86,7 +90,9 @@ export function withAncestors(selected: Palette[], all: Palette[]): Palette[] {
   return out;
 }
 
-const KNOWN_VOICES = new Set<string>(INSTRUMENT_NAMES);
+// Pitched only: `drums` is never a melodic voice, and a palette that lists it
+// means "this music has a beat" — which is what `groove` says, properly.
+const KNOWN_VOICES = new Set<string>(PITCHED_INSTRUMENTS);
 const LEAD_PREFERENCE: InstrumentName[] = ["piano", "epiano", "pluck"];
 
 /** Blend a set of palettes (in layer order) into one `MusicalDirection`. */
@@ -116,10 +122,28 @@ export function blendPalettes(palettes: Palette[]): MusicalDirection {
     instruments,
     padVoice: instruments.find((i) => i === "pad") ?? "pad",
     leadVoice: LEAD_PREFERENCE.find((v) => instruments.includes(v)) ?? "piano",
+    groove: resolveGroove(palettes),
     signal,
     lofi: deriveLofi(signal),
     slugs: palettes.map((p) => p.frontmatter.slug),
   };
+}
+
+/**
+ * The beat comes from the last layer that states one — same "later is more
+ * specific" rule as tempo and progressions, so `--with rock,desert-rock` swings
+ * the way the subtype says and a timbre layered on top changes nothing.
+ *
+ * Grooves are taken whole rather than merged lane-by-lane: half of one genre's
+ * kick against another's hats is not a third genre, it's mush.
+ */
+function resolveGroove(palettes: Palette[]): Groove | undefined {
+  let resolved: Groove | undefined;
+  for (const p of palettes) {
+    const g = hints(p).groove;
+    if (g && Object.keys(g.patterns).length > 0) resolved = g;
+  }
+  return resolved;
 }
 
 /** Intersect every layer's tempo range; on an empty overlap the later layer wins. */
