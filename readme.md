@@ -42,6 +42,7 @@ musical ideas into something you're pumped about.
 | `src/utils/` | Promoted general helpers | rng, timing, wav — **tested** |
 | `src/app/` | Browser player + WAV export | Tone.js glue, thin, not unit-tested |
 | `compositions/*.json` | Song specs (the Claude↔app contract) | Shape in `src/engine/composition.ts` |
+| `plans/*.json` | Section plans for long/looping pieces | Expanded by `npm run song:build`; see [looping](docs/looping.md) |
 | `scripts/*.ts` | Deterministic CLI chores | commander, named flags |
 | `exports/` | Rendered WAVs | Gitignored (ephemeral) |
 | `assets/samples/` | SoundFont/sample packs | Gitignored (large binaries) |
@@ -61,6 +62,10 @@ npm run typecheck  # tsc --noEmit
   one: `npm run compose -- --mood "<scene>" [--palette <emotion>] [--with <genre,timbre,…>]`
   — layers blend via [`blend.ts`](docs/palette-authoring.md#blending).
 - **Audition & export:** `npm run dev`, hit Play, then Export WAV.
+- **Loop it (game music):** give the piece a `loop: {startBar, endBar}` and hit
+  Export Loop for a seamless, tail-wrapped body. Long loops are built from a
+  section plan: `npm run song:build -- --plan plans/<name>.json`. Rules for the
+  seam and for fighting fatigue: [looping](docs/looping.md).
 - **New palette:** `npm run palette:new -- --kind emotion|genre|timbre --slug <slug> --title "<t>" --tags a,b,c`
   (writes `palettes/<kind>/<slug>.md`). See [palette-authoring](docs/palette-authoring.md).
 
@@ -78,6 +83,8 @@ npm run typecheck  # tsc --noEmit
 
 - [`docs/vision.md`](docs/vision.md) — why the project exists: use cases,
   desired outcomes, design philosophy behind these principles.
+- [`docs/looping.md`](docs/looping.md) — writing music that repeats for minutes:
+  seam rules, tail-wrapped exports, section plans.
 
 Progressive disclosure — split a section into its own frontmatter'd doc once it
 outgrows a screen here. Planned: `docs/composition-spec.md`,

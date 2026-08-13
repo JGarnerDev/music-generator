@@ -42,6 +42,12 @@ Claude-specific working rules that don't belong in the human-facing README.
 5. Tell the user to `npm run dev`, Play, Export WAV — then ask for one
    adjustment. Be proactive first; refine after.
 
+**If it's for a game** (anything that plays under a scene on repeat), it needs a
+loop, not a song: write a `plans/<name>.json` and
+`npm run song:build -- --plan plans/<name>.json` instead of hand-writing notes,
+and read [`docs/looping.md`](./docs/looping.md) first — the seam rules are not
+guessable.
+
 ## Before you finish
 
 - `npm test` and `npm run typecheck` pass.

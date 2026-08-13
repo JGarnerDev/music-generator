@@ -40,6 +40,24 @@ export interface LoFiSettings {
   reverb?: number;
 }
 
+/**
+ * Where a piece repeats forever, for game-style background music.
+ *
+ * Bars before `startBar` are a one-shot intro: they play once, then the piece
+ * cycles `[startBar, endBar)` for as long as the scene lasts. `endBar` is
+ * exclusive, so a 64-bar body starting at bar 8 ends at bar 72.
+ *
+ * The seam is a musical decision, not just a marker: write the last loop bar so
+ * it *wants* the first one back (land on the V, leave the phrase open), because
+ * the wrap is heard as often as every other bar in the piece.
+ */
+export interface LoopSettings {
+  /** First bar of the looping body. Bars before it play once as an intro. */
+  startBar: number;
+  /** Bar the loop wraps at, exclusive — playback jumps back to `startBar` here. */
+  endBar: number;
+}
+
 export interface Composition {
   name: string;
   bpm: number;
@@ -47,6 +65,8 @@ export interface Composition {
   key: string;
   tracks: Track[];
   lofi?: LoFiSettings;
+  /** Loop window for endless playback. Absent = the piece plays once. */
+  loop?: LoopSettings;
   /** Palette slugs this piece drew from, for provenance. */
   palettes?: string[];
 }
@@ -82,6 +102,8 @@ export function validateComposition(input: unknown): ValidationIssue[] {
   if (typeof c.key !== "string" || c.key.trim() === "") {
     push("key", "must be a non-empty string");
   }
+
+  if (c.loop !== undefined) validateLoop(c.loop, push);
 
   if (!Array.isArray(c.tracks) || c.tracks.length === 0) {
     push("tracks", "must be a non-empty array");
@@ -122,6 +144,27 @@ export function validateComposition(input: unknown): ValidationIssue[] {
   });
 
   return issues;
+}
+
+/**
+ * Loop bars must be whole bars: the wrap is sample-aligned to a bar boundary, so
+ * a fractional bar would drift the grid a little further every lap.
+ */
+function validateLoop(loop: unknown, push: (path: string, message: string) => void): void {
+  if (typeof loop !== "object" || loop === null) {
+    push("loop", "must be an object");
+    return;
+  }
+  const l = loop as Record<string, unknown>;
+  if (!isBarIndex(l.startBar)) push("loop.startBar", "must be a non-negative integer");
+  if (!isBarIndex(l.endBar)) push("loop.endBar", "must be a non-negative integer");
+  if (isBarIndex(l.startBar) && isBarIndex(l.endBar) && l.endBar <= l.startBar) {
+    push("loop.endBar", "must be greater than loop.startBar");
+  }
+}
+
+function isBarIndex(v: unknown): v is number {
+  return typeof v === "number" && Number.isInteger(v) && v >= 0;
 }
 
 function isUnit(v: unknown): v is number {

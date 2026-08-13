@@ -49,6 +49,23 @@ describe("validateComposition", () => {
     expect(issues.some((i) => i.path === "tracks[0].notes[0].velocity")).toBe(true);
   });
 
+  it("accepts a valid loop window", () => {
+    expect(validateComposition({ ...valid, loop: { startBar: 8, endBar: 72 } })).toEqual([]);
+  });
+
+  it("rejects an empty or inverted loop window", () => {
+    for (const loop of [{ startBar: 8, endBar: 8 }, { startBar: 8, endBar: 4 }]) {
+      const issues = validateComposition({ ...valid, loop });
+      expect(issues.some((i) => i.path === "loop.endBar")).toBe(true);
+    }
+  });
+
+  it("rejects fractional or negative loop bars", () => {
+    const issues = validateComposition({ ...valid, loop: { startBar: -1, endBar: 7.5 } });
+    expect(issues.some((i) => i.path === "loop.startBar")).toBe(true);
+    expect(issues.some((i) => i.path === "loop.endBar")).toBe(true);
+  });
+
   it("flags missing note fields", () => {
     const bad = {
       ...valid,

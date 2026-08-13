@@ -12,6 +12,7 @@
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
     "compose": "tsx scripts/compose.ts",
+    "song:build": "tsx scripts/build-song.ts",
     "palette:new": "tsx scripts/new-palette.ts",
     "composition:validate": "tsx scripts/validate-composition.ts"
   },

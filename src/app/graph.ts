@@ -11,7 +11,17 @@
  */
 import * as Tone from "tone";
 import type { Composition, LoFiSettings } from "@engine/composition";
+import { loopWindowSeconds } from "@engine/arrange";
 import { createInstrument } from "./instruments";
+
+export interface ScheduleOptions {
+  /**
+   * Cycle the composition's loop window forever (game-style playback): the intro
+   * bars play once, then the body repeats. Ignored when the piece has no `loop`.
+   * Off for offline renders, which walk the timeline once.
+   */
+  loop?: boolean;
+}
 
 function buildLoFiChain(lofi: LoFiSettings | undefined): Tone.ToneAudioNode {
   const input = new Tone.Gain(1);
@@ -41,9 +51,20 @@ function buildLoFiChain(lofi: LoFiSettings | undefined): Tone.ToneAudioNode {
  * Build instruments + effects and schedule all notes onto the current transport.
  * Does NOT start the transport — caller decides (live vs offline).
  */
-export function scheduleComposition(comp: Composition): void {
+export function scheduleComposition(comp: Composition, opts: ScheduleOptions = {}): void {
   const transport = Tone.getTransport();
   transport.bpm.value = comp.bpm;
+
+  const window = opts.loop ? loopWindowSeconds(comp) : null;
+  if (window) {
+    // Notes that ring past loopEnd keep ringing while the body restarts, which is
+    // the live equivalent of the tail-wrap the WAV exporter does.
+    transport.loop = true;
+    transport.loopStart = window.start;
+    transport.loopEnd = window.end;
+  } else {
+    transport.loop = false;
+  }
 
   const chainInput = buildLoFiChain(comp.lofi);
 
