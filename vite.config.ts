@@ -1,8 +1,11 @@
 /// <reference types="vitest/config" />
 import { defineConfig } from "vite";
 import { resolve } from "node:path";
+import { libraryApi } from "./src/dev/library-api";
 
 export default defineConfig({
+  // Dev-only: lets the bench's delete button move a composition into _trash.
+  plugins: [libraryApi(resolve(__dirname, "compositions"))],
   resolve: {
     alias: {
       "@engine": resolve(__dirname, "src/engine"),

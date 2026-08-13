@@ -15,7 +15,8 @@
     "song:build": "tsx scripts/build-song.ts",
     "palette:new": "tsx scripts/new-palette.ts",
     "palette:tree": "tsx scripts/palette-tree.ts",
-    "composition:validate": "tsx scripts/validate-composition.ts"
+    "composition:validate": "tsx scripts/validate-composition.ts",
+    "compositions:organize": "tsx scripts/organize-compositions.ts"
   },
   "dependencies": {
     "commander": "^15.0.0",

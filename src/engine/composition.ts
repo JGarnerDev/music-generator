@@ -69,6 +69,14 @@ export interface Composition {
   loop?: LoopSettings;
   /** Palette slugs this piece drew from, for provenance. */
   palettes?: string[];
+  /** Free-form labels for finding it again in the bench (scene, campaign, character). */
+  tags?: string[];
+  /**
+   * Slugs of the `compositions/leitmotifs/*` themes this piece quotes. Opera
+   * logic: a motif is written once and recurs wherever its character or idea
+   * does, so a piece points at the theme instead of copying it.
+   */
+  motifs?: string[];
 }
 
 export interface ValidationIssue {
@@ -104,6 +112,9 @@ export function validateComposition(input: unknown): ValidationIssue[] {
   }
 
   if (c.loop !== undefined) validateLoop(c.loop, push);
+  for (const field of ["palettes", "tags", "motifs"] as const) {
+    if (c[field] !== undefined) validateSlugList(c[field], field, push);
+  }
 
   if (!Array.isArray(c.tracks) || c.tracks.length === 0) {
     push("tracks", "must be a non-empty array");
@@ -161,6 +172,23 @@ function validateLoop(loop: unknown, push: (path: string, message: string) => vo
   if (isBarIndex(l.startBar) && isBarIndex(l.endBar) && l.endBar <= l.startBar) {
     push("loop.endBar", "must be greater than loop.startBar");
   }
+}
+
+/** `palettes` / `tags` / `motifs` are all the same shape: a list of non-empty labels. */
+function validateSlugList(
+  value: unknown,
+  field: string,
+  push: (path: string, message: string) => void,
+): void {
+  if (!Array.isArray(value)) {
+    push(field, "must be an array of strings");
+    return;
+  }
+  value.forEach((item, i) => {
+    if (typeof item !== "string" || item.trim() === "") {
+      push(`${field}[${i}]`, "must be a non-empty string");
+    }
+  });
 }
 
 function isBarIndex(v: unknown): v is number {

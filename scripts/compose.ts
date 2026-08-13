@@ -12,6 +12,7 @@ import { loadPalettesFromDir, findPalettes } from "../src/engine/palette-loader"
 import { composeFromBlend } from "../src/engine/composer";
 import { blendPalettes, withAncestors } from "../src/engine/blend";
 import { validateComposition } from "../src/engine/composition";
+import { COMPOSITION_KINDS, isCompositionKind } from "../src/engine/library";
 import { isEmotionPalette, type Palette } from "../src/engine/palette";
 
 const program = new Command();
@@ -23,6 +24,11 @@ program
   .option("--with <csv>", "extra palette slugs to layer, e.g. jazz,analog-synth", "")
   .option("--seed <text>", "extra entropy for a different take", "")
   .option("--name <name>", "override the output filename/name")
+  .option(
+    "--kind <kind>",
+    `library folder to file it under: ${COMPOSITION_KINDS.join(" | ")}`,
+    "segments",
+  )
   .option("--force", "overwrite if the composition already exists", false)
   .parse(process.argv);
 
@@ -32,8 +38,14 @@ const opts = program.opts<{
   with: string;
   seed: string;
   name?: string;
+  kind: string;
   force: boolean;
 }>();
+
+if (!isCompositionKind(opts.kind)) {
+  console.error(`Unknown --kind "${opts.kind}". Pick one of: ${COMPOSITION_KINDS.join(", ")}.`);
+  process.exit(2);
+}
 
 const palettesDir = resolve(process.cwd(), "palettes");
 const palettes = loadPalettesFromDir(palettesDir);
@@ -92,7 +104,9 @@ if (issues.length > 0) {
   process.exit(1);
 }
 
-const dir = resolve(process.cwd(), "compositions");
+// Kind is the folder (see src/engine/library.ts) — a fresh take is a segment
+// until you promote it with `npm run compositions:organize`.
+const dir = resolve(process.cwd(), "compositions", opts.kind);
 mkdirSync(dir, { recursive: true });
 const out = resolve(dir, `${comp.name}.json`);
 if (existsSync(out) && !opts.force) {

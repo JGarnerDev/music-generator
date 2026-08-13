@@ -10,10 +10,11 @@
  *
  * Named flags only (repo convention: no positional arguments).
  */
-import { readFileSync, writeFileSync } from "node:fs";
-import { resolve, basename } from "node:path";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { resolve, basename, dirname } from "node:path";
 import { Command } from "commander";
 import { Note as TonalNote } from "tonal";
+import { COMPOSITION_KINDS, isCompositionKind } from "../src/engine/library";
 import {
   validateComposition,
   type Composition,
@@ -81,10 +82,18 @@ program
   .name("build-song")
   .description("Expand a section plan into a composition JSON")
   .requiredOption("--plan <path>", "path to the plan .json")
-  .option("--out <path>", "output composition path (default compositions/<name>.json)")
+  .option("--out <path>", "output composition path (default compositions/<kind>/<name>.json)")
+  .option(
+    "--kind <kind>",
+    `library folder to file it under (default: loops when the plan loops, else songs): ${COMPOSITION_KINDS.join(" | ")}`,
+  )
   .parse(process.argv);
 
-const { plan: planPath, out } = program.opts<{ plan: string; out?: string }>();
+const { plan: planPath, out, kind } = program.opts<{ plan: string; out?: string; kind?: string }>();
+if (kind !== undefined && !isCompositionKind(kind)) {
+  console.error(`Unknown --kind "${kind}". Pick one of: ${COMPOSITION_KINDS.join(", ")}.`);
+  process.exit(2);
+}
 const plan = readPlan(resolve(process.cwd(), planPath));
 const composition = buildComposition(plan);
 
@@ -95,7 +104,11 @@ if (issues.length > 0) {
   process.exit(1);
 }
 
-const outPath = resolve(process.cwd(), out ?? `compositions/${plan.name}.json`);
+// A plan that declares `loopFrom` is scene music; one that doesn't is a piece
+// that plays through. Either way the folder it lands in *is* its kind.
+const targetKind = kind ?? (composition.loop ? "loops" : "songs");
+const outPath = resolve(process.cwd(), out ?? `compositions/${targetKind}/${plan.name}.json`);
+mkdirSync(dirname(outPath), { recursive: true });
 writeFileSync(outPath, `${JSON.stringify(composition, null, 2)}\n`, "utf8");
 
 const noteCount = composition.tracks.reduce((n, t) => n + t.notes.length, 0);

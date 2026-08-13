@@ -15,3 +15,6 @@ assets/samples/*
 .env.local
 .DS_Store
 *.log
+
+# Deleted compositions are moved here by the bench, not unlinked — recoverable, not committed
+compositions/_trash/

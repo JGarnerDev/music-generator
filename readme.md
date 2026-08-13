@@ -41,9 +41,10 @@ musical ideas into something you're pumped about.
 | `src/engine/` | Pure music brains | tonal, theory, arrange, validation — **tested** |
 | `src/utils/` | Promoted general helpers | rng, timing, wav — **tested** |
 | `src/app/` | Browser player + WAV export | Tone.js glue, thin, not unit-tested |
-| `compositions/*.json` | Song specs (the Claude↔app contract) | Shape in `src/engine/composition.ts` |
+| `compositions/<kind>/*.json` | Song specs (the Claude↔app contract) | Kind = folder = tab: `leitmotifs`, `segments`, `loops`, `songs`. See [library](docs/library.md); shape in `src/engine/composition.ts` |
 | `plans/*.json` | Section plans for long/looping pieces | Expanded by `npm run song:build`; see [looping](docs/looping.md) |
 | `scripts/*.ts` | Deterministic CLI chores | commander, named flags |
+| `src/dev/` | Dev-server middleware (delete → `_trash`) | Never in the built bundle |
 | `exports/` | Rendered WAVs | Gitignored (ephemeral) |
 | `assets/samples/` | SoundFont/sample packs | Gitignored (large binaries) |
 
@@ -56,11 +57,14 @@ npm test           # vitest (engine + utils)
 npm run typecheck  # tsc --noEmit
 ```
 
-- **Compose:** write/adjust a `compositions/<name>.json` using a palette's
+- **Compose:** write/adjust a `compositions/<kind>/<name>.json` using a palette's
   tonality + progressions. Validate it:
-  `npm run composition:validate -- --file compositions/<name>.json`. Or generate
-  one: `npm run compose -- --mood "<scene>" [--palette <emotion>] [--with <genre,timbre,…>]`
+  `npm run composition:validate -- --file compositions/<kind>/<name>.json`. Or generate
+  one: `npm run compose -- --mood "<scene>" [--palette <emotion>] [--with <genre,timbre,…>] [--kind <kind>]`
   — layers blend via [`blend.ts`](docs/palette-authoring.md#blending).
+- **File it:** kind is the folder, and the bench tabs mirror it. Sweep or
+  promote with `npm run compositions:organize` — see [library](docs/library.md),
+  which also covers **leitmotifs** (themes other pieces quote via `motifs`).
 - **Audition & export:** `npm run dev`, hit Play, then Export WAV.
 - **Loop it (game music):** give the piece a `loop: {startBar, endBar}` and hit
   Export Loop for a seamless, tail-wrapped body. Long loops are built from a
@@ -88,6 +92,8 @@ npm run typecheck  # tsc --noEmit
   desired outcomes, design philosophy behind these principles.
 - [`docs/looping.md`](docs/looping.md) — writing music that repeats for minutes:
   seam rules, tail-wrapped exports, section plans.
+- [`docs/library.md`](docs/library.md) — how `compositions/` is filed by kind,
+  and how leitmotifs are written once and quoted by other pieces.
 
 Progressive disclosure — split a section into its own frontmatter'd doc once it
 outgrows a screen here. Planned: `docs/composition-spec.md`,

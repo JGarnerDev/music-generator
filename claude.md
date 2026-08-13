@@ -33,12 +33,15 @@ Claude-specific working rules that don't belong in the human-facing README.
    `emotion` (mood + tonality), `genre` (groove), `timbre` (sound); see
    [`docs/palette-authoring.md`](./docs/palette-authoring.md). Layer an emotion
    with a genre/timbre for specific vibes rather than inventing new stored files.
-3. Write a **short** `compositions/<name>.json` (the moving core, not a full
-   song) using the **emotion** palette's tonality + a progression. Shape:
+3. Write a **short** `compositions/segments/<name>.json` (the moving core, not a
+   full song) using the **emotion** palette's tonality + a progression. Shape:
    `src/engine/composition.ts`. (Only emotion palettes are directly composable;
    layer others with the blend resolver.) Fastest path:
    `npm run compose -- --mood "<scene>" --palette <emotion> --with <genre,timbre,…>`.
-4. Validate: `npm run composition:validate -- --file compositions/<name>.json`.
+   Kind is the folder — `segments` by default, `--kind leitmotifs` for a short
+   recurring theme other pieces will quote. See
+   [`docs/library.md`](./docs/library.md).
+4. Validate: `npm run composition:validate -- --file compositions/segments/<name>.json`.
 5. Tell the user to `npm run dev`, Play, Export WAV — then ask for one
    adjustment. Be proactive first; refine after.
 

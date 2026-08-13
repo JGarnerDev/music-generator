@@ -1,24 +1,25 @@
 /**
- * App entry: pick any composition from `compositions/*.json` (or drop/browse an
- * external one), validate it, and wire the Play / Stop / Export-WAV buttons.
- * Deliberately minimal — a workshop bench, not a DAW.
+ * App entry: browse the library by kind (segments / loops / songs / leitmotifs),
+ * pick a piece — or drop an external one — and wire the Play / Stop / Export
+ * buttons. Deliberately minimal — a workshop bench, not a DAW.
  */
 import * as Tone from "tone";
 import { validateComposition, type Composition } from "@engine/composition";
+import { buildLibrary, type CompositionKind, type LibraryEntry } from "@engine/library";
+import { TRASH_ENDPOINT } from "../dev/endpoints";
+import { renderLibrary, type LibraryViewState } from "./library-view";
 import { scheduleComposition } from "./graph";
 import { renderToWav, renderLoopToWav, downloadWav } from "./render";
 
-// Vite bundles every composition in the folder at build time; add a JSON there
-// (e.g. via `npm run compose`) and it shows up in the dropdown after reload.
-const bundled = import.meta.glob<Composition>("../../compositions/*.json", {
-  eager: true,
-  import: "default",
-});
-const library = new Map<string, Composition>();
-for (const [path, comp] of Object.entries(bundled)) {
-  const file = path.split("/").pop() ?? path;
-  library.set(file.replace(/\.json$/, ""), comp);
-}
+// Vite bundles every composition in the tree at build time; add a JSON under
+// compositions/<kind>/ (e.g. via `npm run compose`) and it shows up after reload.
+// The folder it sits in *is* its kind — see src/engine/library.ts.
+// `_trash/` is excluded here as well as in `buildLibrary`: without it, deleting a
+// piece triggers an HMR reload that would list the trashed file straight back.
+const bundled = import.meta.glob<Composition>(
+  ["../../compositions/**/*.json", "!../../compositions/_trash/**"],
+  { eager: true, import: "default" },
+);
 
 const els = {
   status: document.querySelector<HTMLElement>("#status")!,
@@ -29,9 +30,20 @@ const els = {
   loop: document.querySelector<HTMLInputElement>("#loop")!,
   loopRow: document.querySelector<HTMLElement>("#loopRow")!,
   title: document.querySelector<HTMLElement>("#title")!,
-  select: document.querySelector<HTMLSelectElement>("#composition")!,
   drop: document.querySelector<HTMLElement>("#drop")!,
   file: document.querySelector<HTMLInputElement>("#file")!,
+  tabs: document.querySelector<HTMLElement>("#tabs")!,
+  blurb: document.querySelector<HTMLElement>("#kindBlurb")!,
+  rows: document.querySelector<HTMLElement>("#rows")!,
+  empty: document.querySelector<HTMLElement>("#empty")!,
+  search: document.querySelector<HTMLInputElement>("#search")!,
+};
+
+const view: LibraryViewState = {
+  entries: buildLibrary(bundled),
+  kind: null,
+  query: "",
+  selectedId: null,
 };
 
 let current: Composition | null = null;
@@ -39,6 +51,21 @@ let scheduled = false;
 
 function setStatus(msg: string): void {
   els.status.textContent = msg;
+}
+
+function draw(): void {
+  renderLibrary(els, view, {
+    canDelete: import.meta.env.DEV, // no dev server in a built bundle = no file moves
+    onPickKind: (kind: CompositionKind | null) => {
+      view.kind = kind;
+      draw();
+    },
+    onSelect: (entry) => select(entry),
+    onPlay: (entry) => {
+      if (select(entry)) void play();
+    },
+    onDelete: (entry) => void remove(entry),
+  });
 }
 
 /** Validate + adopt a composition. Returns true when it became the active piece. */
@@ -67,23 +94,40 @@ function loadComposition(comp: unknown, source: string): boolean {
   return true;
 }
 
-function populateSelect(): void {
-  const names = [...library.keys()].sort();
-  els.select.innerHTML = "";
-  if (names.length === 0) {
-    const opt = new Option("(no compositions — run npm run compose)", "");
-    opt.disabled = true;
-    els.select.add(opt);
-    els.select.disabled = true;
-    return;
-  }
-  for (const name of names) els.select.add(new Option(name, name));
+function select(entry: LibraryEntry): boolean {
+  if (!loadComposition(entry.composition, entry.id)) return false;
+  view.selectedId = entry.id;
+  draw();
+  return true;
 }
 
-function selectByName(name: string): void {
-  const comp = library.get(name);
-  if (!comp) return;
-  if (loadComposition(comp, name)) els.select.value = name;
+/**
+ * Delete = move the file into `compositions/_trash/` via the dev server, so a
+ * mis-click is a drag back rather than a lost piece. Confirmed first because it
+ * touches the user's files.
+ */
+async function remove(entry: LibraryEntry): Promise<void> {
+  if (!window.confirm(`Move ${entry.id} to compositions/_trash/?`)) return;
+  try {
+    const res = await fetch(TRASH_ENDPOINT, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ path: entry.path.replace(/^.*compositions\//, "compositions/") }),
+    });
+    const body = (await res.json()) as { trashed?: string; error?: string };
+    if (!res.ok) throw new Error(body.error ?? `HTTP ${res.status}`);
+    view.entries = view.entries.filter((e) => e.id !== entry.id);
+    if (view.selectedId === entry.id) {
+      view.selectedId = null;
+      current = null;
+      els.title.textContent = "No composition selected.";
+      for (const button of [els.play, els.export, els.exportLoop]) button.disabled = true;
+    }
+    draw();
+    setStatus(`Moved ${body.trashed} to compositions/_trash/.`);
+  } catch (err) {
+    setStatus(`Could not delete ${entry.slug}: ${(err as Error).message}`);
+  }
 }
 
 async function play(): Promise<void> {
@@ -137,7 +181,8 @@ async function loadFromFile(file: File): Promise<void> {
   try {
     const comp = JSON.parse(await file.text());
     if (loadComposition(comp, file.name)) {
-      els.select.value = ""; // external file isn't in the bundled list
+      view.selectedId = null; // external file isn't in the library
+      draw();
     }
   } catch (err) {
     setStatus(`Could not read ${file.name}: ${(err as Error).message}`);
@@ -148,7 +193,10 @@ els.play.addEventListener("click", () => void play());
 els.stop.addEventListener("click", () => stop());
 els.export.addEventListener("click", () => void exportWav(false));
 els.exportLoop.addEventListener("click", () => void exportWav(true));
-els.select.addEventListener("change", () => selectByName(els.select.value));
+els.search.addEventListener("input", () => {
+  view.query = els.search.value;
+  draw();
+});
 
 els.drop.addEventListener("click", () => els.file.click());
 els.file.addEventListener("change", () => {
@@ -167,7 +215,9 @@ els.drop.addEventListener("drop", (e) => {
   if (file) void loadFromFile(file);
 });
 
-populateSelect();
-const first = [...library.keys()].sort()[0];
-if (first) selectByName(first);
-else setStatus("No compositions found. Run npm run compose to create one.");
+const first = view.entries[0];
+if (first) select(first);
+else {
+  draw();
+  setStatus("No compositions found. Run npm run compose to create one.");
+}
