@@ -10,8 +10,9 @@ character: saturated-but-woody EL34 crunch — heavy without fizz, warm and thic
 
 # Brown Sound (Van Halen)
 
-A *sound* — Eddie's saturated-but-woody guitar tone. A timbre only: apply it to a
-`metal`/`battle` emotion (and optionally a `rock` genre) for the notes and feel.
+A *sound* — Eddie's saturated-but-woody guitar tone. A timbre only: apply it to an
+`angry`/`battle` emotion plus the `metal` (or a future `rock`) genre for the
+notes and feel.
 
 ## Sound
 

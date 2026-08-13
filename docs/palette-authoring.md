@@ -106,7 +106,20 @@ Rules (small on purpose, all unit-tested):
 - Scaffold: `npm run palette:new -- --kind <kind> --slug <slug> --title "<t>" --tags a,b,c`
   (emotion also takes `--tonic --scale --tempo`). Writes `palettes/<kind>/<slug>.md`.
 - Write the prose body: *when to reach for it* and *how to voice it*. Keep it short.
-- **Rules:** emotion `scale` and progressions stay major/minor-diatonic — the engine
-  resolves numerals by scale degree and ignores accidentals, so `bVII` reads as the
-  diatonic VII. Put modal/borrowed color in prose, not the chord list. Timbre never
-  carries harmony; that belongs to emotion/genre.
+- **Rules:** emotion `scale` is still major or minor (the engine has no modes yet —
+  see progress.md). Progressions, though, are read as written: **numeral case and
+  accidentals are instructions, not decoration.**
+  - Uppercase = major triad, lowercase = minor. `[i, iv, i, V]` gets the major V of
+    a harmonic-minor cadence; write `v` if you want the natural-minor one.
+  - An uppercase numeral on a degree that isn't diatonically major **borrows** —
+    `VII` in a major key resolves to the Aeolian `bVII` (C major → Bb), and `iv`
+    in major gives the borrowed minor iv. Write the accidental explicitly
+    (`bII`, `#iv`) whenever you want to be unambiguous; it is honoured.
+  - Bare lowercase on a diminished degree stays diminished, so a minor `ii-V-i`
+    keeps its half-diminished colour.
+  - This means a minor-idiom progression stays minor even when it lands on a
+    major emotion. That is deliberate — see `resolveNumeral` in
+    [`src/engine/theory.ts`](../src/engine/theory.ts) — but the melody is still
+    drawn from the emotion's scale, so a mode-crossed blend can rub. Prefer
+    pairing a genre with an emotion whose scale matches its `mode`.
+- Timbre never carries harmony; that belongs to emotion/genre.

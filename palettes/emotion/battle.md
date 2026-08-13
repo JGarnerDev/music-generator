@@ -17,7 +17,8 @@ instruments: [bass, pluck, pad]
 # Battle / Combat
 
 Use for active fights, chases, a D&D encounter in full swing — driving, urgent,
-relentless. Where `metal` is swagger, this is *motion*: the music has to run.
+relentless. Where `angry` is pressure, this is *motion*: the music has to run.
+Layer the `metal` genre over it for a boss fight.
 
 ## Direction
 

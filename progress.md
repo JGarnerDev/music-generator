@@ -32,17 +32,69 @@ shipped; keep this list short and forward-looking.
 
 ## P1 — Make the core loop *good*
 
-- [ ] **Genre & timbre breadth.** The blend resolver ships
-      (`src/engine/blend.ts`, `compose --with`); now feed it. Only seed exemplars
-      exist (`jazz`, `funk`; `analog-synth`, `brown-sound`). Author the genres/
-      timbres it will lean on: `rock`, `hiphop`, `ambient`, `cinematic`; more
-      signature timbres. Grow `palettes/` in breadth *and* shape — more entries
-      per kind, and new sub-folders beyond `emotion`/`genre`/`timbre` where a
-      dimension doesn't fit the existing three.
+- [ ] **New palette kinds (structure).** Both validate against the permissive
+      generic schema — a folder + prose, no code change.
+  - [ ] `palettes/space/` — acoustic environment (`cathedral`, `cave`,
+        `tavern`, `open-field`), carrying `signal` hints.
+  - [ ] `palettes/era/` — period lean on instrumentation + harmony
+        (`medieval`, `baroque`, `eighties`).
+
+- [ ] **Emotion breadth — the low-arousal hole.** The set still skews
+      high-arousal (battle, epic, angry, tense, mysterious, happy). The D&D loop
+      spends more time on downtime than on combat. `calm` ships; still to author:
+      `romantic` (love, tender), `lonely` (isolation, desolate, cold),
+      `nostalgic` (memory, wistful, faded), `solemn` (sacred, funeral, ritual),
+      `whimsical` (comic, bouncy).
+
+- [ ] **Genre breadth.** Shipped: `funk`, `jazz`, `lofi`, `metal`, `ambient`,
+      `blues`, `cinematic`, `spaghetti-western`, `reggae`. What's left is gated
+      on engine work, not on authoring time — see the two unlocks below.
+  - [ ] **Authorable today** (identity carried by harmony/tempo/chord-rhythm):
+        `soul`, `gospel`, `post-rock`, `minimalism`, `baroque`, `ragtime`,
+        `bossa`, `synthwave`, `city-pop`, `shoegaze`, `doom`.
+  - [ ] **Gated on the drums track** (their identity *is* the kit pattern —
+        authored now, they all render as generic chord loops): `house`,
+        `techno`, `dnb`, `jungle`, `breakbeat`, `disco`, `punk`, `trap`,
+        `afrobeat`, `samba`, `garage`. `hiphop` is half-covered by `lofi`.
+  - [ ] **Gated on meter**: `waltz`, `celtic` jigs, gospel shuffle, doo-wop.
+  - [ ] **Gated on modes**: `folk` (dorian), `flamenco` (phrygian), `celtic`
+        (mixolydian), `klezmer`, `medieval`.
+
+- [ ] **Meter support beyond 4/4.** `src/utils/timing.ts` is 4/4-only by
+      construction ("Pure timing math for 4/4 music"). Add a time signature to
+      the composition spec and thread it through timing + arrange. Unlocks the
+      3/4, 6/8 and 12/8 genres above, and waltz/jig cues for D&D. Pure logic —
+      testable.
+
+- [ ] **Modal harmony.** `theory.ts:diatonicTriads` throws on anything but
+      major/minor, and the genre `mode` enum is `major|minor|either`, so every
+      modal genre has to fake it in prose (per `docs/palette-authoring.md`).
+      Widen both to the church modes (dorian, phrygian, lydian, mixolydian,
+      aeolian). Unlocks the modal genres above and gives emotion palettes real
+      color. Pure logic — testable.
+
+- [ ] **Timbre breadth.** `tape` ships; still to author: `felt-piano`, `rhodes`,
+      `nylon-guitar`, `strings`, `choir`, `music-box`, `808`, `pipe-organ`.
 - [ ] **Blend depth.** v1 maps a timbre only to two coarse voices (`padVoice`/
       `leadVoice`, piano>epiano>pluck) + lo-fi nudges — a guitar timbre still leads
-      on piano. Make voice selection honor timbre intent, and let genre `mode`/feel
-      shape rhythm, not just tempo/progressions.
+      on piano (reproducer: `--palette battle --with metal,brown-sound` resolves
+      to piano/pad). Make voice selection honor timbre intent, and let genre
+      `mode`/feel shape rhythm, not just tempo/progressions. **Note:** `mode` is
+      declared in the genre schema and read by *nothing* — `grep mode
+      src/engine/blend.ts` is empty. Every genre palette declares it inertly.
+
+- [ ] **Mode-crossed blends: melody vs harmony.** `theory.ts` resolves numerals as
+      written and the composer now picks a progression in the key's own idiom
+      (`progressionsInIdiom`), which removed every Picardy tonic — a minor emotion
+      no longer opens on a major chord. What's left is the other direction: a
+      *major* emotion under a minor-only genre. 12 of 81 emotion×genre pairs
+      (`calm`/`epic`/`happy`/`hopeful` × `funk`/`metal`/`spaghetti-western`),
+      where the genre has no major idiom to fall back to and honestly shouldn't.
+      There the chords go minor while `composer.ts:63` still draws the melodic
+      ladder from `scaleNotes(tonic, dir.scale)` — the *emotion's* major scale —
+      so an A natural rubs against an Ab. Pick one: derive the ladder from the
+      resolved chords, or have `blend` warn when a genre's `mode` contradicts the
+      emotion's scale (the honest job for the inert `mode` field above).
 - [ ] **Drums / percussion track.** Lo-fi kit (kick/snare/hat) — a beat is what
       sells lo-fi. Needs an instrument type + pattern notation in the spec.
 - [ ] **Better lo-fi chain.** Sidechain/ducking, bitcrush option, tape stop,

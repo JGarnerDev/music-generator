@@ -9,6 +9,7 @@ progressions:
   - [ii, V, I]
   - [I, vi, ii, V]
   - [iii, VI, ii, V]
+  - [ii, V, i]
 instruments: [epiano, bass, piano]
 ---
 
@@ -22,8 +23,9 @@ A *groove/harmony* layer, not a mood. Pair with an emotion for key + feeling
 - **Tempo:** 80–132 BPM. Ballad low, swing mid, bebop high.
 - **Feel:** swung 8ths (triplet subdivision), walking bass on quarters, comping
   on the off-beats. Brushed, laid-back — behind the beat.
-- **Harmony:** ii–V–I is the engine. Extend triads to 7ths/9ths where the
-  instrument allows; tritone subs and secondary dominants for color. `mode: either`
-  — jazz recolors both major and minor.
+- **Harmony:** ii–V–I is the engine, and it comes in both flavours — the major
+  one and the minor `ii–V–i`, whose ii is half-diminished. Extend triads to
+  7ths/9ths where the instrument allows; tritone subs and secondary dominants for
+  color. `mode: either` — jazz recolors both major and minor.
 - **Instrumentation:** electric piano or piano comping, upright bass walking,
   brushed kit. Keep voicings rootless when the bass covers the root.

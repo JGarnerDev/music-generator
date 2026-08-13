@@ -12,6 +12,7 @@ import type { Composition, Track } from "./composition";
 import { blendPalettes, type MusicalDirection } from "./blend";
 import {
   progressionChords,
+  progressionsInIdiom,
   chordPitches,
   scaleNotes,
   transpose,
@@ -52,7 +53,9 @@ export function composeFromBlend(
 
   const [tmin, tmax] = dir.tempo;
   const bpm = randInt(rng, tmin, tmax);
-  const progression = pick(rng, dir.progressions);
+  // Prefer a progression written in the key's own idiom — a genre's major-idiom
+  // turnaround over a minor emotion resolves to a Picardy tonic otherwise.
+  const progression = pick(rng, progressionsInIdiom(dir.progressions, scale));
   const chords = progressionChords(tonic, progression, scale);
 
   const pad: Track = { instrument: dir.padVoice, gain: 0.5, notes: [] };
