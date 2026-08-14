@@ -3,8 +3,10 @@
  * Vite, resolved to the one a track should play.
  *
  * Globbed rather than imported one by one so adding `voices/lead/molten.json`
- * makes that voice playable after a reload, with nothing to register — the same
- * trick the composition library uses. The organising rules (folder = instrument,
+ * makes that voice playable with nothing to register — the same trick the
+ * composition library uses, and like it, the new file reaches an open tab only
+ * because [`src/dev/live-library.ts`](../dev/live-library.ts) invalidates this
+ * glob; Vite alone would need a dev-server restart. The organising rules (folder = instrument,
  * how a default is chosen) are pure and tested in
  * [`@engine/voice-library`](../engine/voice-library.ts); this module is only the
  * wiring that hands them Vite's glob record.

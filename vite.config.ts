@@ -2,6 +2,7 @@
 import { defineConfig } from "vite";
 import { resolve } from "node:path";
 import { libraryApi } from "./src/dev/library-api";
+import { liveLibrary } from "./src/dev/live-library";
 import { voiceApi } from "./src/dev/voice-api";
 
 export default defineConfig({
@@ -10,6 +11,9 @@ export default defineConfig({
     libraryApi(resolve(__dirname, "compositions")),
     // Dev-only: Approve / Fork in the voices bench, writing voices/ + the archive.
     voiceApi(resolve(__dirname, "voices")),
+    // Dev-only: a new composition / voice / render reaches the open tab without
+    // a restart. Vite alone does not — see the plugin's header.
+    liveLibrary(__dirname),
   ],
   build: {
     // Two pages: the composition bench and the voice bench. `render.html` is
