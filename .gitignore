@@ -20,5 +20,8 @@ assets/samples/*
 compositions/_trash/
 
 # Full-quality WAVs from `npm run render -- --wav` — MP3s beside them are committed.
+public/audio
 public/audio/*.wav
+public/audio/*.mp3
 public/audio/voices/*.wav
+public/audio/voices/*.mp3
