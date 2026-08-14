@@ -1,6 +1,6 @@
 ---
 title: Approved voices
-purpose: The instrument sounds we listened to and kept — read this before choosing voices for a new piece.
+purpose: Index of the instrument sounds we kept — read this before choosing voices for a new piece.
 audience: [claude, human]
 updated: 2026-08-14
 generated_by: npm run voice:approve
@@ -8,106 +8,115 @@ generated_by: npm run voice:approve
 
 # Approved voices
 
-Generated — edit the JSON under `voices/`, then re-approve. Each entry is a
+Generated — edit the JSON under `voices/`, then re-approve. Each row is a
 sound that was auditioned in the voices bench and signed off, so it can be
 named by any track: `{ "instrument": "lead", "voice": "<slug>" }`.
+
+**This is the index, not the design record.** Why a voice is built the way it
+is — which numbers matter, what happens either side of them — is the `notes`
+field of its JSON. Read that for the *one* voice you are forking; read this
+table to choose.
 
 ## piano
 
 Struck keys. Carries a melody or a chord bed without asking for attention.
 
-### Soft triangle — `piano/soft-triangle`
-
-**default** · `warm` `neutral` `lo-fi`
-
-The house piano since the first render: a triangle wave with a quick attack and a long release, so a chord bed blooms rather than clatters. Not a real piano and not trying to be one — it sits under a melody without ever claiming the front of the mix.
-
-approved 2026-08-14 · [`voices/piano/soft-triangle.json`](./piano/soft-triangle.json)
+| voice | tags | when to pick it |
+| --- | --- | --- |
+| [`piano/soft-triangle`](./piano/soft-triangle.json) **default** | warm neutral lo-fi | Triangle wave, quick attack, long release, so a chord bed blooms rather than clatters. The house piano, not a real one. |
 
 ## epiano
 
 Electric piano — FM bell in the attack, warm body. The lo-fi default.
 
-### FM Rhodes — `epiano/fm-rhodes`
-
-**default** · `warm` `bell` `lo-fi`
-
-Two-operator FM at a 2:1 ratio — the bell in the attack that reads as an electric piano, over a body that decays away fast enough to leave room. The modulation index is the character knob: past about 8 it stops being a Rhodes and starts being a bell.
-
-approved 2026-08-14 · [`voices/epiano/fm-rhodes.json`](./epiano/fm-rhodes.json)
+| voice | tags | when to pick it |
+| --- | --- | --- |
+| [`epiano/fm-rhodes`](./epiano/fm-rhodes.json) **default** | warm bell lo-fi | Two-operator FM Rhodes — bell in the attack over a body that decays out of the way. The lo-fi electric piano. |
 
 ## pad
 
 Slow, wide, sustained. Atmosphere and glue, never the top line.
 
-### Sine halo — `pad/sine-halo`
-
-**default** · `soft` `atmosphere` `slow`
-
-Pure sine, 0.8 s to arrive and 3 s to leave. The slow attack is the instrument: it means a pad can never accidentally sound like a hit, so it glues an arrangement without ever competing for the front of it. The long release is what makes a chord change a swell instead of a cut.
-
-approved 2026-08-14 · [`voices/pad/sine-halo.json`](./pad/sine-halo.json)
+| voice | tags | when to pick it |
+| --- | --- | --- |
+| [`pad/mens-choir`](./pad/mens-choir.json) | choir voices wordless spaghetti-western section ah | Wordless men's chorus on one open 'ah' — wide detune, collective drift. Chants under a western; holds harmony, never the tune. |
+| [`pad/sine-halo`](./pad/sine-halo.json) **default** | soft atmosphere slow | Pure sine, 0.8 s in and 3 s out. Glue that can never accidentally sound like a hit — the neutral pad. |
+| [`pad/string-bed`](./pad/string-bed.json) | strings section bowed sustained spaghetti-western tremolo-bed harmony | Sustained bowed strings with a real violin body notch. The settled held chord a piece can sit on for eight bars. |
+| [`pad/string-tremolo`](./pad/string-tremolo.json) | strings section bowed tremolando shimmer tension spaghetti-western | Re-bowed shimmer at 7.5 strokes a second. The bar before something happens — string-bed for when it must not settle. |
 
 ## bass
 
 The low end. Owns everything under the guitars; defines the groove with the kick.
 
-### Round saw — `bass/saw-round`
-
-**default** · `round` `neutral` `lo-fi`
-
-A plain sawtooth with a 20 ms attack — soft enough that the pick noise never fights the kick, quick enough that a walking line still has note starts you can hear. Sustains at 0.4, so a held root drops back under whatever is on top of it instead of pinning the mix.
-
-approved 2026-08-14 · [`voices/bass/saw-round.json`](./bass/saw-round.json)
+| voice | tags | when to pick it |
+| --- | --- | --- |
+| [`bass/jones-jazz`](./bass/jones-jazz.json) | bass fingerstyle smooth round jazz-bass 60s rock | Clean fingered Jazz Bass on flatwounds — smooth, round, no grit. The 60s/70s rock low end when fuzz would be the wrong record. |
+| [`bass/machine-fuzz`](./bass/machine-fuzz.json) | bass fuzz garage dance-punk riff | Bass through a guitar rig, doing the whole guitar section's job. Garage and dance-punk, where the riff is the bass. |
+| [`bass/saw-round`](./bass/saw-round.json) **default** | round neutral lo-fi | Plain sawtooth, soft attack, sits under everything without arguing. The neutral default — reach past it when the genre wants character. |
+| [`bass/upright-pizz`](./bass/upright-pizz.json) | bass upright double-bass pizzicato gut spaghetti-western acoustic | Plucked double bass, gut and air, no amp. The low end for acoustic and western cues where an electric bass is the wrong century. |
 
 ## pluck
 
 Rhythm guitar: tight, fast-decaying, wide, low in the mix.
 
-### Brown rhythm — `pluck/brown-rhythm`
-
-**default** · `guitar` `rhythm` `chug` `brown-sound`
-
-The rhythm half of the brown-sound rig. Two detuned saws into a mild preamp, a mid-forward tone stack and a hard cab roll-off at 4.4 kHz; the high-pass at 170 Hz goes in *before* the drive so low strings never intermodulate into mud, and the bass owns everything under it. Compression stays gentle (2.5:1) on purpose — a chug that compresses is a chug that lost its attack. Wide (0.6 Haas) and low in the mix, because the lead lives in the centre.
-
-approved 2026-08-14 · [`voices/pluck/brown-rhythm.json`](./pluck/brown-rhythm.json)
-
-### Chainsaw chug — `pluck/chainsaw-chug`
-
-`guitar` `rhythm` `chug` `fuzz` `chainsaw`
-
-The rhythm half of the chainsaw rig — what a track plays under `lead/doom-fuzz`, sharing its identity rather than its settings. What carries over is the identity: fat square oscillators instead of saws, the low end allowed into the drive (160 Hz rather than the brown rig's 170), and the same +6.5 dB HM-2 bump at 2.8 kHz under a 4.3 kHz cab, so the two guitars rasp in the same band and read as one rig. What does not carry over is length. Doom sustain belongs to the lead; a 1.4 s release on a palm mute is one long chord, so the envelope stays short (0.3 decay, 0.6 sustain) and the filter shuts in 140 ms — each chug has to be a separate event or the gallop turns to porridge. Four oscillators at 34 cents, not the lead's five at 44: beating that reads as serration on a held note reads as a wobble when it repeats sixteen times a bar. Sag stays gentle at 3:1 for the usual rhythm reason — a chug that compresses is a chug that lost its attack — but its threshold sits low (-14 dB) so a quiet chug is saturated too: a fixed input gain is what makes soft notes come out clean and keyboard-like. Everything that could read as a synth is deliberately removed rather than covered up. The filter barely sweeps — 900 Hz, two octaves, linear — because an audible sweep from a dark base *is* the synth-zap gesture, and a guitar is already bright at the pick rather than arriving there. Q is 0.5, since audible resonance is the loudest tell that a filter is in the signal at all. The envelope is decay-dominant (0.22 decay to a 0.35 sustain): a square wave holding a flat level is an organ, while a plucked string spends its energy and dies. Wide (0.62) and quiet (0.3 sum), because the centre belongs to the lead.
-
-approved 2026-08-14 · forked from `pluck/brown-rhythm` · [`voices/pluck/chainsaw-chug.json`](./pluck/chainsaw-chug.json)
+| voice | tags | when to pick it |
+| --- | --- | --- |
+| [`pluck/brown-rhythm`](./pluck/brown-rhythm.json) **default** | guitar rhythm chug brown-sound | Two detuned saws into a mid-forward rig with the lows kept out of the drive. The default chug: low, wide, under the lead. |
+| [`pluck/chainsaw-chug`](./pluck/chainsaw-chug.json) | guitar rhythm chug fuzz chainsaw | Square oscillators with the low strings let into the drive. The rhythm half of the chainsaw rig, under lead/doom-fuzz. |
+| [`pluck/nylon-arpeggio`](./pluck/nylon-arpeggio.json) | guitar nylon classical spanish spaghetti-western arpeggio fingerstyle | Nylon-string classical guitar, no amp. The fingerpicked arpeggio bed for a western or Spanish cue while the twang rests. |
+| [`pluck/sitar-jawari`](./pluck/sitar-jawari.json) | sitar plucked buzz drone raga indian | A plucked string whose brightness never collapses — jawari buzz, no amp. Drone and raga colour, unlike any guitar here. |
 
 ## lead
 
 Top line guitar: compressed into sustain, mid-forward, centred, loud.
 
-### Brown lead — `lead/brown-lead`
-
-**default** · `guitar` `lead` `sustain` `brown-sound`
-
-The lead half of the brown-sound rig, and not the rhythm tone turned up — turning the rhythm up is exactly what makes a solo sound puny and loud at once. Four things separate it: 6:1 compression at -26 dB so a held note stops decaying and starts singing; a higher high-pass and presence bump at 3.1 kHz so it climbs out above the chug instead of fighting it in the low mids; near-centre width (0.22), because the centre is the loudest place in a stereo mix; and roughly double the output sum.
-
-approved 2026-08-14 · [`voices/lead/brown-lead.json`](./lead/brown-lead.json)
-
-### Doom fuzz — `lead/doom-fuzz`
-
-`guitar` `lead` `fuzz` `doom` `sustain`
-
-Chainsaw doom fuzz — Fuzz/Ty Segall and Mastodon, where even a single note reads as a huge power chord, with the HM-2 rasp on top. It inverts the brown-sound rig's central rule rather than turning it up: the high-pass sits at 150 Hz instead of 260 so the low strings *do* hit the drive and intermodulate, because that woolly low-mid smear is the sound rather than a mistake to be engineered out. The oscillator is a fat square, not a saw — fuzz is a squaring transfer curve, and starting from odd harmonics beats manufacturing them downstream. The rip is two things and neither is gain: five oscillators at 44 cents, whose beating is the serration you hear as a chainsaw, and a +7 dB bump at 2.7 kHz under a 4.3 kHz cab, which is the band an HM-2 lives in. Sag is 9:1 rather than a limiter, because squashing the attack is exactly what files the teeth off — the note still blooms and never decays, but the pick arrives first. Wider than a brown lead (0.4) because size is the point, but not rhythm-wide: it is still a top line. Output sums low (0.42), since all that gain arrives as level.
-
-approved 2026-08-14 · forked from `lead/brown-lead` · [`voices/lead/doom-fuzz.json`](./lead/doom-fuzz.json)
+| voice | tags | when to pick it |
+| --- | --- | --- |
+| [`lead/brown-lead`](./lead/brown-lead.json) **default** | guitar lead sustain brown-sound | Compressed brown-sound solo tone: held notes sing instead of decaying, mid-forward and centred. The default rock lead. |
+| [`lead/deguello-trumpet`](./lead/deguello-trumpet.json) | trumpet brass mariachi spaghetti-western solo blare | Lone mariachi trumpet that gets brighter as it gets louder. The funeral-march top line over a western cue. |
+| [`lead/desert-twang`](./lead/desert-twang.json) | guitar lead twang surf spaghetti-western clean slapback | Bright clean single-coil twang drowning in slapback. The hard-picked surf/western hook — brown-lead inverted. |
+| [`lead/doom-fuzz`](./lead/doom-fuzz.json) | guitar lead fuzz doom sustain | Chainsaw fuzz where one note reads as a power chord. Doom and stoner leads; sits over pluck/chainsaw-chug. |
+| [`lead/harmonica-reed`](./lead/harmonica-reed.json) | harmonica harp reed spaghetti-western wail dust | Wailing cupped harmonica, rasp under 3 kHz. One held note over an empty station — the western that answers a man. |
+| [`lead/lone-whistle`](./lead/lone-whistle.json) | whistle human spaghetti-western lonely solo sine | A man whistling the tune — near-pure sine, no instrument at all. The loneliest top line in the palette. |
+| [`lead/soprano-wordless`](./lead/soprano-wordless.json) | voice soprano wordless spaghetti-western ecstasy soaring | Soaring wordless soprano built on formants. The line that turns a western cue into ecstasy; nothing goes above it. |
+| [`lead/string-section`](./lead/string-section.json) | strings violins section bowed unison spaghetti-western tutti | Six violins taking the tune in unison — the tutti line when a cue stops being a whistle and becomes a film. Expensive. |
+| [`lead/violin-arco`](./lead/violin-arco.json) | violin strings bowed arco solo singing | Solo bowed violin, no amp, sustain from the bow rather than a compressor. The singing top line when a guitar would be wrong. |
 
 ## drums
 
 The kit — levels, tuning and decay per piece.
 
-### House kit — `drums/house-kit`
+| voice | tags | when to pick it |
+| --- | --- | --- |
+| [`drums/frontier-kit`](./drums/frontier-kit.json) | kit western spaghetti-western gunshot whipcrack anvil timpani | Spaghetti-western percussion, barely a kit: snare is a gunshot, hat a whipcrack, tom an anvil. Picked for the setting, not the groove. |
+| [`drums/house-kit`](./drums/house-kit.json) **default** | kit neutral lo-fi | Pitched membrane thumps plus filtered noise bursts, levels baked in. The neutral kit for anything not chasing a specific record. |
 
-**default** · `kit` `neutral` `lo-fi`
+## Lineage
 
-The kit every piece has used so far. Membrane pieces are pitched thumps — tuning is the only thing separating a kick from a floor tom — and everything else is a filtered noise burst where cutoff plus decay is the whole character. Levels live here rather than in the pattern: how loud a hat sits under a kick is a property of the kit, not of the groove. The snare is a burst plus a short membrane hit at 45% of its level, because the rattle alone reads as a hi-hat pitched down.
+Who was forked from whom. Read the parent's `notes` before forking a child.
 
-approved 2026-08-14 · [`voices/drums/house-kit.json`](./drums/house-kit.json)
+```
+pad/sine-halo
+  pad/mens-choir
+    pad/string-bed
+      pad/string-tremolo
+bass/saw-round
+  bass/machine-fuzz
+    bass/jones-jazz
+      bass/upright-pizz
+pluck/brown-rhythm
+  pluck/chainsaw-chug
+  pluck/nylon-arpeggio
+  pluck/sitar-jawari
+lead/brown-lead
+  lead/desert-twang
+  lead/doom-fuzz
+  lead/violin-arco
+    lead/deguello-trumpet
+    lead/harmonica-reed
+    lead/lone-whistle
+    lead/soprano-wordless
+    lead/string-section
+drums/house-kit
+  drums/frontier-kit
+```

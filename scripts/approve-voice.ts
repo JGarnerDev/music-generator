@@ -29,7 +29,8 @@ program
   .description("Mark a voice approved (or back to draft) and regenerate voices/archive.md")
   .option("--voice <instrument/slug>", "the voice to approve, e.g. lead/molten")
   .option("--default", "also make it the instrument's default voice")
-  .option("--notes <text>", "replace the notes — what this sound is for, and why it works")
+  .option("--summary <text>", "the archive row — one line, when to pick this over its neighbours")
+  .option("--notes <text>", "replace the notes — why it is built this way (the fork brief)")
   .option("--draft", "the opposite: send an approved voice back to the workbench")
   .option("--rebuild-archive", "just regenerate voices/archive.md from what is on disk")
   .parse(process.argv);
@@ -37,6 +38,7 @@ program
 const opts = program.opts<{
   voice?: string;
   default?: boolean;
+  summary?: string;
   notes?: string;
   draft?: boolean;
   rebuildArchive?: boolean;
@@ -56,11 +58,20 @@ try {
     const result = unapprove(opts.voice!);
     console.log(`${result.id} is a draft again (${relative(process.cwd(), result.path)})`);
   } else {
-    const result = approve(opts.voice!, { makeDefault: opts.default, notes: opts.notes });
+    const result = approve(opts.voice!, {
+      makeDefault: opts.default,
+      notes: opts.notes,
+      summary: opts.summary,
+    });
     console.log(`Approved ${result.id} on ${result.preset.approvedAt}`);
     for (const id of result.demoted) console.log(`  ${id} is no longer the default`);
+    if (!result.preset.summary) {
+      // Without one the archive salvages a truncated sentence from the notes,
+      // which is legible but is nobody's idea of how to choose a sound.
+      console.log("  no summary — add one with --summary so the archive row says when to pick it");
+    }
     if (!result.preset.notes) {
-      console.log("  no notes — add some with --notes so the archive says what it is for");
+      console.log("  no notes — add some with --notes so a future fork knows what it is working from");
     }
     // An approved voice nobody can hear is a claim, not a decision.
     const audio = resolve(

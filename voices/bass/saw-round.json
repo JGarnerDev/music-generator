@@ -5,11 +5,23 @@
   "status": "approved",
   "default": true,
   "approvedAt": "2026-08-14",
-  "tags": ["round", "neutral", "lo-fi"],
+  "tags": [
+    "round",
+    "neutral",
+    "lo-fi"
+  ],
+  "summary": "Plain sawtooth, soft attack, sits under everything without arguing. The neutral default — reach past it when the genre wants character.",
   "notes": "A plain sawtooth with a 20 ms attack — soft enough that the pick noise never fights the kick, quick enough that a walking line still has note starts you can hear. Sustains at 0.4, so a held root drops back under whatever is on top of it instead of pinning the mix.",
   "synth": {
     "kind": "synth",
-    "oscillator": { "type": "sawtooth" },
-    "envelope": { "attack": 0.02, "decay": 0.3, "sustain": 0.4, "release": 0.6 }
+    "oscillator": {
+      "type": "sawtooth"
+    },
+    "envelope": {
+      "attack": 0.02,
+      "decay": 0.3,
+      "sustain": 0.4,
+      "release": 0.6
+    }
   }
 }

@@ -1,12 +1,44 @@
 {
   "entries": [
     {
+      "name": "bass.jones-jazz",
+      "file": "bass.jones-jazz.mp3",
+      "seconds": 24.8695625,
+      "bytes": 498240,
+      "isLoop": false,
+      "renderedAt": "2026-08-14T16:35:13.072Z"
+    },
+    {
+      "name": "bass.machine-fuzz",
+      "file": "bass.machine-fuzz.mp3",
+      "seconds": 24.8695625,
+      "bytes": 498240,
+      "isLoop": false,
+      "renderedAt": "2026-08-14T16:23:55.687Z"
+    },
+    {
       "name": "bass.saw-round",
       "file": "bass.saw-round.mp3",
       "seconds": 24.8695625,
       "bytes": 498240,
       "isLoop": false,
       "renderedAt": "2026-08-14T15:44:34.901Z"
+    },
+    {
+      "name": "bass.upright-pizz",
+      "file": "bass.upright-pizz.mp3",
+      "seconds": 24.8695625,
+      "bytes": 498240,
+      "isLoop": false,
+      "renderedAt": "2026-08-14T17:23:35.363Z"
+    },
+    {
+      "name": "drums.frontier-kit",
+      "file": "drums.frontier-kit.mp3",
+      "seconds": 24.8695625,
+      "bytes": 498240,
+      "isLoop": false,
+      "renderedAt": "2026-08-14T17:23:46.337Z"
     },
     {
       "name": "drums.house-kit",
@@ -33,6 +65,22 @@
       "renderedAt": "2026-08-14T15:44:47.251Z"
     },
     {
+      "name": "lead.deguello-trumpet",
+      "file": "lead.deguello-trumpet.mp3",
+      "seconds": 22.461520833333335,
+      "bytes": 449760,
+      "isLoop": false,
+      "renderedAt": "2026-08-14T17:23:30.602Z"
+    },
+    {
+      "name": "lead.desert-twang",
+      "file": "lead.desert-twang.mp3",
+      "seconds": 22.461520833333335,
+      "bytes": 449760,
+      "isLoop": false,
+      "renderedAt": "2026-08-14T17:23:33.167Z"
+    },
+    {
       "name": "lead.doom-fuzz",
       "file": "lead.doom-fuzz.mp3",
       "seconds": 22.461520833333335,
@@ -41,12 +89,76 @@
       "renderedAt": "2026-08-14T16:02:13.331Z"
     },
     {
+      "name": "lead.harmonica-reed",
+      "file": "lead.harmonica-reed.mp3",
+      "seconds": 22.461520833333335,
+      "bytes": 449760,
+      "isLoop": false,
+      "renderedAt": "2026-08-14T17:23:27.676Z"
+    },
+    {
+      "name": "lead.lone-whistle",
+      "file": "lead.lone-whistle.mp3",
+      "seconds": 22.461520833333335,
+      "bytes": 449760,
+      "isLoop": false,
+      "renderedAt": "2026-08-14T17:23:37.607Z"
+    },
+    {
+      "name": "lead.soprano-wordless",
+      "file": "lead.soprano-wordless.mp3",
+      "seconds": 22.461520833333335,
+      "bytes": 449760,
+      "isLoop": false,
+      "renderedAt": "2026-08-14T17:23:41.524Z"
+    },
+    {
+      "name": "lead.string-section",
+      "file": "lead.string-section.mp3",
+      "seconds": 22.461520833333335,
+      "bytes": 449760,
+      "isLoop": false,
+      "renderedAt": "2026-08-14T17:39:13.621Z"
+    },
+    {
+      "name": "lead.violin-arco",
+      "file": "lead.violin-arco.mp3",
+      "seconds": 22.461520833333335,
+      "bytes": 449760,
+      "isLoop": false,
+      "renderedAt": "2026-08-14T16:54:04.329Z"
+    },
+    {
+      "name": "pad.mens-choir",
+      "file": "pad.mens-choir.mp3",
+      "seconds": 27.999979166666666,
+      "bytes": 560640,
+      "isLoop": false,
+      "renderedAt": "2026-08-14T17:23:44.182Z"
+    },
+    {
       "name": "pad.sine-halo",
       "file": "pad.sine-halo.mp3",
       "seconds": 27.999979166666666,
       "bytes": 560640,
       "isLoop": false,
       "renderedAt": "2026-08-14T15:44:40.195Z"
+    },
+    {
+      "name": "pad.string-bed",
+      "file": "pad.string-bed.mp3",
+      "seconds": 27.999979166666666,
+      "bytes": 560640,
+      "isLoop": false,
+      "renderedAt": "2026-08-14T17:47:48.686Z"
+    },
+    {
+      "name": "pad.string-tremolo",
+      "file": "pad.string-tremolo.mp3",
+      "seconds": 27.999979166666666,
+      "bytes": 560640,
+      "isLoop": false,
+      "renderedAt": "2026-08-14T17:48:23.403Z"
     },
     {
       "name": "piano.soft-triangle",
@@ -71,6 +183,22 @@
       "bytes": 449760,
       "isLoop": false,
       "renderedAt": "2026-08-14T16:08:53.352Z"
+    },
+    {
+      "name": "pluck.nylon-arpeggio",
+      "file": "pluck.nylon-arpeggio.mp3",
+      "seconds": 26.857125,
+      "bytes": 538080,
+      "isLoop": false,
+      "renderedAt": "2026-08-14T17:23:39.689Z"
+    },
+    {
+      "name": "pluck.sitar-jawari",
+      "file": "pluck.sitar-jawari.mp3",
+      "seconds": 22.461520833333335,
+      "bytes": 449760,
+      "isLoop": false,
+      "renderedAt": "2026-08-14T16:44:47.552Z"
     }
   ]
 }

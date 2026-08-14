@@ -1,0 +1,82 @@
+{
+  "instrument": "pluck",
+  "slug": "nylon-arpeggio",
+  "title": "Nylon arpeggio",
+  "status": "approved",
+  "forkedFrom": "pluck/brown-rhythm",
+  "tags": [
+    "guitar",
+    "nylon",
+    "classical",
+    "spanish",
+    "spaghetti-western",
+    "arpeggio",
+    "fingerstyle"
+  ],
+  "summary": "Nylon-string classical guitar, no amp. The fingerpicked arpeggio bed for a western or Spanish cue while the twang rests.",
+  "notes": "The nylon-string guitar picking arpeggios under everything else — the bed a western cue sits on when the twang is resting. A `pluck` because it is the rhythm layer, but almost nothing survives from `pluck/brown-rhythm` except that fact.\n\n**No amp, and this is the load-bearing decision.** The rig's power stage is a fixed 0.18 distortion no preset can turn down, so any voice carrying an `amp` block is gritty by construction — the same rule that keeps `bass/jones-jazz` and `lead/violin-arco` clean. Nylon is the softest sound in the archive and a single stage of clipping destroys it. The tone therefore has to come from the oscillator, the envelope and the box, which is where it comes from on a real one.\n\n**Nylon is dark at the source, so the oscillator is band-limited.** `fatsawtooth6` — an ideal saw truncated to six partials. A steel string keeps energy up past 5 kHz for a second or more; a nylon string is heavy, slack and lossy, and its upper partials are gone almost before the note is. Cutting them at the oscillator is truer than filtering them afterwards, and it is why `pluck/sitar-jawari` does the exact opposite with a full-spectrum saw: those two instruments differ mostly in what happens above 3 kHz. Two oscillators at 5 cents — one guitar, played by one person.\n\n**The envelope is the most decay-dominant here: 0.5 s decay to a 0.12 sustain.** A nylon string spends its energy fast and almost completely, so the note is essentially a decay with a tail rather than a note with a level. Attack is 5 ms — a fingernail, slower than the sitar's 1.5 ms wire plectrum and faster than the flesh-only 6 ms of a fingerstyle bass, because a nail is a hard edge on a soft finger. Release runs 1 s so ringing strings overlap through an arpeggio, which is most of what makes a picked figure sound like an instrument rather than a sequence.\n\nThe filter envelope collapses hard and fast (base 350 Hz, 3.4 octaves, shut to 0.25 in 200 ms). Bright at the nail, dark while it rings — the same shape as any plucked voice, but deeper and quicker than the steel-string ones.\n\n**Body is a small wooden box, and it is why this reads as acoustic at all.** 100 Hz is the Helmholtz air mode of a guitar body — the note you get by blowing across the soundhole — 200 Hz is the top plate, 430 Hz is the next plate mode, and −4 dB at 2.6 kHz is the *absence* of the bridge hill a steel-string has. Those four fixed peaks are what make an arpeggio climb unevenly instead of transposing one timbre up the neck.\n\n`breath` is the nail hitting the string at 2.6 kHz, level 0.05, with a 6 ms follower so it is part of the attack rather than a swell behind it.\n\nIt is auditioned on the `keys` étude rather than `pluck`'s own. The rhythm probe is palm-muted sixteenths and power chords, which would only ever tell us that a 1 s release turns a chug to porridge — true, and beside the point for an instrument that exists to arpeggiate. The keys étude asks the questions this voice has to answer: note-to-note ring, block chords, soft against hard.",
+  "probe": "keys",
+  "synth": {
+    "kind": "mono",
+    "oscillator": {
+      "type": "fatsawtooth6",
+      "count": 2,
+      "spread": 5
+    },
+    "envelope": {
+      "attack": 0.005,
+      "decay": 0.5,
+      "sustain": 0.12,
+      "release": 1
+    },
+    "filter": {
+      "type": "lowpass",
+      "rolloff": -12,
+      "Q": 0.7
+    },
+    "filterEnvelope": {
+      "attack": 0.004,
+      "decay": 0.2,
+      "sustain": 0.25,
+      "release": 0.8,
+      "baseFrequency": 350,
+      "octaves": 3.4,
+      "exponent": 1.5
+    },
+    "maxPolyphony": 8
+  },
+  "vibrato": {
+    "rate": 4.8,
+    "depth": 0.012,
+    "drift": 0.5
+  },
+  "body": [
+    {
+      "frequency": 100,
+      "q": 4,
+      "gain": 6
+    },
+    {
+      "frequency": 200,
+      "q": 3.5,
+      "gain": 4
+    },
+    {
+      "frequency": 430,
+      "q": 2,
+      "gain": 3
+    },
+    {
+      "frequency": 2600,
+      "q": 1,
+      "gain": -4
+    }
+  ],
+  "breath": {
+    "level": 0.05,
+    "hz": 2600,
+    "q": 1.4,
+    "attack": 0.006
+  },
+  "approvedAt": "2026-08-14"
+}

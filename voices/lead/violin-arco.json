@@ -1,0 +1,80 @@
+{
+  "instrument": "lead",
+  "slug": "violin-arco",
+  "title": "Violin arco",
+  "status": "approved",
+  "forkedFrom": "lead/brown-lead",
+  "tags": [
+    "violin",
+    "strings",
+    "bowed",
+    "arco",
+    "solo",
+    "singing"
+  ],
+  "summary": "Solo bowed violin, no amp, sustain from the bow rather than a compressor. The singing top line when a guitar would be wrong.",
+  "notes": "A bowed violin taking the top line — a `lead` because that is the register and the job, not because it is a guitar. **No amp**: the rig's power stage is a fixed 0.18 distortion no preset can turn down, so every amped voice is gritty by construction and a bow simply cannot be. The sustain a brown lead buys with 6:1 compression, this voice gets for free from the bow, which is the actual difference between the two instruments.\n\nEverything is inverted from a plucked voice. The attack is 70 ms, because a bow has to catch the string before it speaks — under about 40 ms it reads as struck, and past 150 it reads as a pad swelling. The envelope is *sustain-dominant*, not decay-dominant: 0.12 decay to a 0.88 sustain, so a held note keeps its level for as long as the bow is moving, which is the one thing a plucked string can never do. Release is 0.3 s — a bow lift stops the string quickly, and the tail that is left is the room, so a long release here reads as reverb rather than as a violin.\n\nThe filter envelope *opens as the note develops* instead of collapsing. It rises over 0.11 s and settles at 0.72 — around 2.6 kHz — because bow pressure builds after the string is caught, and a note that is brightest at the very front is a pluck no matter what the amplitude envelope says. Q is 0.6: the violin's brightness is a body resonance, not a swept peak, and audible resonance is the loudest tell that there is a filter in the chain at all.\n\nSawtooth is not a stylistic choice — Helmholtz stick-slip motion makes a bowed string's displacement an actual sawtooth, so this is the one voice here where the textbook waveform is also the right one. Three at 6 cents: a solo player's pitch is never perfectly still, and that small instability is what stops the tone reading as a synth lead. Wider than 12 and it becomes a string section, which is a different instrument and a different voice. Polyphony is 6, for double stops and for phrase overlap.\n\nThe first pass had all of the above and still read as a synth, because none of it is what the ear actually uses to decide. Three blocks fixed that, and none of them is expressible as an oscillator or an envelope.\n\n**Vibrato**: 5.5 Hz, which is a player's hand rather than an effect, at a small depth — a violin's pitch is never still, and stationary pitch is the single loudest synth tell there is. `drift` is 0.45, wandering the width slowly and at a deliberately unmusical fraction of the rate: a vibrato that is exactly the same on every cycle is a modulation wheel, and that regularity gives the game away faster than the vibrato hides it.\n\n**Body**: the four resonances are the violin's, and the point of them is that they *do not move with the note*. The filter envelope inside `synth` tracks each note; the box does not care what is being played, so a scale walks up through 275 Hz (the air mode), 460 (the main body), the hollow around 1250 and the bridge hill at 2600, changing colour as it goes. That unevenness across the register is what a physical object sounds like — a preset is even everywhere, and evenness is why every synth string patch sounds like the same instrument at every pitch.\n\n**Breath**: pink noise through a wide 4.6 kHz band at 0.05, gated by the instrument's own envelope follower. That is bow scrape — the sound of hair dragging rosin across a string, which is inharmonic, present the whole time the note is, and proportional to how hard the note was bowed. Take it out and the attack goes back to being a filter opening.",
+  "synth": {
+    "kind": "mono",
+    "oscillator": {
+      "type": "fatsawtooth",
+      "count": 3,
+      "spread": 6
+    },
+    "envelope": {
+      "attack": 0.07,
+      "decay": 0.12,
+      "sustain": 0.88,
+      "release": 0.3
+    },
+    "filter": {
+      "type": "lowpass",
+      "rolloff": -12,
+      "Q": 0.6
+    },
+    "filterEnvelope": {
+      "attack": 0.11,
+      "decay": 0.25,
+      "sustain": 0.72,
+      "release": 0.4,
+      "baseFrequency": 320,
+      "octaves": 3.2,
+      "exponent": 1.5
+    },
+    "maxPolyphony": 6
+  },
+  "vibrato": {
+    "rate": 5.5,
+    "depth": 0.045,
+    "drift": 0.45
+  },
+  "body": [
+    {
+      "frequency": 275,
+      "q": 5,
+      "gain": 5
+    },
+    {
+      "frequency": 460,
+      "q": 3.5,
+      "gain": 4
+    },
+    {
+      "frequency": 1250,
+      "q": 1.8,
+      "gain": -3
+    },
+    {
+      "frequency": 2600,
+      "q": 1.1,
+      "gain": 4.5
+    }
+  ],
+  "breath": {
+    "level": 0.05,
+    "hz": 4600,
+    "q": 0.8,
+    "attack": 0.03
+  },
+  "approvedAt": "2026-08-14"
+}

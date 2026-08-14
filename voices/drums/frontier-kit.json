@@ -1,0 +1,118 @@
+{
+  "instrument": "drums",
+  "slug": "frontier-kit",
+  "title": "Frontier kit",
+  "status": "approved",
+  "forkedFrom": "drums/house-kit",
+  "tags": [
+    "kit",
+    "western",
+    "spaghetti-western",
+    "gunshot",
+    "whipcrack",
+    "anvil",
+    "timpani"
+  ],
+  "summary": "Spaghetti-western percussion, barely a kit: snare is a gunshot, hat a whipcrack, tom an anvil. Picked for the setting, not the groove.",
+  "notes": "The percussion of a spaghetti western, which is barely a drum kit: a gunshot, a whipcrack, an anvil, and marching drums. The kit piece names are fixed by the composition schema, so the design work here is deciding **what each name is on this record** — the pattern says `snare` and gets a pistol.\n\n- **`snare` is a gunshot.** 2 kHz burst with a 0.5 s decay, against the house kit's 0.18 — a shot in open country is mostly its report leaving. Q drops to 0.6 (wider, so it cracks rather than rings) and the `snareBody` under it goes up to 0.6 of the snare's level at E2, because a gunshot has a chest thump the rattle alone cannot supply. It is the loudest, longest thing in the kit on purpose.\n- **`rim` is a whipcrack**, and it is promoted from a ghost note to a feature: level 0.7, where the house kit has it at 0.5. Narrow (Q 1.6), high (3.8 kHz) and gone in 60 ms — a whip cracks because the tip goes supersonic, so it is a click with no tail at all. Any decay here turns it into a rimshot.\n- **`ride` is an anvil.** Q 8 is the trick: the kit schema says a narrow band reads as tuned metal, and an anvil is a lump of tuned metal ringing for over a second. This is a *pitched* ping in the middle of a noise-based kit, and it is the sound of a blacksmith two streets away.\n- **`kick` and the toms are marching drums and timpani, not a lo-fi kit.** The kick drops to F1 with a 0.9 s decay and a slow 60 ms pitch sweep — a big soft-beater bass drum booms where a lo-fi kick thumps. The toms are tuned A1/D2/F2 with 0.7–0.9 s decays and only three octaves of sweep, so they read as tuned drums being rolled rather than as pitched clicks.\n- **`shaker` is a tambourine and spurs.** 9 kHz, Q 3 — narrow again, because jingles are small tuned discs, not sand in a tube.\n- **`clap` stays a clap** (palmas at the edge of the take), and both hats are pushed down and tightened. A western cue has no hi-hat pattern; the hats exist so a groove that asks for one is not silent, and they are quiet enough to stay out of the way when it does.\n\nLevels are the other half of the design and they live here rather than in the groove, per the usual rule: the gunshot, the whip and the anvil sit *above* everything, which is the balance of a score where percussion is punctuation instead of a backbeat.",
+  "kit": {
+    "levels": {
+      "kick": 1,
+      "snare": 0.85,
+      "rim": 0.7,
+      "clap": 0.5,
+      "hat": 0.22,
+      "open-hat": 0.25,
+      "ride": 0.4,
+      "crash": 0.5,
+      "tom-lo": 0.75,
+      "tom-mid": 0.72,
+      "tom-hi": 0.68,
+      "shaker": 0.35
+    },
+    "membrane": {
+      "kick": {
+        "pitch": "F1",
+        "decay": 0.9,
+        "pitchDecay": 0.06,
+        "octaves": 4
+      },
+      "tom-lo": {
+        "pitch": "A1",
+        "decay": 0.9,
+        "pitchDecay": 0.05,
+        "octaves": 3
+      },
+      "tom-mid": {
+        "pitch": "D2",
+        "decay": 0.8,
+        "pitchDecay": 0.05,
+        "octaves": 3
+      },
+      "tom-hi": {
+        "pitch": "F2",
+        "decay": 0.7,
+        "pitchDecay": 0.05,
+        "octaves": 3
+      }
+    },
+    "noise": {
+      "snare": {
+        "hz": 2000,
+        "decay": 0.5,
+        "type": "white",
+        "q": 0.6
+      },
+      "rim": {
+        "hz": 3800,
+        "decay": 0.06,
+        "type": "white",
+        "q": 1.6
+      },
+      "clap": {
+        "hz": 1500,
+        "decay": 0.1,
+        "type": "white",
+        "q": 0.9
+      },
+      "hat": {
+        "hz": 8000,
+        "decay": 0.03,
+        "type": "white",
+        "q": 1.2
+      },
+      "open-hat": {
+        "hz": 7000,
+        "decay": 0.3,
+        "type": "white",
+        "q": 1
+      },
+      "ride": {
+        "hz": 3000,
+        "decay": 1.2,
+        "type": "white",
+        "q": 8
+      },
+      "crash": {
+        "hz": 4000,
+        "decay": 2.2,
+        "type": "white",
+        "q": 0.7
+      },
+      "shaker": {
+        "hz": 9000,
+        "decay": 0.09,
+        "type": "pink",
+        "q": 3
+      }
+    },
+    "snareBody": {
+      "pitch": "E2",
+      "decay": 0.2,
+      "pitchDecay": 0.03,
+      "octaves": 3,
+      "level": 0.6
+    }
+  },
+  "approvedAt": "2026-08-14"
+}

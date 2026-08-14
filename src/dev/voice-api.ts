@@ -30,6 +30,7 @@ export function voiceApi(root?: string): Plugin {
               root,
               makeDefault: body.makeDefault === true,
               notes: typeof body.notes === "string" ? body.notes : undefined,
+              summary: typeof body.summary === "string" ? body.summary : undefined,
             });
         server.config.logger.info(
           `  ${result.id} → ${result.preset.status}${result.demoted.length ? ` (demoted ${result.demoted.join(", ")})` : ""}`,

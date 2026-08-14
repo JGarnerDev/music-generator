@@ -5,13 +5,32 @@
   "status": "approved",
   "default": true,
   "approvedAt": "2026-08-14",
-  "tags": ["guitar", "lead", "sustain", "brown-sound"],
+  "tags": [
+    "guitar",
+    "lead",
+    "sustain",
+    "brown-sound"
+  ],
+  "summary": "Compressed brown-sound solo tone: held notes sing instead of decaying, mid-forward and centred. The default rock lead.",
   "notes": "The lead half of the brown-sound rig, and not the rhythm tone turned up — turning the rhythm up is exactly what makes a solo sound puny and loud at once. Four things separate it: 6:1 compression at -26 dB so a held note stops decaying and starts singing; a higher high-pass and presence bump at 3.1 kHz so it climbs out above the chug instead of fighting it in the low mids; near-centre width (0.22), because the centre is the loudest place in a stereo mix; and roughly double the output sum.",
   "synth": {
     "kind": "mono",
-    "oscillator": { "type": "fatsawtooth", "count": 3, "spread": 16 },
-    "envelope": { "attack": 0.004, "decay": 0.5, "sustain": 0.9, "release": 0.7 },
-    "filter": { "type": "lowpass", "rolloff": -12, "Q": 1.4 },
+    "oscillator": {
+      "type": "fatsawtooth",
+      "count": 3,
+      "spread": 16
+    },
+    "envelope": {
+      "attack": 0.004,
+      "decay": 0.5,
+      "sustain": 0.9,
+      "release": 0.7
+    },
+    "filter": {
+      "type": "lowpass",
+      "rolloff": -12,
+      "Q": 1.4
+    },
     "filterEnvelope": {
       "attack": 0.004,
       "decay": 0.3,
@@ -26,13 +45,26 @@
   "amp": {
     "input": 2.6,
     "tighten": 260,
-    "sag": { "threshold": -26, "ratio": 6 },
+    "sag": {
+      "threshold": -26,
+      "ratio": 6
+    },
     "preamp": 0.62,
-    "toneStack": { "low": -9, "mid": 5, "high": -3 },
+    "toneStack": {
+      "low": -9,
+      "mid": 5,
+      "high": -3
+    },
     "cab": 5400,
-    "presence": { "frequency": 3100, "gain": 5.5 },
+    "presence": {
+      "frequency": 3100,
+      "gain": 5.5
+    },
     "width": 0.22,
-    "slap": { "delayTime": 0.11, "wet": 0.16 },
+    "slap": {
+      "delayTime": 0.11,
+      "wet": 0.16
+    },
     "sum": 0.8
   }
 }

@@ -179,9 +179,15 @@ function drawSelection(): void {
   const preset = entry.preset;
   const broken = entry.issues.length > 0;
   els.selected.textContent = `${preset.title ?? entry.slug} — ${entry.id}${preset.default ? " (default)" : ""}`;
+  // The bench is a one-voice view, so it shows both halves: the summary that
+  // will become this voice's archive row, then the design notes the archive
+  // deliberately leaves in the file.
   els.notes.textContent = broken
     ? entry.issues.map((issue) => `${issue.path} ${issue.message}`).join(" · ")
-    : (preset.notes ?? "No notes yet — say what this sound is for before approving it.");
+    : [
+        preset.summary ?? "No summary yet — one line on when to pick this, before approving it.",
+        preset.notes ?? "No notes yet — say why it is built this way, so a fork has something to work from.",
+      ].join("\n\n");
 
   const probe = probeFor(preset);
   els.probeName.textContent = `${probe.name}: ${probe.describe}`;

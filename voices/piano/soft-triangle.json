@@ -5,11 +5,23 @@
   "status": "approved",
   "default": true,
   "approvedAt": "2026-08-14",
-  "tags": ["warm", "neutral", "lo-fi"],
+  "tags": [
+    "warm",
+    "neutral",
+    "lo-fi"
+  ],
+  "summary": "Triangle wave, quick attack, long release, so a chord bed blooms rather than clatters. The house piano, not a real one.",
   "notes": "The house piano since the first render: a triangle wave with a quick attack and a long release, so a chord bed blooms rather than clatters. Not a real piano and not trying to be one — it sits under a melody without ever claiming the front of the mix.",
   "synth": {
     "kind": "synth",
-    "oscillator": { "type": "triangle" },
-    "envelope": { "attack": 0.005, "decay": 0.4, "sustain": 0.15, "release": 1.6 }
+    "oscillator": {
+      "type": "triangle"
+    },
+    "envelope": {
+      "attack": 0.005,
+      "decay": 0.4,
+      "sustain": 0.15,
+      "release": 1.6
+    }
   }
 }

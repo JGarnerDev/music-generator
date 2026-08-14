@@ -41,6 +41,14 @@ export interface RenderQuality {
    */
   maxPolyphony: number;
   /**
+   * Players a `section` voice may seat. Each one is a whole extra synth with its
+   * own polyphony, so this multiplies the line above: the cost of a section is
+   * `players × maxPolyphony` voices. Three is enough to still hear a section
+   * while auditioning — the decorrelation cues arrive with the second and third
+   * player, and the rest is thickness.
+   */
+  maxPlayers: number;
+  /**
    * Waveshaper oversampling on the preamp. Measured at 0.6% of render time on
    * `six-gun-shredout`, so it stays on everywhere: it is effectively free, and
    * it is the difference between a clipped guitar and an aliased one.
@@ -53,6 +61,7 @@ export const EXPORT_QUALITY: RenderQuality = {
   sampleRate: null,
   singleOscillator: false,
   maxPolyphony: 16,
+  maxPlayers: 8,
   oversample: "2x",
 };
 
@@ -61,6 +70,7 @@ export const AUDITION_QUALITY: RenderQuality = {
   sampleRate: 22050,
   singleOscillator: true,
   maxPolyphony: 16,
+  maxPlayers: 3,
   oversample: "2x",
 };
 

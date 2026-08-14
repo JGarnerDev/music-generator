@@ -42,7 +42,7 @@ loose musical ideas into something you're pumped about.
 | `src/utils/` | Promoted general helpers | rng, timing, wav, mp3, loop seams — **tested** |
 | `src/app/` | Browser player + the audio graph | Tone.js glue, thin, not unit-tested. The graph runs only under `npm run render`; the app itself just plays files |
 | `compositions/<kind>/*.json` | Song specs (the Claude↔app contract) | Kind = folder = tab: `leitmotifs`, `segments`, `loops`, `songs`. See [library](docs/library.md); shape in `src/engine/composition.ts` |
-| `voices/<instrument>/*.json` | Instrument sounds, several per instrument | Folder = instrument. Approved ones are indexed in [`voices/archive.md`](voices/archive.md); process in [voices](docs/voices.md) |
+| `voices/<instrument>/*.json` | Instrument sounds, several per instrument | Folder = instrument. Approved ones get a row in [`voices/archive.md`](voices/archive.md); the `notes` inside each file are its design record. Process in [voices](docs/voices.md) |
 | `plans/*.json` | Section plans for long/looping pieces | Expanded by `npm run song:build`; see [looping](docs/looping.md) |
 | `scripts/*.ts` | Deterministic CLI chores | commander, named flags. `render.ts` is the big one: see [rendering](docs/rendering.md) |
 | `src/dev/` | Dev-server middleware, render harness, render profiler | Never in the built bundle |
@@ -81,13 +81,21 @@ npm run typecheck  # tsc --noEmit
   Long loops are built from a section plan:
   `npm run song:build -- --plan plans/<name>.json`. Rules for the seam and for
   fighting fatigue: [looping](docs/looping.md).
+- **Pick a sound:** `npm run voice:find -- --query "<scene>"` searches the shelf
+  by scene words, instrument or tag and prints a row each — id, tags, and when
+  to reach for it. `--brief <instrument>/<slug>` prints one voice's fork chain
+  and design notes instead. Whole shelf at once:
+  [`voices/archive.md`](voices/archive.md).
 - **Design a sound:** instrument tone lives in `voices/<instrument>/<slug>.json`,
   not in the code, so it can be settled once instead of re-argued inside every
   song. Fork one (`npm run voice:new -- --instrument bass --slug sub-drone`),
   render its probe (`npm run voice:render -- --voice bass/sub-drone`), audition
-  it at `/voices.html` with Play/Pause, then `npm run voice:approve`. A track
-  picks one with `"voice": "<slug>"`; approved sounds are indexed in
-  [`voices/archive.md`](voices/archive.md). Full loop: [voices](docs/voices.md).
+  it at `/voices.html` with Play/Pause, then
+  `npm run voice:approve -- --voice bass/sub-drone --summary "<one line>"`. A
+  track picks one with `"voice": "<slug>"`; approved sounds get a row in
+  [`voices/archive.md`](voices/archive.md) — `--summary` is that row, and the
+  long why-it-works goes in `--notes`, which the index deliberately leaves in
+  the file. Full loop: [voices](docs/voices.md).
 - **New palette:** `npm run palette:new -- --kind emotion|genre|timbre --slug <slug> --title "<t>" --tags a,b,c`
   (writes `palettes/<kind>/<slug>.md`). Add `--parent <slug>` for a **subtype**
   (`desert-rock` → `rock`): it states only its deltas and inherits the rest.

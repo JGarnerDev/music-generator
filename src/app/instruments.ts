@@ -14,12 +14,21 @@
  */
 import * as Tone from "tone";
 import type { InstrumentName } from "@engine/composition";
-import type { AmpSpec, SynthSpec, VoicePreset } from "@engine/voice";
+import type {
+  AmpSpec,
+  BreathSpec,
+  ResonanceSpec,
+  SynthSpec,
+  TremoloSpec,
+  VibratoSpec,
+  VoicePreset,
+} from "@engine/voice";
+import { planSection, sectionGain, type PlayerPlan } from "@engine/section";
 import { getQuality } from "./quality";
 import { DrumKit } from "./drums";
 import { voiceFor } from "./voices";
 
-export type Playable = Tone.PolySynth | Tone.Sampler | DrumKit;
+export type Playable = Tone.PolySynth | Tone.Sampler | DrumKit | Section;
 
 /**
  * A voice is what you trigger plus where its sound comes *out*, because an
@@ -44,10 +53,166 @@ export interface Voice {
 export function createVoice(name: InstrumentName, slug?: string): Voice {
   const preset = voiceFor(name, slug);
   const play = createInstrument(preset);
+  // Signal order is the instrument being modelled, top to bottom: the string
+  // moves (synth), its pitch is not still (vibrato), the bow may be reversing
+  // several times a second (tremolo), the box it is mounted on rings at its own
+  // fixed frequencies (body), the player adds noise the box never made (breath)
+  // — and only then does any of it reach an amplifier.
+  //
+  // A section has already built that chain once per player and summed them, so
+  // it arrives here as a finished output: running the shared blocks over it
+  // again would put one vibrato and one body across the whole desk, which is
+  // exactly the thing a section exists to avoid.
+  const acoustic = play instanceof Section ? play.output : acousticChain(play, preset);
   if (preset.amp) {
-    return { play, output: guitarAmp(play as Tone.PolySynth, preset.amp) };
+    return { play, output: guitarAmp(acoustic, preset.amp) };
   }
-  return { play, output: play };
+  return { play, output: acoustic };
+}
+
+/**
+ * The blocks that make a synth read as a played object rather than a triggered
+ * one. Each is skipped entirely when the preset omits it, so a voice written
+ * before they existed builds precisely the graph it always did.
+ *
+ * Why here and not in the preset's oscillator settings: none of this is
+ * expressible as a waveform or an envelope. Vibrato is pitch over time, a body
+ * is a set of resonances that *don't* follow the note, and breath is a second
+ * sound source. The filter-envelope-and-detune vocabulary can approximate none
+ * of the three, which is why voices built only from it all share a family
+ * resemblance no amount of tuning removes.
+ */
+function acousticChain(source: Playable | Tone.ToneAudioNode, parts: AcousticParts): Tone.ToneAudioNode {
+  let node = source as unknown as Tone.ToneAudioNode;
+  if (parts.vibrato) node = vibrato(node, parts.vibrato);
+  if (parts.tremolo) node = tremolo(node, parts.tremolo);
+  if (parts.body?.length) node = body(node, parts.body);
+  if (parts.breath) node = breath(node, parts.breath);
+  return node;
+}
+
+/**
+ * The blocks as *values* rather than as a preset, because a section player plays
+ * a varied copy of them: their own hand, their own bowing arm, their own
+ * instrument, the same bow noise. A `VoicePreset` is assignable to this as it is.
+ */
+interface AcousticParts {
+  vibrato?: VibratoSpec;
+  tremolo?: TremoloSpec;
+  body?: ResonanceSpec[];
+  breath?: BreathSpec;
+}
+
+/**
+ * Pitch movement, as a delay-line modulation across the whole instrument.
+ *
+ * It is one node for the track rather than per note because `PolySynth` exposes
+ * no per-voice pitch input to reach — the practical cost is that every sounding
+ * note shares one vibrato phase, which is right for one player and wrong for a
+ * section.
+ *
+ * `drift` is the part that matters. A vibrato at a fixed rate and width is the
+ * single most recognisable "this is a synth patch" gesture there is; a player's
+ * hand wanders. So a slow LFO — a seventh of the vibrato rate, deliberately not
+ * a neat fraction — rides the depth between `depth·(1-drift)` and `depth`.
+ */
+function vibrato(source: Tone.ToneAudioNode, spec: VibratoSpec): Tone.ToneAudioNode {
+  const node = new Tone.Vibrato({ frequency: spec.rate, depth: spec.depth, type: "sine" });
+  if (spec.drift) {
+    const wander = new Tone.LFO({
+      frequency: spec.rate / 7,
+      min: spec.depth * (1 - spec.drift),
+      max: spec.depth,
+      type: "triangle",
+    });
+    wander.connect(node.depth);
+    wander.start();
+  }
+  source.connect(node);
+  return node;
+}
+
+/**
+ * Re-bowing, as amplitude modulation ahead of the box and the bow noise.
+ *
+ * That position is the whole reason this reads as an articulation rather than as
+ * a tremolo pedal. `breath` is gated by an envelope follower watching whatever
+ * reaches it, so putting the strokes upstream means the follower opens once per
+ * stroke and every bow change gets its own burst of rosin scrape — the sound of
+ * the bow biting, which is what a listener actually identifies. Downstream of
+ * `breath` it would be one continuous scrape being turned up and down, which is
+ * a volume knob.
+ *
+ * `depth` is Tone's fraction removed at the bottom of the cycle, so the note
+ * dips rather than stops: a string is still ringing when the bow turns, and a
+ * modulation that reaches zero is a gate, audibly mechanical.
+ */
+function tremolo(source: Tone.ToneAudioNode, spec: TremoloSpec): Tone.ToneAudioNode {
+  const node = new Tone.Tremolo({
+    frequency: spec.rate,
+    depth: spec.depth,
+    spread: spec.spread ?? 0,
+    type: "sine",
+  }).start();
+  source.connect(node);
+  return node;
+}
+
+/**
+ * The resonating box: peaking filters in series at frequencies that never move.
+ *
+ * This is the exact opposite of the filter envelope inside the preset, and both
+ * are needed. The filter envelope tracks the note — brighter at the attack,
+ * darker as it rings. A body does not care what note is playing: the same air
+ * mode sits at the same frequency whether you play the note below it or above,
+ * so a scale walks through the resonances and changes colour as it goes. That
+ * unevenness across the register is the difference between an instrument and a
+ * preset, and it is the one thing that makes a scale sound played.
+ */
+function body(source: Tone.ToneAudioNode, resonances: ResonanceSpec[]): Tone.ToneAudioNode {
+  let node = source;
+  for (const resonance of resonances) {
+    const peak = new Tone.Filter({
+      type: "peaking",
+      frequency: resonance.frequency,
+      Q: resonance.q,
+      gain: resonance.gain,
+    });
+    node.connect(peak);
+    node = peak;
+  }
+  return node;
+}
+
+/**
+ * Noise that arrives with the note without knowing anything about notes.
+ *
+ * A `Follower` on the instrument's own output is a rectified, smoothed copy of
+ * its amplitude — so it opens when a note starts, sits at whatever level it was
+ * played at, and closes when it ends. Multiplying a bandpassed noise source by
+ * it gives bow scrape that tracks the bow, rather than a hiss bed that is
+ * audibly independent of the music.
+ *
+ * The instrument passes through dry as well: this adds noise, it does not
+ * replace the tone with it.
+ */
+function breath(source: Tone.ToneAudioNode, spec: BreathSpec): Tone.ToneAudioNode {
+  const sum = new Tone.Gain(1);
+  source.connect(sum);
+
+  const follower = new Tone.Follower({ smoothing: spec.attack ?? 0.02 });
+  source.connect(follower);
+
+  // Gain starts at 0 so the follower is the only thing that ever opens it —
+  // a noise source with a static gain is a hiss bed and reads as tape, not bow.
+  const gate = new Tone.Gain(0);
+  follower.connect(gate.gain);
+
+  const noise = new Tone.Noise("pink").start();
+  const band = new Tone.Filter({ type: "bandpass", frequency: spec.hz, Q: spec.q ?? 1 });
+  const level = new Tone.Gain(spec.level);
+  noise.chain(band, gate, level, sum);
+  return sum;
 }
 
 /**
@@ -80,7 +245,7 @@ export function createVoice(name: InstrumentName, slug?: string): Voice {
  * genuine double-tracking is open again if it sounds better, because rendering
  * is offline and has no deadline to miss.
  */
-function guitarAmp(source: Tone.PolySynth, voicing: AmpSpec): Tone.ToneAudioNode {
+function guitarAmp(source: Tone.ToneAudioNode, voicing: AmpSpec): Tone.ToneAudioNode {
   const input = new Tone.Gain(voicing.input);
   const tighten = new Tone.Filter(voicing.tighten, "highpass");
   // Variac sag: supply voltage dips on a hard hit, so the attack compresses and
@@ -102,7 +267,11 @@ function guitarAmp(source: Tone.PolySynth, voicing: AmpSpec): Tone.ToneAudioNode
   const powerAmp = new Tone.Distortion({ distortion: 0.18, oversample: "none" });
   const cab = new Tone.Filter({ frequency: voicing.cab, type: "lowpass", rolloff: -48 });
   const presence = new Tone.Filter({ type: "peaking", Q: 1.2, ...voicing.presence });
-  const body = new Tone.Filter(105, "highpass");
+  // Cab thump cleanup, after the speaker. 105 Hz for a guitar, because nothing
+  // musical of a guitar's lives under it and the bass owns that band anyway —
+  // but a bass through this rig is the exception that would be gutted by it, so
+  // it never sits above where that preset chose to high-pass going in.
+  const body = new Tone.Filter(Math.min(105, voicing.tighten), "highpass");
   const sum = new Tone.Gain(voicing.sum);
 
   source.chain(input, tighten, sag, preamp, toneStack, powerAmp, cab, presence, body);
@@ -128,7 +297,94 @@ function createInstrument(preset: VoicePreset): Playable {
     return new DrumKit(preset.kit);
   }
   if (!preset.synth) throw new Error(`Voice "${preset.slug}" has no synth`);
+  if (preset.section) return new Section(preset);
   return polySynth(preset.synth);
+}
+
+/**
+ * Several players on one part, summed — a section rather than a soloist.
+ *
+ * It presents the same `triggerAttackRelease` surface as a `PolySynth`, the same
+ * trick `DrumKit` uses, so the schedule in `graph.ts` neither knows nor cares
+ * how many people are playing. Everything downstream sees one instrument.
+ *
+ * What it is *not* is a detuned oscillator stack. A `fat` oscillator gives one
+ * player several pitches sharing a single envelope, a single vibrato phase and a
+ * single instant of attack, and no amount of spread makes that sound like more
+ * than one instrument — which is why every unison-detune string patch has the
+ * same enormous, singular quality. Here each player is a whole voice: their own
+ * synth (their own envelope, their own filter sweep), their own vibrato at their
+ * own rate, their own slightly different box, their own bow noise, their own
+ * seat, and their own attack a few milliseconds off everyone else's.
+ *
+ * The bill is linear. `n` players is `n` times the polyphony, which `quality.ts`
+ * measured as the dominant render cost, so a six-player section costs about what
+ * six guitars cost. That is simply what the effect is worth; the audition
+ * profile caps the desk so that judging one is not a coffee break.
+ *
+ * Who differs and by how much is decided in [`@engine/section`](../engine/section.ts),
+ * pure and seeded from the voice's slug, so the same voice always builds the
+ * same desk and a re-render never quietly reshuffles who was sharp.
+ */
+export class Section {
+  readonly output: Tone.Gain;
+  private readonly players: { synth: Tone.PolySynth; delay: number; effort: number }[];
+
+  constructor(preset: VoicePreset) {
+    const spec = preset.section!;
+    // The quality profile is a ceiling the preset cannot raise — the same rule
+    // polyphony follows, and for the same reason: an audition exists to be fast.
+    const wanted = Math.min(spec.players, getQuality().maxPlayers);
+    const plans = planSection(preset).slice(0, wanted);
+
+    this.output = new Tone.Gain(sectionGain(plans.length));
+    this.players = plans.map((plan) => this.seat(preset, plan));
+  }
+
+  private seat(preset: VoicePreset, plan: PlayerPlan): { synth: Tone.PolySynth; delay: number; effort: number } {
+    // Detune is set on the synth rather than by transposing the note, so the
+    // part stays written in notes and a player is out by cents, not by pitch
+    // names — and the filter envelope still tracks the note it was written for.
+    const synth = polySynth(preset.synth!, plan.detune);
+    const chain = acousticChain(synth, {
+      vibrato: plan.vibrato,
+      tremolo: plan.tremolo,
+      body: plan.body,
+      breath: preset.breath,
+    });
+    const panner = new Tone.Panner(plan.pan);
+    chain.connect(panner);
+    panner.connect(this.output);
+    return { synth, delay: plan.delay, effort: plan.effort };
+  }
+
+  connect(destination: Tone.InputNode): this {
+    this.output.connect(destination);
+    return this;
+  }
+
+  /**
+   * One written note, played by everybody — a little later and a little softer
+   * for all but the leader.
+   *
+   * The delays are added here rather than by a delay line on each player's
+   * output because they must move the *attack*, not the sound: a delayed signal
+   * is the same envelope arriving late, whereas a late trigger is a different
+   * bow landing at a different moment, with its own filter sweep starting then.
+   * Those are the same thing only for a note with no attack.
+   */
+  triggerAttackRelease(
+    pitch: string,
+    duration: Tone.Unit.Time,
+    time?: Tone.Unit.Time,
+    velocity = 0.8,
+  ): this {
+    const start = time === undefined ? Tone.now() : Tone.Time(time).toSeconds();
+    for (const player of this.players) {
+      player.synth.triggerAttackRelease(pitch, duration, start + player.delay, velocity * player.effort);
+    }
+    return this;
+  }
 }
 
 /**
@@ -145,7 +401,7 @@ function createInstrument(preset: VoicePreset): Playable {
  * collapses fat stacks to a single saw and the preset does not get a vote, since
  * the point of an audition is to be fast. See `quality.ts` for the measurements.
  */
-function polySynth(spec: SynthSpec): Tone.PolySynth {
+function polySynth(spec: SynthSpec, detune?: number): Tone.PolySynth {
   const quality = getQuality();
   // A fat oscillator runs `count` oscillators per allocated voice, continuously,
   // whether or not the voice is currently sounding — the dominant cost in a
@@ -161,6 +417,9 @@ function polySynth(spec: SynthSpec): Tone.PolySynth {
   // untyped JSON meets Tone's unions. A name Tone doesn't know fails loudly at
   // render time, which is the moment you are listening anyway.
   const options: Record<string, unknown> = { oscillator, envelope: spec.envelope };
+  // Cents off concert pitch, for one player in a section. Left off entirely
+  // otherwise, so a solo voice builds exactly the synth it always did.
+  if (detune !== undefined) options.detune = detune;
   if (spec.filter) options.filter = spec.filter;
   if (spec.filterEnvelope) options.filterEnvelope = spec.filterEnvelope;
   if (spec.harmonicity !== undefined) options.harmonicity = spec.harmonicity;

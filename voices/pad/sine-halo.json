@@ -5,11 +5,23 @@
   "status": "approved",
   "default": true,
   "approvedAt": "2026-08-14",
-  "tags": ["soft", "atmosphere", "slow"],
+  "tags": [
+    "soft",
+    "atmosphere",
+    "slow"
+  ],
+  "summary": "Pure sine, 0.8 s in and 3 s out. Glue that can never accidentally sound like a hit — the neutral pad.",
   "notes": "Pure sine, 0.8 s to arrive and 3 s to leave. The slow attack is the instrument: it means a pad can never accidentally sound like a hit, so it glues an arrangement without ever competing for the front of it. The long release is what makes a chord change a swell instead of a cut.",
   "synth": {
     "kind": "synth",
-    "oscillator": { "type": "sine" },
-    "envelope": { "attack": 0.8, "decay": 1.5, "sustain": 0.7, "release": 3 }
+    "oscillator": {
+      "type": "sine"
+    },
+    "envelope": {
+      "attack": 0.8,
+      "decay": 1.5,
+      "sustain": 0.7,
+      "release": 3
+    }
   }
 }

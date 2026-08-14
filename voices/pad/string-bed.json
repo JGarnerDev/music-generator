@@ -1,0 +1,89 @@
+{
+  "instrument": "pad",
+  "slug": "string-bed",
+  "title": "String bed",
+  "status": "approved",
+  "forkedFrom": "pad/mens-choir",
+  "tags": [
+    "strings",
+    "section",
+    "bowed",
+    "sustained",
+    "spaghetti-western",
+    "tremolo-bed",
+    "harmony"
+  ],
+  "summary": "Sustained bowed strings with a real violin body notch. The settled held chord a piece can sit on for eight bars.",
+  "notes": "The sustained strings under everything else — the held chord a spaghetti western sits on while the choir chants and the trumpet answers. A `pad` for the same reason `mens-choir` is one: it holds the harmony and never takes the tune. `lead/string-section` is the same players doing the opposite job.\n\nIt forks `pad/mens-choir` because that voice already made every decision a section needs *except* the one it could not make. Its notes say a dozen individual vibratos at different rates average out to slow collective wandering, and then approximate that with one vibrato and an enormous `drift`, because one synth has one vibrato. Here there are five players and five vibratos, so the averaging is arithmetic rather than an impression of it — which is why `drift` comes down from 0.7 to 0.5 and the depth goes *up*: the unsteadiness no longer has to be manufactured inside a single LFO.\n\n**The 22-cent fat stack goes away, and this is the whole point of the fork.** Four detuned oscillators sharing one envelope, one filter sweep and one onset is one enormous singular instrument; `section.detune` spends the same 16 cents between five players who each have their own. Wider than the melody section's 14, because a bed is allowed to be a little less unanimous than the tune and the extra width is what stops a held chord sounding like an organ.\n\n**Body is a string section's box, not a man's throat — and the hole is the point.** The first pass of this voice differed from `mens-choir` only by four peaking filters at +3 to +6 dB, and the two were not tellable apart: both are one sawtooth into one lowpass, so ±5 dB of EQ was the entire distance between \"men singing\" and \"violins bowing\". Real vowel formants stand 15–25 dB above their valleys; at that timidity neither voice commits to being anything, and the lo-fi chain erases the difference on the way past.\n\nSo the profile is now the violin family, stated loudly: 220 Hz is a viola's air mode — the floor a section has and a solo violin does not — 460 is the main body, 2500 is the bridge hill, lower and wider than a soloist's 2600 because a desk of instruments smears it. **The −9 dB at 1300 does more work than any of the peaks.** A choir has nothing there; a bowed string has a genuine hollow between its corpus modes and its bridge hill, and `lead/violin-arco` cuts the same band. Contrast between two voices comes from absence as much as presence, and a notch is also the cheap way to spend it: five players' worth of stacked boosts is a level problem, while a hole costs nothing. `bodyVary` at 0.03 scatters all four per player, which matters more here than anywhere — five identical boxes resonating at exactly 460 Hz is a 460 Hz problem, and a real section is a shelf of different instruments. The filter also opens from lower and further (200 Hz, 3.6 octaves) so the sweep inside a note is bow pressure rather than the choir's swell.\n\n**Breath is rosin now, not air.** It sat at 4.2 kHz with a 60 ms follower, which is the *choir's* cue — a slow follower is a swell, i.e. a room of people taking a breath. A bow is the opposite: 5.5 kHz, 12 ms, and half again as loud at 0.075. Fast and scratchy arrives *with* the bow bite instead of behind it, and it is the single most identifiable thing about bowed strings once the spectrum stops apologising.\n\n**45 ms of attack smear, and a 0.25 s envelope under it.** Faster than the choir's 0.35 because a bow speaks sooner than a room of people takes a breath, but the section's *audible* onset is the envelope plus the smear, so the bed still arrives rather than starts. Release is 1.2 s: long enough that a chord change is a swell, short enough that consecutive chords do not pile into a drone — the same limit `mens-choir` documents at 1.6.\n\n**Seats at 0.9 — as wide as the archive goes.** A bed is the room, not a group of people standing in front of you, and the width is most of what separates it from the melody section it shares an instrument with. Five players at polyphony 5 is 25 voices, so this is expensive; four-part writing fits with a note to spare at the phrase seams, and asking for more chord tones than that is asking for a different arrangement rather than a bigger section.",
+  "synth": {
+    "kind": "mono",
+    "oscillator": {
+      "type": "sawtooth"
+    },
+    "envelope": {
+      "attack": 0.25,
+      "decay": 0.3,
+      "sustain": 0.9,
+      "release": 1.2
+    },
+    "filter": {
+      "type": "lowpass",
+      "rolloff": -12,
+      "Q": 0.5
+    },
+    "filterEnvelope": {
+      "attack": 0.35,
+      "decay": 0.5,
+      "sustain": 0.68,
+      "release": 1,
+      "baseFrequency": 200,
+      "octaves": 3.6,
+      "exponent": 1.5
+    },
+    "maxPolyphony": 5
+  },
+  "vibrato": {
+    "rate": 5,
+    "depth": 0.03,
+    "drift": 0.5
+  },
+  "body": [
+    {
+      "frequency": 220,
+      "q": 3,
+      "gain": 6
+    },
+    {
+      "frequency": 460,
+      "q": 3.5,
+      "gain": 7
+    },
+    {
+      "frequency": 1300,
+      "q": 1.8,
+      "gain": -9
+    },
+    {
+      "frequency": 2500,
+      "q": 1,
+      "gain": 5.5
+    }
+  ],
+  "breath": {
+    "level": 0.075,
+    "hz": 5500,
+    "q": 0.7,
+    "attack": 0.012,
+    "release": 0.15
+  },
+  "section": {
+    "players": 5,
+    "detune": 16,
+    "timing": 0.045,
+    "seats": 0.9,
+    "bodyVary": 0.03,
+    "vibratoVary": 0.2,
+    "effortVary": 0.15
+  },
+  "approvedAt": "2026-08-14"
+}

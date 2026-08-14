@@ -1,0 +1,101 @@
+{
+  "instrument": "lead",
+  "slug": "desert-twang",
+  "title": "Desert twang",
+  "status": "approved",
+  "forkedFrom": "lead/brown-lead",
+  "tags": [
+    "guitar",
+    "lead",
+    "twang",
+    "surf",
+    "spaghetti-western",
+    "clean",
+    "slapback"
+  ],
+  "summary": "Bright clean single-coil twang drowning in slapback. The hard-picked surf/western hook — brown-lead inverted.",
+  "notes": "The single-coil twang that opens every spaghetti western — a bright, clean, hard-picked electric drowning in echo. It is forked from `lead/brown-lead` and inverts nearly every number in it, because a twang and a brown lead are opposites built from the same blocks.\n\n**Clean is a gain structure, not a setting.** Input drops from 2.6 to 1.4 and the preamp from 0.62 to 0.08, so the only saturation left is the rig's fixed 0.18 power stage — which is the correct amount: a Fender at edge-of-breakup is not clean, it is clean *until you hit it*. That fixed stage is normally the reason a delicate voice can't have an amp; here it is the sound, so this is the one western voice that keeps the rig.\n\n**The tone stack is scooped, not mid-forward.** `{ low: -3, mid: -4, high: 6 }` against the brown rig's `mid: 5`. Mid-forward is how a guitar climbs out of a dense band mix; a lone guitar over sparse desert has no one to fight, and the mids are exactly what makes it sound boxed in. The cab opens to 6.8 kHz — an open-back combo with a Jensen, not a closed 4x12 — and the presence bump moves up to 4.2 kHz. Above 5 kHz is where the *spank* lives, and the brown rig deliberately throws it away.\n\n**Sag is nearly off** (2:1 at -8 dB, against 6:1 at -26). Compression is what turns a lead into sustain, and sustain is what this voice must not have: twang is dynamics, a pick attack that is much louder than the note it leaves behind. The amplitude envelope agrees — decay-dominant to a 0.45 sustain, where the brown lead holds 0.9. A note here peaks and drops away, and the space it leaves is where the echo lives.\n\n**The echo is half the instrument.** `slap` runs at 0.14 s and 0.42 wet, roughly three times the brown rig's, standing in for the spring reverb and tape echo that are on every record of this kind. It is deliberately the wettest thing in the voice archive.\n\nThe filter envelope opens *at the pick* (base 1200 Hz, 2.6 octaves, 2 ms attack) and falls to 0.4 in a quarter second — bright the instant the string is struck, dark while it rings. That is a plucked string, and it is why the same numbers as a bowed voice would sound wrong even through this amp. Two oscillators at 7 cents: one guitar, one player. Sixteen cents' worth of brown-lead spread reads as a doubled track, which is a production choice and not a tone.\n\n**Body** is three fixed peaks, and a solidbody having a body at all is the point: a scoop at 780 Hz that keeps it glassy, the twang band at 2400, and air at 5000. They stay put while the note moves, so a line played up the neck brightens unevenly instead of transposing a fixed timbre.\n\n**Breath** is the plectrum — a hard pick on a wound string is a click before it is a note, and 4.2 kHz noise gated by the envelope is that click.\n\n**One thing this voice cannot have is its tremolo.** The amplitude wobble on those records comes from an LFO on the *level*, and the rig has no amplitude modulation block anywhere — `vibrato` is pitch, by construction. The small vibrato here (0.02 at 5.2 Hz) is bar shimmer, not tremolo. Real tremolo is a change to `src/app/instruments.ts`, not to a preset, and it is worth doing if this style sticks.",
+  "synth": {
+    "kind": "mono",
+    "oscillator": {
+      "type": "fatsawtooth",
+      "count": 2,
+      "spread": 7
+    },
+    "envelope": {
+      "attack": 0.002,
+      "decay": 0.35,
+      "sustain": 0.45,
+      "release": 0.9
+    },
+    "filter": {
+      "type": "lowpass",
+      "rolloff": -12,
+      "Q": 1
+    },
+    "filterEnvelope": {
+      "attack": 0.002,
+      "decay": 0.25,
+      "sustain": 0.4,
+      "release": 0.8,
+      "baseFrequency": 1200,
+      "octaves": 2.6,
+      "exponent": 1.5
+    },
+    "maxPolyphony": 6
+  },
+  "vibrato": {
+    "rate": 5.2,
+    "depth": 0.02,
+    "drift": 0.5
+  },
+  "body": [
+    {
+      "frequency": 780,
+      "q": 1.5,
+      "gain": -4
+    },
+    {
+      "frequency": 2400,
+      "q": 1.1,
+      "gain": 5
+    },
+    {
+      "frequency": 5000,
+      "q": 1.6,
+      "gain": 3
+    }
+  ],
+  "breath": {
+    "level": 0.04,
+    "hz": 4200,
+    "q": 1.2,
+    "attack": 0.006
+  },
+  "amp": {
+    "input": 1.4,
+    "tighten": 190,
+    "sag": {
+      "threshold": -8,
+      "ratio": 2
+    },
+    "preamp": 0.08,
+    "toneStack": {
+      "low": -3,
+      "mid": -4,
+      "high": 6
+    },
+    "cab": 6800,
+    "presence": {
+      "frequency": 4200,
+      "gain": 6
+    },
+    "width": 0.3,
+    "slap": {
+      "delayTime": 0.14,
+      "wet": 0.42
+    },
+    "sum": 0.7
+  },
+  "approvedAt": "2026-08-14"
+}

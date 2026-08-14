@@ -1,0 +1,94 @@
+{
+  "instrument": "pad",
+  "slug": "string-tremolo",
+  "title": "String tremolo",
+  "status": "approved",
+  "forkedFrom": "pad/string-bed",
+  "tags": [
+    "strings",
+    "section",
+    "bowed",
+    "tremolando",
+    "shimmer",
+    "tension",
+    "spaghetti-western"
+  ],
+  "summary": "Re-bowed shimmer at 7.5 strokes a second. The bar before something happens — string-bed for when it must not settle.",
+  "notes": "The strings re-bowing on a held chord — the shimmer under a standoff, before anyone has drawn. It forks `pad/string-bed` and changes one thing: the bow no longer stays still.\n\n**It exists because spectrum was not enough.** `string-bed` and `pad/mens-choir` were too alike, and the first fix was to commit the spectrum — deep body notch, real rosin, a violin profile instead of a vowel. That is the right fix and it is done, but it is fighting on ground where the lo-fi chain has the advantage: bandwidth is exactly what a lo-fi chain takes away, so any two voices separated only by EQ converge as the render gets dirtier. A tremolando is separated in **time**, and nothing in the chain erodes that. No choir can re-bow. Neither can an organ, or a pad, or a fat detuned stack.\n\n**7.5 strokes a second, 0.5 deep.** Fast enough to read as agitation rather than as a wobble — under about 4 Hz it stops being a tremolando and becomes a tremolo pedal — and the depth stops at half because a string is still ringing when the bow turns. Modulation that reaches zero is a gate, and a gate at 7.5 Hz is a machine gun. What is wanted is a note that never stops and never sits still.\n\n**The strokes must not line up, and in a section they don't.** Five players re-bowing at exactly 7.5 Hz is one enormous tremolo across the whole desk, with a fixed audible period — the single most mechanical thing this voice could do. `section` varies each player's stroke rate at double the vibrato variation, because bow speed is a shared intention rather than a constant of the hand, so the strokes drift through each other and what is left is a continuous shimmer with no countable period. The depth is *not* varied: how far the bow lifts is what the score said, and a player doing it half as deep is a player not doing it.\n\n**It sits before `body` and `breath`, and that is the whole realism.** Breath is gated by an envelope follower watching what reaches it, so with the strokes upstream the follower opens once per stroke and every bow change gets its own burst of rosin. That per-stroke scratch is what a listener identifies as bowing. After `breath` it would be one continuous scrape being turned up and down, which is a volume knob.\n\n**Slower envelope than the bed** — 0.4 s attack against 0.25, release 1.5 against 1.2. A tremolando is usually a texture arriving rather than a chord being stated, and the stroke gives the note all the front-edge definition it needs; a fast attack on top of a fast tremolo is two onsets fighting. `spread` at 90° puts the left and right halves of each player's modulation a quarter cycle apart, which widens the shimmer without any player's strokes losing their identity.\n\nUse it where `string-bed` is too settled: the bar before something happens. For anything the harmony has to sit on for eight bars, the bed is the right voice — this one is a state of alarm and does not stop being one.",
+  "synth": {
+    "kind": "mono",
+    "oscillator": {
+      "type": "sawtooth"
+    },
+    "envelope": {
+      "attack": 0.4,
+      "decay": 0.3,
+      "sustain": 0.9,
+      "release": 1.5
+    },
+    "filter": {
+      "type": "lowpass",
+      "rolloff": -12,
+      "Q": 0.5
+    },
+    "filterEnvelope": {
+      "attack": 0.35,
+      "decay": 0.5,
+      "sustain": 0.68,
+      "release": 1,
+      "baseFrequency": 200,
+      "octaves": 3.6,
+      "exponent": 1.5
+    },
+    "maxPolyphony": 5
+  },
+  "vibrato": {
+    "rate": 5,
+    "depth": 0.03,
+    "drift": 0.5
+  },
+  "tremolo": {
+    "rate": 7.5,
+    "depth": 0.5,
+    "spread": 90
+  },
+  "body": [
+    {
+      "frequency": 220,
+      "q": 3,
+      "gain": 6
+    },
+    {
+      "frequency": 460,
+      "q": 3.5,
+      "gain": 7
+    },
+    {
+      "frequency": 1300,
+      "q": 1.8,
+      "gain": -9
+    },
+    {
+      "frequency": 2500,
+      "q": 1,
+      "gain": 5.5
+    }
+  ],
+  "breath": {
+    "level": 0.075,
+    "hz": 5500,
+    "q": 0.7,
+    "attack": 0.012,
+    "release": 0.15
+  },
+  "section": {
+    "players": 5,
+    "detune": 16,
+    "timing": 0.045,
+    "seats": 0.9,
+    "bodyVary": 0.03,
+    "vibratoVary": 0.2,
+    "effortVary": 0.15
+  },
+  "approvedAt": "2026-08-14"
+}

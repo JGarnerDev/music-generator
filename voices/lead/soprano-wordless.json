@@ -1,0 +1,81 @@
+{
+  "instrument": "lead",
+  "slug": "soprano-wordless",
+  "title": "Wordless soprano",
+  "status": "approved",
+  "forkedFrom": "lead/violin-arco",
+  "tags": [
+    "voice",
+    "soprano",
+    "wordless",
+    "spaghetti-western",
+    "ecstasy",
+    "soaring"
+  ],
+  "summary": "Soaring wordless soprano built on formants. The line that turns a western cue into ecstasy; nothing goes above it.",
+  "notes": "The soaring wordless soprano over the whole orchestra — Edda Dell'Orso's line, the thing that turns a western cue into the ecstasy of gold. A `lead`, because it is the top line and nothing else in the arrangement is allowed above it. **No amp**, obviously.\n\n**A sung vowel is three formants, and everything else is decoration.** `body` is that vowel: 800 Hz and 1180 Hz are F1 and F2 of an open \"ah\", 2900 Hz is the singer's formant — the narrow resonance a trained voice develops so it can be heard over an orchestra without a microphone — and the −4 dB at 350 Hz thins the chest, because this is a soprano at the top of her range rather than a mezzo. Those frequencies are absolute and stay put while the note moves, which is the whole reason the block exists: a voice sings *the same vowel* at every pitch, so the harmonics slide underneath fixed resonances and the timbre changes across the register. A synth patch transposes instead, and that is why every synth choir sounds identical at every note.\n\n**The vibrato is the tell, so it is large.** 5.8 Hz at 0.055 — wider than the violin's 0.045 and far wider than the whistle's — because an operatic soprano's vibrato is not an ornament she adds, it is how the voice is produced at that pressure. Drift is 0.35: enough that it is never mechanical, but less than a whistler's, since a trained voice is a *controlled* instability.\n\nThe envelope is slower than any other lead here: 120 ms attack, 0.9 sustain, 0.5 s release. A voice has to be supported before it speaks, and the half-second tail is the singer releasing the note rather than the room — anything longer starts sounding like reverb printed into the instrument, which makes it impossible to place in a mix later.\n\nThe filter envelope opens (0.15 s to a 0.75 sustain, 3.6 octaves off 300 Hz) rather than collapsing, for the same reason as the bow: pressure builds after the note starts. Q is 0.5 — the brightness of this voice is meant to come from the singer's formant in `body`, and a resonant filter on top of a resonant body is where a vocal patch starts to whistle at you.\n\n`breath` is deliberately the quietest of the wind voices at 0.035, with a slow 60 ms follower. A trained singer wastes very little air, so the noise is a swell under the note rather than a consonant at the front of it. It is still not zero, and taking it to zero is what makes the difference between a soprano and a theremin.",
+  "synth": {
+    "kind": "mono",
+    "oscillator": {
+      "type": "fatsawtooth",
+      "count": 2,
+      "spread": 5
+    },
+    "envelope": {
+      "attack": 0.12,
+      "decay": 0.2,
+      "sustain": 0.9,
+      "release": 0.5
+    },
+    "filter": {
+      "type": "lowpass",
+      "rolloff": -12,
+      "Q": 0.5
+    },
+    "filterEnvelope": {
+      "attack": 0.15,
+      "decay": 0.3,
+      "sustain": 0.75,
+      "release": 0.6,
+      "baseFrequency": 300,
+      "octaves": 3.6,
+      "exponent": 1.5
+    },
+    "maxPolyphony": 3
+  },
+  "vibrato": {
+    "rate": 5.8,
+    "depth": 0.055,
+    "drift": 0.35
+  },
+  "body": [
+    {
+      "frequency": 350,
+      "q": 2,
+      "gain": -4
+    },
+    {
+      "frequency": 800,
+      "q": 4,
+      "gain": 6
+    },
+    {
+      "frequency": 1180,
+      "q": 4,
+      "gain": 5
+    },
+    {
+      "frequency": 2900,
+      "q": 2.5,
+      "gain": 6
+    }
+  ],
+  "breath": {
+    "level": 0.035,
+    "hz": 5200,
+    "q": 0.8,
+    "attack": 0.06,
+    "release": 0.25
+  },
+  "approvedAt": "2026-08-14"
+}

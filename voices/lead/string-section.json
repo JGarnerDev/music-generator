@@ -1,0 +1,88 @@
+{
+  "instrument": "lead",
+  "slug": "string-section",
+  "title": "String section",
+  "status": "approved",
+  "forkedFrom": "lead/violin-arco",
+  "tags": [
+    "strings",
+    "violins",
+    "section",
+    "bowed",
+    "unison",
+    "spaghetti-western",
+    "tutti"
+  ],
+  "summary": "Six violins taking the tune in unison — the tutti line when a cue stops being a whistle and becomes a film. Expensive.",
+  "notes": "The violins taking the tune together — the wide unison line that arrives when a spaghetti western stops being a whistle and starts being a film. It forks `lead/violin-arco` and changes almost nothing about the instrument, because the instrument was right; what changes is that there are now six of them.\n\n**This is the first voice built on `section`, and it exists because the old trick does not work.** Every previous attempt at a section in this archive is one synth with a wide detune: `pad/mens-choir` spreads four sawtooths across 22 cents and says outright that a section is the instrument. That gets one player who is out of tune with themselves — one envelope, one filter sweep, one vibrato phase, one instant of attack, several pitches. It is enormous and it is singular, which is exactly what a synth string patch sounds like. `section` instead builds six whole voices and sums them, so what differs between players is everything a listener actually counts them by.\n\n**The oscillator goes back to a plain sawtooth.** `violin-arco` used three at 6 cents to buy a soloist's small instability, and warned that past 12 cents a soloist becomes a section. That warning is now load-bearing in the other direction: the spread lives in `section.detune`, between real players, so paying for it again inside each player is three times the oscillator cost for a thickness that is already there — and a fat stack inside a section player is that player being out of tune with themselves on top of being out of tune with the desk.\n\n**14 cents across the desk**, dealt evenly and then reseated at random. Even, because a random draw clumps and two players on the same pitch are one player twice as loud. Reseated, because dealing intonation in seat order puts the flat players stage left and the sharp players stage right, and a pitch ramp across the stereo image is not something you stop hearing once you have heard it.\n\n**35 ms of attack smear is what makes it a section**, and it is doing more work than the detune. Six bows do not catch the string at the same instant, and the ear reads that spread of onsets as a count of players — not as a slower attack, which is why the envelope keeps `violin-arco`'s 70 ms rather than being softened. Nobody plays early: the written time is the leader, everyone else lands inside the window, so the section stays behind the beat's leading edge instead of dragging half the window late against the drums.\n\n**Each player has their own hand and their own instrument.** `vibratoVary` at 0.18 is the important one — six vibratos at the same rate beat against each other at a fixed audible period, and that beating is a chorus pedal. At different rates they never phase-lock, and what is left is the collective shimmer `mens-choir` had to fake with `drift` alone. `bodyVary` at 0.025 scatters the four violin resonances by a couple of percent, so the section's formants do not stack into one enormous 275 Hz peak: six violins are the same design in six different pieces of wood.\n\n**Seats are 0.55 — narrower than a bed.** A section carrying the melody is a group of people in front of you, not a wall around you; `pad/string-bed` takes the wide seating because that is a different job. Polyphony is 3 per player rather than the soloist's 6: a unison line needs phrase overlap, not double stops, and polyphony is multiplied by six here — 18 voices is already the most expensive voice in the archive, and that is the honest price of the effect.",
+  "synth": {
+    "kind": "mono",
+    "oscillator": {
+      "type": "sawtooth"
+    },
+    "envelope": {
+      "attack": 0.07,
+      "decay": 0.12,
+      "sustain": 0.88,
+      "release": 0.3
+    },
+    "filter": {
+      "type": "lowpass",
+      "rolloff": -12,
+      "Q": 0.6
+    },
+    "filterEnvelope": {
+      "attack": 0.11,
+      "decay": 0.25,
+      "sustain": 0.72,
+      "release": 0.4,
+      "baseFrequency": 320,
+      "octaves": 3.2,
+      "exponent": 1.5
+    },
+    "maxPolyphony": 3
+  },
+  "vibrato": {
+    "rate": 5.5,
+    "depth": 0.045,
+    "drift": 0.45
+  },
+  "body": [
+    {
+      "frequency": 275,
+      "q": 5,
+      "gain": 5
+    },
+    {
+      "frequency": 460,
+      "q": 3.5,
+      "gain": 4
+    },
+    {
+      "frequency": 1250,
+      "q": 1.8,
+      "gain": -3
+    },
+    {
+      "frequency": 2600,
+      "q": 1.1,
+      "gain": 4.5
+    }
+  ],
+  "breath": {
+    "level": 0.05,
+    "hz": 4600,
+    "q": 0.8,
+    "attack": 0.03
+  },
+  "section": {
+    "players": 6,
+    "detune": 14,
+    "timing": 0.035,
+    "seats": 0.55,
+    "bodyVary": 0.025,
+    "vibratoVary": 0.18,
+    "effortVary": 0.12
+  },
+  "approvedAt": "2026-08-14"
+}

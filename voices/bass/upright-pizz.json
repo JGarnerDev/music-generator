@@ -1,0 +1,81 @@
+{
+  "instrument": "bass",
+  "slug": "upright-pizz",
+  "title": "Upright pizz",
+  "status": "approved",
+  "forkedFrom": "bass/jones-jazz",
+  "tags": [
+    "bass",
+    "upright",
+    "double-bass",
+    "pizzicato",
+    "gut",
+    "spaghetti-western",
+    "acoustic"
+  ],
+  "summary": "Plucked double bass, gut and air, no amp. The low end for acoustic and western cues where an electric bass is the wrong century.",
+  "notes": "A double bass, plucked — the low end under a western cue, where an electric bass would sound like the wrong century. Forked from `bass/jones-jazz` and inheriting its central rule: **no amp**, because the rig's power stage is a fixed 0.18 distortion no preset can turn down, and an acoustic bass with grit on it is a bass guitar.\n\nThree numbers separate it from the Jazz Bass it came from, and each is a physical difference between the two instruments.\n\n**The string is thicker and the finger pulls it sideways.** Attack goes from 6 ms to 12 — still fast (softness lives in the spectrum, not the onset time, which is the second failure `jones-jazz` documents), but a gut or steel orchestral string has real mass and does not start instantly. Past about 20 ms it becomes a swell and stops being a pluck.\n\n**The box rings much longer than the string.** Release runs 1.3 s against the Jazz Bass's 0.35, because there is a cubic metre of air behind the bridge and it keeps going after the string has stopped. That long overlap between consecutive notes is most of what reads as \"upright\" on a walking line — and it is also why this voice is wrong for anything fast: at 150 BPM the notes smear into one another and the groove disappears.\n\n**The filter collapses further down.** 90 Hz base, 3.6 octaves, shut to a 0.2 sustain in 120 ms — landing near 180 Hz, below where `jones-jazz` settles. A wound electric string keeps a mid edge; a plucked orchestral string is fundamental plus a knock and almost nothing else. `fatsawtooth6` rather than the Jazz Bass's `fatsawtooth8` for the same reason: two fewer partials at the source, because the top of this instrument was never there to filter out.\n\n**Body is the instrument's actual dimensions.** 60 Hz is the air mode of a body that size — an octave below a guitar's, which is the whole point of the thing being enormous — 120 Hz is the top plate, the −3 dB at 250 Hz is the hollow every bass has between its modes, and 700 Hz is the woody knock you hear from across a room.\n\n**Breath at 0.06 through a 1.6 kHz band is the thwack**: the string slapping back against the fingerboard, and the finger dragging off it. It is inharmonic, it is loud, and it is the single most identifiable thing about a pizzicato bass — take it away and what is left could be any dark synth bass. Vibrato is tiny (0.012 at 3.8 Hz, drift 0.6): a plucked bass is not vibratoed, but a long floppy string does not hold a perfectly stationary pitch either, and stationary pitch is the loudest synth tell there is.",
+  "synth": {
+    "kind": "mono",
+    "oscillator": {
+      "type": "fatsawtooth6",
+      "count": 2,
+      "spread": 4
+    },
+    "envelope": {
+      "attack": 0.012,
+      "decay": 0.35,
+      "sustain": 0.35,
+      "release": 1.3
+    },
+    "filter": {
+      "type": "lowpass",
+      "rolloff": -12,
+      "Q": 0.7
+    },
+    "filterEnvelope": {
+      "attack": 0.008,
+      "decay": 0.12,
+      "sustain": 0.2,
+      "release": 0.9,
+      "baseFrequency": 90,
+      "octaves": 3.6,
+      "exponent": 1.5
+    },
+    "maxPolyphony": 4
+  },
+  "vibrato": {
+    "rate": 3.8,
+    "depth": 0.012,
+    "drift": 0.6
+  },
+  "body": [
+    {
+      "frequency": 60,
+      "q": 3,
+      "gain": 5
+    },
+    {
+      "frequency": 120,
+      "q": 2.5,
+      "gain": 4
+    },
+    {
+      "frequency": 250,
+      "q": 2,
+      "gain": -3
+    },
+    {
+      "frequency": 700,
+      "q": 1.2,
+      "gain": 3
+    }
+  ],
+  "breath": {
+    "level": 0.06,
+    "hz": 1600,
+    "q": 0.9,
+    "attack": 0.005
+  },
+  "approvedAt": "2026-08-14"
+}

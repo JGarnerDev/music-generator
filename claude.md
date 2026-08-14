@@ -53,12 +53,36 @@ Claude-specific working rules that don't belong in the human-facing README.
    proactive first; refine after.
 
 **Sounds are chosen, not invented per song.** Instrument tone lives in
-`voices/<instrument>/<slug>.json`. Read [`voices/archive.md`](./voices/archive.md)
-when picking, and name one on a track with `"voice": "<slug>"`; omitting it gets
-the instrument's default. If the user wants a *different sound* rather than
-different notes, that is the voice loop — fork, render the probe, audition at
-`/voices.html`, approve — and it is [`docs/voices.md`](./docs/voices.md), not an
-edit to `src/app/instruments.ts`. Approved voices are forked, never edited.
+`voices/<instrument>/<slug>.json`, and a track names one with
+`"voice": "<slug>"`; omitting it gets the instrument's default.
+
+Search, don't browse — the same scene words you parsed in step 1:
+
+```bash
+npm run voice:find -- --query "dusty spaghetti western standoff"
+npm run voice:find -- --query "trumpet" --instrument lead
+npm run voice:find -- --tags spaghetti-western     # every voice on that shelf
+```
+
+Each hit prints its id, tags and one line on when to pick it. Terms are
+alternatives and more matches ranks higher, so a scene sentence works better
+than a single keyword. Read [`voices/archive.md`](./voices/archive.md) when you
+want the whole shelf at once — it is the same index, unfiltered, plus the fork
+trees.
+
+**Never read the voice JSONs to choose, and never open several to compare.** A
+voice's `notes` field is the fork brief — a page of prose about why one number
+is what it is — and reading a shortlist of them costs more context than the
+piece costs to write. That is what `summary` and this search exist to prevent.
+
+Forking is the one time you want the prose:
+`npm run voice:find -- --brief <instrument>/<slug>` prints the fork chain and
+the notes without the synth parameters around them. If the user wants a
+*different sound* rather than different notes, that is the voice loop — fork,
+render the probe, audition at `/voices.html`, approve — and it is
+[`docs/voices.md`](./docs/voices.md), not an edit to `src/app/instruments.ts`.
+Approved voices are forked, never edited, and an approval needs a `--summary`
+so the new voice gets an archive row.
 
 **If it's for a game** (anything that plays under a scene on repeat), it needs a
 loop, not a song: write a `plans/<name>.json` and

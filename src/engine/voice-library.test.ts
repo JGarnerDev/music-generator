@@ -5,8 +5,10 @@ import {
   clearDefaults,
   countsByInstrument,
   draftPreset,
+  findVoices,
   forkPreset,
   instrumentFromPath,
+  lineageOf,
   renderVoiceArchive,
   resolveVoice,
   searchVoices,
@@ -172,6 +174,17 @@ describe("approvePreset / draftPreset / forkPreset / clearDefaults", () => {
     expect(approvePreset(preset(), { today: "2026-08-14", makeDefault: true }).default).toBe(true);
   });
 
+  it("keeps the parent's notes on a fork but never its summary", () => {
+    const forked = forkPreset(
+      preset({ summary: "The settled one.", notes: "Why the detune is 22 cents." }),
+      { slug: "child" },
+    );
+    // The essay is the brief the fork is written against; the summary is the
+    // archive row, and the parent's row is the wrong one for the child.
+    expect(forked.notes).toBe("Why the detune is 22 cents.");
+    expect(forked.summary).toBeUndefined();
+  });
+
   it("drops the approval date when a voice goes back to draft", () => {
     const approved = approvePreset(preset(), { today: "2026-08-14" });
     const back = draftPreset(approved);
@@ -216,6 +229,131 @@ describe("approvePreset / draftPreset / forkPreset / clearDefaults", () => {
   });
 });
 
+describe("findVoices", () => {
+  const entries = buildVoiceLibrary(
+    files({
+      "voices/lead/trumpet.json": preset({
+        instrument: "lead",
+        slug: "trumpet",
+        status: "approved",
+        tags: ["trumpet", "spaghetti-western", "brass"],
+        summary: "Lone mariachi trumpet over a western cue.",
+      }),
+      "voices/pad/choir.json": preset({
+        instrument: "pad",
+        slug: "choir",
+        status: "approved",
+        tags: ["choir", "spaghetti-western", "section"],
+        summary: "Wordless men's chorus.",
+      }),
+      "voices/bass/saw.json": preset({
+        slug: "saw",
+        status: "approved",
+        tags: ["neutral"],
+        summary: "Plain sawtooth that sits under a western or anything else.",
+      }),
+      "voices/bass/sketch.json": preset({ slug: "sketch", tags: ["spaghetti-western"] }),
+    }),
+  );
+  const ids = (matches: { entry: { id: string } }[]) => matches.map((m) => m.entry.id);
+
+  it("leaves drafts out unless asked — the archive lists what was signed off", () => {
+    expect(ids(findVoices(entries))).not.toContain("bass/sketch");
+    expect(ids(findVoices(entries, { includeDrafts: true }))).toContain("bass/sketch");
+  });
+
+  it("filters to one instrument", () => {
+    expect(ids(findVoices(entries, { instrument: "pad" }))).toEqual(["pad/choir"]);
+  });
+
+  it("requires every tag asked for, not any of them", () => {
+    expect(ids(findVoices(entries, { tags: ["spaghetti-western"] }))).toEqual([
+      "pad/choir",
+      "lead/trumpet",
+    ]);
+    expect(ids(findVoices(entries, { tags: ["spaghetti-western", "brass"] }))).toEqual([
+      "lead/trumpet",
+    ]);
+  });
+
+  it("treats query terms as alternatives and ranks by how many hit", () => {
+    // The trumpet matches both terms by tag; the choir only the first.
+    const ranked = findVoices(entries, { query: "spaghetti-western trumpet" });
+    expect(ids(ranked)).toEqual(["lead/trumpet", "pad/choir"]);
+    expect(ranked[0]!.score).toBeGreaterThan(ranked[1]!.score);
+  });
+
+  it("scores a tag hit above a mention in the prose", () => {
+    // A scene is typed as loose words, so a bare "western" has to reach the
+    // `spaghetti-western` tag — but the bass, which only says "western" in its
+    // summary, must not outrank the voices actually filed under it.
+    const ranked = findVoices(entries, { query: "western" });
+    expect(ids(ranked)).toEqual(["pad/choir", "lead/trumpet", "bass/saw"]);
+    expect(ranked.at(-1)).toEqual({ entry: expect.objectContaining({ id: "bass/saw" }), score: 1 });
+  });
+
+  it("drops voices no query term touches", () => {
+    expect(ids(findVoices(entries, { query: "accordion polka" }))).toEqual([]);
+  });
+
+  it("ignores one-letter noise so a stray word cannot flatten the ranking", () => {
+    expect(ids(findVoices(entries, { query: "a trumpet" }))).toEqual(["lead/trumpet"]);
+  });
+
+  it("applies tags and query together, and a query always narrows too", () => {
+    // Not "the western shelf, choirs first" — the trumpet touches no term, so
+    // it is out. A query means the same thing whether or not tags came with it.
+    expect(ids(findVoices(entries, { tags: ["spaghetti-western"], query: "choir" }))).toEqual([
+      "pad/choir",
+    ]);
+  });
+});
+
+describe("lineageOf", () => {
+  const entries = buildVoiceLibrary(
+    files({
+      "voices/pad/halo.json": preset({ instrument: "pad", slug: "halo" }),
+      "voices/pad/choir.json": preset({ instrument: "pad", slug: "choir", forkedFrom: "pad/halo" }),
+      "voices/pad/bed.json": preset({ instrument: "pad", slug: "bed", forkedFrom: "pad/choir" }),
+      "voices/pad/orphan.json": preset({
+        instrument: "pad",
+        slug: "orphan",
+        forkedFrom: "pad/deleted",
+      }),
+    }),
+  );
+
+  it("walks up to the root, root first", () => {
+    expect(lineageOf(entries, "pad/bed").map((e) => e.id)).toEqual([
+      "pad/halo",
+      "pad/choir",
+      "pad/bed",
+    ]);
+  });
+
+  it("is just the voice when nothing was forked", () => {
+    expect(lineageOf(entries, "pad/halo").map((e) => e.id)).toEqual(["pad/halo"]);
+  });
+
+  it("stops at a parent that is no longer in the library", () => {
+    expect(lineageOf(entries, "pad/orphan").map((e) => e.id)).toEqual(["pad/orphan"]);
+  });
+
+  it("is empty for a voice that does not exist", () => {
+    expect(lineageOf(entries, "pad/nope")).toEqual([]);
+  });
+
+  it("cannot loop on a cycle in forkedFrom", () => {
+    const cyclic = buildVoiceLibrary(
+      files({
+        "voices/pad/a.json": preset({ instrument: "pad", slug: "a", forkedFrom: "pad/b" }),
+        "voices/pad/b.json": preset({ instrument: "pad", slug: "b", forkedFrom: "pad/a" }),
+      }),
+    );
+    expect(lineageOf(cyclic, "pad/a").map((e) => e.id)).toEqual(["pad/b", "pad/a"]);
+  });
+});
+
 describe("renderVoiceArchive", () => {
   const entries = buildVoiceLibrary(
     files({
@@ -224,7 +362,8 @@ describe("renderVoiceArchive", () => {
         default: true,
         approvedAt: "2026-08-14",
         tags: ["warm"],
-        notes: "Motown thumb: fat low end that still moves.",
+        summary: "Motown thumb: fat low end that still moves.",
+        notes: "Long essay about why the filter opens at 180 Hz and what breaks either side of it.",
       }),
       "voices/bass/experiment.json": preset({ slug: "experiment" }),
       "voices/lead/molten.json": preset({
@@ -233,27 +372,91 @@ describe("renderVoiceArchive", () => {
         status: "approved",
         approvedAt: "2026-08-14",
         forkedFrom: "lead/brown-sound",
+        summary: "Sustain that never quits.",
       }),
     }),
   );
+  const md = renderVoiceArchive(entries, { updated: "2026-08-14" });
 
   it("opens with frontmatter, like every other md in the repo", () => {
-    expect(renderVoiceArchive(entries, { updated: "2026-08-14" }).startsWith("---\n")).toBe(true);
+    expect(md.startsWith("---\n")).toBe(true);
   });
 
   it("lists approved voices only", () => {
-    const md = renderVoiceArchive(entries, { updated: "2026-08-14" });
     expect(md).toContain("bass/round-thumb");
     expect(md).toContain("lead/molten");
     expect(md).not.toContain("experiment");
   });
 
-  it("carries the notes, the default flag and the lineage", () => {
-    const md = renderVoiceArchive(entries, { updated: "2026-08-14" });
+  it("carries the summary, the default flag and a link to the file", () => {
     expect(md).toContain("Motown thumb");
     expect(md).toContain("**default**");
-    expect(md).toContain("forked from `lead/brown-sound`");
     expect(md).toContain("(./bass/round-thumb.json)");
+  });
+
+  it("leaves the design notes in the JSON — they are what made this file huge", () => {
+    expect(md).not.toContain("Long essay");
+  });
+
+  it("gives each instrument one table rather than a section per voice", () => {
+    expect(md).toContain("| voice | tags | when to pick it |");
+    expect(md).not.toContain("### ");
+  });
+
+  it("salvages a first sentence for a voice approved before summaries existed", () => {
+    const legacy = buildVoiceLibrary(
+      files({
+        "voices/bass/old.json": preset({
+          slug: "old",
+          status: "approved",
+          notes: "The house bass since the first render. Everything after this sentence is detail nobody choosing a sound needs to read.",
+        }),
+      }),
+    );
+    const out = renderVoiceArchive(legacy, { updated: "2026-08-14" });
+    expect(out).toContain("The house bass since the first render.");
+    expect(out).not.toContain("nobody choosing a sound");
+  });
+
+  it("draws the fork trees once instead of restating lineage per entry", () => {
+    const family = buildVoiceLibrary(
+      files({
+        "voices/pad/halo.json": preset({ instrument: "pad", slug: "halo", status: "approved" }),
+        "voices/pad/choir.json": preset({
+          instrument: "pad",
+          slug: "choir",
+          status: "approved",
+          forkedFrom: "pad/halo",
+        }),
+        "voices/pad/bed.json": preset({
+          instrument: "pad",
+          slug: "bed",
+          status: "approved",
+          forkedFrom: "pad/choir",
+        }),
+      }),
+    );
+    const out = renderVoiceArchive(family, { updated: "2026-08-14" });
+    expect(out).toContain("## Lineage");
+    expect(out).toContain("pad/halo\n  pad/choir\n    pad/bed");
+  });
+
+  it("skips the lineage section when nothing has been forked", () => {
+    // `lead/molten` names a parent that was never approved, so it is not a tree.
+    expect(md).not.toContain("## Lineage");
+  });
+
+  it("escapes a pipe so one summary cannot eat the table", () => {
+    const piped = buildVoiceLibrary(
+      files({
+        "voices/bass/pipe.json": preset({
+          slug: "pipe",
+          status: "approved",
+          summary: "Fat | round | loud.",
+        }),
+      }),
+    );
+    expect(renderVoiceArchive(piped, { updated: "2026-08-14" })).toContain("Fat \\| round \\| loud.");
   });
 
   it("says so when nothing is approved yet", () => {

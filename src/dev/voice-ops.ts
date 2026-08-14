@@ -47,7 +47,7 @@ export interface VoiceOpOptions {
  */
 export function approve(
   id: string,
-  opts: VoiceOpOptions & { makeDefault?: boolean; notes?: string } = {},
+  opts: VoiceOpOptions & { makeDefault?: boolean; notes?: string; summary?: string } = {},
 ): VoiceOpResult {
   const root = opts.root ?? voicesRoot();
   const today = opts.today ?? new Date();
@@ -56,7 +56,11 @@ export function approve(
     today: today.toISOString().slice(0, 10),
     makeDefault: opts.makeDefault,
     notes: opts.notes,
+    summary: opts.summary,
   });
+  // A summary too long to be a table cell is the one thing that would grow the
+  // archive back, so it fails here rather than being silently written.
+  assertValid(preset);
 
   const demoted: string[] = [];
   if (opts.makeDefault) {
@@ -92,6 +96,7 @@ export interface ForkOptions extends VoiceOpOptions {
   slug: string;
   title?: string;
   notes?: string;
+  summary?: string;
 }
 
 /**
@@ -109,6 +114,8 @@ export function fork(opts: ForkOptions): VoiceOpResult {
 
   const preset = forkPreset(source.preset, { slug: opts.slug, title: opts.title });
   if (opts.notes) preset.notes = opts.notes;
+  if (opts.summary) preset.summary = opts.summary;
+  assertValid(preset);
 
   const id = `${source.instrument}/${opts.slug}`;
   const path = voiceFile(id, root);

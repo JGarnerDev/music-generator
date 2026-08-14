@@ -1,0 +1,48 @@
+{
+  "instrument": "bass",
+  "slug": "jones-jazz",
+  "title": "Jones jazz",
+  "status": "approved",
+  "tags": [
+    "bass",
+    "fingerstyle",
+    "smooth",
+    "round",
+    "jazz-bass",
+    "60s",
+    "rock"
+  ],
+  "summary": "Clean fingered Jazz Bass on flatwounds — smooth, round, no grit. The 60s/70s rock low end when fuzz would be the wrong record.",
+  "notes": "John Paul Jones on the first two Led Zeppelin records — a '62 Jazz Bass, flatwounds, fingers, and a clean signal. Three passes got here and each failure is worth keeping. **No amp**: the rig's power stage is a fixed 0.18 distortion no preset can turn down, so any voice carrying an `amp` block is gritty by construction and a smooth bass simply cannot have one. **A finger is fast, not slow**: an 18 ms attack was the second failure — it reads as a swell, and the softness of flesh is in the spectrum, never in the onset time. The attack is 6 ms and the character comes from what happens next. **A flat sustain is an organ**: 0.8 held level was the third failure. A plucked string spends its energy — so the amplitude envelope is decay-dominant (0.22 to a 0.55 sustain), and that peak-then-settle *is* the thump. Nothing downstream can add a transient that the envelope did not make.\n\nThe filter envelope is where the finger lives. It opens to about 1.7 kHz and shuts in 90 ms to a 0.22 sustain — roughly 240 Hz — so the note is bright for one blink and then almost pure fundamental with the first few partials over it. That short, deep collapse is a wound string being released by skin rather than plucked by plastic: a pick keeps its brightness for far longer, and a filter that stays open is the synth. Q is 0.6, since audible resonance is the loudest tell that there is a filter in the chain at all.\n\nThe oscillator is band-limited on purpose — `fatsawtooth8`, an ideal saw truncated to eight partials. A mathematical sawtooth has infinite harmonics and that fizzy top octave is what the ear files under \"synth\" the moment a lowpass sweeps across it; a real string's upper partials die away almost immediately, so cutting them at the source is truer than filtering them afterwards. Six was too few — it tops out at 330 Hz on a low A and leaves the pluck nothing to open into — and ten was more top than a flatwound has. Two of them, 3 cents apart: enough beating to read as a string against its own body, not enough to read as a chorus pedal or as bad intonation down at E1.\n\nThe weight is tuned to the intro of \"Dazed and Confused\" — a bass alone, chromatic, each note allowed to be enormous. Weight there is not level, it is *duration and darkness*: the filter collapses to about 210 Hz (120 Hz base, 3.4 octaves, 0.24 sustain) so what rings is fundamental and the first partial or two, and the amplitude release runs 1.1 s so the note is still there when the next one arrives. The two overlap the way a bass in a room does, which is most of what reads as size. Q is up at 0.8 rather than flat: a small resonant lift sitting right where the filter lands puts a bump on the fundamental region instead of on a swept frequency you can hear moving. The thump survives all of this because the envelope is still decay-dominant (0.3 to 0.62) — the note peaks and falls before it settles into the long tail, and dropping that shape in exchange for size is exactly how a big bass turns into a drone.",
+  "synth": {
+    "kind": "mono",
+    "oscillator": {
+      "type": "fatsawtooth8",
+      "count": 2,
+      "spread": 3
+    },
+    "envelope": {
+      "attack": 0.008,
+      "decay": 0.3,
+      "sustain": 0.62,
+      "release": 1.1
+    },
+    "filter": {
+      "type": "lowpass",
+      "rolloff": -24,
+      "Q": 0.8
+    },
+    "filterEnvelope": {
+      "attack": 0.004,
+      "decay": 0.11,
+      "sustain": 0.24,
+      "release": 0.6,
+      "baseFrequency": 120,
+      "octaves": 3.4,
+      "exponent": 1.5
+    },
+    "maxPolyphony": 4
+  },
+  "forkedFrom": "bass/machine-fuzz",
+  "approvedAt": "2026-08-14"
+}

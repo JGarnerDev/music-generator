@@ -1,0 +1,80 @@
+{
+  "instrument": "lead",
+  "slug": "deguello-trumpet",
+  "title": "Degüello trumpet",
+  "status": "approved",
+  "forkedFrom": "lead/violin-arco",
+  "tags": [
+    "trumpet",
+    "brass",
+    "mariachi",
+    "spaghetti-western",
+    "solo",
+    "blare"
+  ],
+  "summary": "Lone mariachi trumpet that gets brighter as it gets louder. The funeral-march top line over a western cue.",
+  "notes": "The lone mariachi trumpet — the degüello, the tune that plays while the coffin is being dug. A `lead` by register and by job. **No amp**: the fixed 0.18 power stage is grit, and a trumpet's edge comes from air pressure, which is a different thing that lands in a different band.\n\n**Brass gets brighter when it gets louder, and that is the entire instrument.** The filter envelope opens 4.2 octaves off a 400 Hz base — the widest sweep in the archive by a distance — over 60 ms, and holds at 0.8. Every other voice here either collapses (a pluck) or opens modestly (the bow); a trumpet pushed hard turns almost into a sawtooth, and a preset that stays polite at the top is a flugelhorn. The exponent is 1.5 so the sweep spends its time at the bright end rather than crossing it.\n\n**The attack is lips, not a reed and not a tongue.** 45 ms: slower than a bow catching a string, far slower than a pick, because a column of air has to be set moving before there is a note at all. Under about 25 ms it reads as a synth brass patch, which is exactly the cliché this voice exists to avoid. Sustain is 0.9 and the release is 0.25 — a brass note stops when the player stops, and the tail is the room.\n\n**Body is the bell, and the bell is four fixed formants.** 380 Hz is the tube, 1200 and 2200 are where brass lives — the *cuivré* rasp people hear as \"blaring\" is energy in those two bands, not distortion — and a −5 dB shelf-ish notch at 4.8 kHz is the bell's own roll-off. They do not move with the note, so a phrase climbing to a high held note walks up through them and gets more strident on the way, which is what a real player fighting the horn sounds like.\n\n**Vibrato is fast and wide** — 6 Hz at 0.035 with 0.4 drift. A mariachi trumpet's vibrato is a stylistic signature rather than an ornament: it is on nearly every note, it is faster than a string player's, and it is not the delicate 4.5 Hz of a concert soloist. Two oscillators at 4 cents, because this is one horn — anything wider is a section, and a section is a different piece of music.\n\n`breath` sits at 0.045 through a wide 3.2 kHz band: the hiss of air escaping around the mouthpiece, present the whole time the note is and proportional to how hard it is blown. Polyphony 3, for phrase overlap only.",
+  "synth": {
+    "kind": "mono",
+    "oscillator": {
+      "type": "fatsawtooth",
+      "count": 2,
+      "spread": 4
+    },
+    "envelope": {
+      "attack": 0.045,
+      "decay": 0.1,
+      "sustain": 0.9,
+      "release": 0.25
+    },
+    "filter": {
+      "type": "lowpass",
+      "rolloff": -12,
+      "Q": 0.7
+    },
+    "filterEnvelope": {
+      "attack": 0.06,
+      "decay": 0.2,
+      "sustain": 0.8,
+      "release": 0.3,
+      "baseFrequency": 400,
+      "octaves": 4.2,
+      "exponent": 1.5
+    },
+    "maxPolyphony": 3
+  },
+  "vibrato": {
+    "rate": 6,
+    "depth": 0.035,
+    "drift": 0.4
+  },
+  "body": [
+    {
+      "frequency": 380,
+      "q": 3,
+      "gain": 3
+    },
+    {
+      "frequency": 1200,
+      "q": 1.2,
+      "gain": 6
+    },
+    {
+      "frequency": 2200,
+      "q": 1.5,
+      "gain": 5
+    },
+    {
+      "frequency": 4800,
+      "q": 1,
+      "gain": -5
+    }
+  ],
+  "breath": {
+    "level": 0.045,
+    "hz": 3200,
+    "q": 1,
+    "attack": 0.02
+  },
+  "approvedAt": "2026-08-14"
+}

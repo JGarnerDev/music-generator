@@ -19,6 +19,7 @@
     "composition:validate": "tsx scripts/validate-composition.ts",
     "compositions:organize": "tsx scripts/organize-compositions.ts",
     "voice:new": "tsx scripts/new-voice.ts",
+    "voice:find": "tsx scripts/find-voice.ts",
     "voice:render": "tsx scripts/render-voices.ts",
     "voice:approve": "tsx scripts/approve-voice.ts"
   },

@@ -26,7 +26,8 @@ program
   .option("--from <instrument/slug>", "voice to copy, e.g. lead/brown-lead")
   .option("--instrument <name>", "fork this instrument's default (when --from is omitted)")
   .option("--title <title>", "human title; defaults to the source's, marked as a fork")
-  .option("--notes <text>", "what this sound is for — the archive is made of these")
+  .option("--summary <text>", "one line for the archive row — when to pick this over the parent")
+  .option("--notes <text>", "why it is built this way; the fork brief, not the archive row")
   .parse(process.argv);
 
 const opts = program.opts<{
@@ -35,6 +36,7 @@ const opts = program.opts<{
   instrument?: string;
   title?: string;
   notes?: string;
+  summary?: string;
 }>();
 
 if (!opts.from && !opts.instrument) {

@@ -9,8 +9,9 @@
 export const TRASH_ENDPOINT = "/__library/trash";
 
 /**
- * POST `{ id, makeDefault?, notes? }` → approves that voice and rewrites
- * `voices/archive.md`. `{ id, draft: true }` sends it back to the workbench.
+ * POST `{ id, makeDefault?, summary?, notes? }` → approves that voice and
+ * rewrites `voices/archive.md`. `{ id, draft: true }` sends it back to the
+ * workbench.
  */
 export const VOICE_APPROVE_ENDPOINT = "/__voices/approve";
 

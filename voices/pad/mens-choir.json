@@ -1,0 +1,81 @@
+{
+  "instrument": "pad",
+  "slug": "mens-choir",
+  "title": "Men's choir",
+  "status": "approved",
+  "forkedFrom": "pad/sine-halo",
+  "tags": [
+    "choir",
+    "voices",
+    "wordless",
+    "spaghetti-western",
+    "section",
+    "ah"
+  ],
+  "summary": "Wordless men's chorus on one open 'ah' — wide detune, collective drift. Chants under a western; holds harmony, never the tune.",
+  "notes": "The wordless men's chorus that chants under a spaghetti western — I Cantori Moderni, a room of men on one open vowel. It is a `pad` rather than a `lead` because that is its job: it holds the harmony and never takes the tune, and it is filed with the thing it replaces.\n\nIt forks `pad/sine-halo` and keeps only the idea. A pure sine cannot be a choir at any envelope setting, because a voice is a rich source shaped by fixed formants and a sine has nothing for a formant to shape. So the kind changes to `mono` — the filter envelope is needed for the section to *open* as it swells — and the oscillator becomes four sawtooths.\n\n**This is the one voice where a wide detune is correct.** 22 cents across four oscillators would be a tuning problem on a bass and a chorus pedal on a lead; `lead/violin-arco` explicitly warns that past 12 cents a soloist becomes a section. Here a section is the instrument. Twelve men singing the same note are twelve slightly different pitches, and that spread *is* the choral sound — narrow it and you get one large man.\n\n**Body is the male \"ah\".** F1 at 650 Hz and F2 at 1080 Hz are that vowel; 2600 Hz is the singer's formant, weaker and lower than a soprano's; 180 Hz is chest, which men have and a soprano voice does not. Fixed, as always, so the chorus keeps singing the same vowel as the chord moves under it.\n\n**Vibrato is small and drift is enormous** — 0.02 depth, 0.7 drift, at a slow 4.6 Hz. This is the opposite setting from every solo voice in the archive, and the reason is arithmetic: a dozen individual vibratos at different rates and phases average out to nearly no periodic modulation at all. What survives is slow, collective, unsteady wandering. A section with a soloist's vibrato is a synth patch with an LFO on it, audibly.\n\nThe envelope keeps the pad's manners — 0.35 s attack, 1.6 s release — but far shorter than the halo's 0.8/3.0, because a choir breathes and phrases. Three seconds of release is a synth pad's tail, and it smears a chant into a drone.\n\n`breath` is 0.05 through a wide 3.8 kHz band with a slow 120 ms follower: the collective air of a room of people, which swells with the section rather than arriving as a consonant. Polyphony 8 — enough for four-part writing with overlap at the phrase seams.",
+  "synth": {
+    "kind": "mono",
+    "oscillator": {
+      "type": "fatsawtooth",
+      "count": 4,
+      "spread": 22
+    },
+    "envelope": {
+      "attack": 0.35,
+      "decay": 0.3,
+      "sustain": 0.85,
+      "release": 1.6
+    },
+    "filter": {
+      "type": "lowpass",
+      "rolloff": -12,
+      "Q": 0.4
+    },
+    "filterEnvelope": {
+      "attack": 0.4,
+      "decay": 0.5,
+      "sustain": 0.7,
+      "release": 1.2,
+      "baseFrequency": 260,
+      "octaves": 3.2,
+      "exponent": 1.5
+    },
+    "maxPolyphony": 8
+  },
+  "vibrato": {
+    "rate": 4.6,
+    "depth": 0.02,
+    "drift": 0.7
+  },
+  "body": [
+    {
+      "frequency": 180,
+      "q": 2,
+      "gain": 3
+    },
+    {
+      "frequency": 650,
+      "q": 3.5,
+      "gain": 6
+    },
+    {
+      "frequency": 1080,
+      "q": 3,
+      "gain": 4
+    },
+    {
+      "frequency": 2600,
+      "q": 2,
+      "gain": 3
+    }
+  ],
+  "breath": {
+    "level": 0.05,
+    "hz": 3800,
+    "q": 0.6,
+    "attack": 0.12,
+    "release": 0.4
+  },
+  "approvedAt": "2026-08-14"
+}

@@ -1,0 +1,81 @@
+{
+  "instrument": "pluck",
+  "slug": "sitar-jawari",
+  "title": "Sitar jawari",
+  "status": "approved",
+  "forkedFrom": "pluck/brown-rhythm",
+  "tags": [
+    "sitar",
+    "plucked",
+    "buzz",
+    "drone",
+    "raga",
+    "indian"
+  ],
+  "probe": "lead",
+  "summary": "A plucked string whose brightness never collapses — jawari buzz, no amp. Drone and raga colour, unlike any guitar here.",
+  "notes": "A sitar, which on this rig is a plucked string whose *brightness does not collapse* — the one thing that separates it from every guitar voice here. **No amp**: the rig's power stage is a fixed 0.18 distortion, and a sitar's rasp is a bridge, not a clipped signal; running it through the guitar chain smears the harmonics that are the instrument. So the buzz has to come from the oscillator and the filter, which is where it comes from in a real one.\n\nThe jawari is the wide, gently curved bridge the string grazes as it vibrates, and it feeds energy back into the upper partials for the whole length of the note. That is the filter envelope: it opens to about 5.5 kHz and only falls back to 0.58 (roughly 2.7 kHz) over half a second, where the brown rhythm guitar shuts to 0.32 in 160 ms. A plucked voice whose filter stays open is normally the synth tell — here it is the correct one, and shutting it is what turns a sitar into a bright acoustic guitar. Q sits at 2.0 for the same reason: audible resonance is usually the tell that a filter is in the chain, but the jawari really is a formant, and a flat filter reads as a zither.\n\nThe oscillator is a plain `fatsawtooth` — all the harmonics, deliberately not the band-limited `fatsawtooth8` a wound bass string wants. The fizzy top octave the bass cut is the sitar's entire top end. Three of them at 12 cents, which is the shimmer of the sympathetic strings answering the played one rather than a detuned chorus; past about 20 it stops being sympathy and starts being out of tune.\n\nThe amplitude envelope is a mizrab — a wire plectrum, so the attack is 1.5 ms, harder and faster than any finger. It is decay-dominant (0.9 to a 0.22 sustain) because a plucked string spends its energy, and then the release runs 1.8 s: the tarab strings keep ringing long after the played note is gone, and that overlap between notes is most of what reads as a sitar rather than as a bright pluck. Polyphony is 8 — enough for a phrase to ring over itself, since the long release is the instrument.\n\nThe first pass stopped there and still read as a bright synth pluck, because the buzz alone is not the instrument. Three blocks carry the rest.\n\n**Body**: the tumba — the gourd — resonating at 190 Hz, a hollow at 820, and the two bands the jawari actually lives in, wide at 2.9 kHz and narrower at 5.2. These are fixed, so they do not follow the note: a phrase climbing through them brightens and dulls unevenly, which is what a hollow object does and what a filter tracking the note cannot do by construction.\n\n**Breath**: the mizrab. A wire plectrum striking a steel string makes a click that is not a pitch, so it is noise through a 3.8 kHz band, gated by an envelope follower with an 8 ms response — fast enough to be part of the attack rather than a swell behind it. It is the difference between a note that starts and a note that is struck.\n\n**Vibrato**: deliberately tiny (0.018) and slow. A sitar's expression is meend — a bend across a scale degree — not a violinist's oscillation, and a real vibrato here sounds like the wrong continent. What this depth buys is only that the pitch is not mathematically still, with `drift` at 0.6 so even that unsteadiness is unsteady.\n\nIt is auditioned on the `lead` étude rather than `pluck`'s own: a sitar plays lines and lets them ring, and judging it on palm-muted sixteenths would only ever say that a 1.8 s release turns a chug into porridge, which is true and beside the point.",
+  "synth": {
+    "kind": "mono",
+    "oscillator": {
+      "type": "fatsawtooth",
+      "count": 3,
+      "spread": 12
+    },
+    "envelope": {
+      "attack": 0.0015,
+      "decay": 0.9,
+      "sustain": 0.22,
+      "release": 1.8
+    },
+    "filter": {
+      "type": "lowpass",
+      "rolloff": -12,
+      "Q": 2
+    },
+    "filterEnvelope": {
+      "attack": 0.001,
+      "decay": 0.5,
+      "sustain": 0.58,
+      "release": 1.2,
+      "baseFrequency": 700,
+      "octaves": 3,
+      "exponent": 1
+    },
+    "maxPolyphony": 8
+  },
+  "vibrato": {
+    "rate": 4.6,
+    "depth": 0.018,
+    "drift": 0.6
+  },
+  "body": [
+    {
+      "frequency": 190,
+      "q": 4.5,
+      "gain": 4
+    },
+    {
+      "frequency": 820,
+      "q": 1.6,
+      "gain": -3.5
+    },
+    {
+      "frequency": 2900,
+      "q": 0.9,
+      "gain": 6
+    },
+    {
+      "frequency": 5200,
+      "q": 1.4,
+      "gain": 3
+    }
+  ],
+  "breath": {
+    "level": 0.055,
+    "hz": 3800,
+    "q": 1.2,
+    "attack": 0.008
+  },
+  "approvedAt": "2026-08-14"
+}

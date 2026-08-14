@@ -12,7 +12,7 @@
  */
 import type { InstrumentName, ValidationIssue } from "./composition";
 import { INSTRUMENT_NAMES } from "./composition";
-import { validateVoice, type VoicePreset } from "./voice";
+import { SUMMARY_MAX, validateVoice, type VoicePreset } from "./voice";
 
 /** Instruments, in tab order — the same order the composition spec lists them. */
 export const VOICE_INSTRUMENTS = INSTRUMENT_NAMES;
@@ -154,10 +154,95 @@ export function searchVoices(entries: readonly VoiceEntry[], query: string): Voi
   const q = query.trim().toLowerCase();
   if (q === "") return [...entries];
   return entries.filter((e) =>
-    [e.slug, e.preset.title ?? "", ...(e.preset.tags ?? [])].some((field) =>
+    [e.slug, e.preset.title ?? "", e.preset.summary ?? "", ...(e.preset.tags ?? [])].some((field) =>
       field.toLowerCase().includes(q),
     ),
   );
+}
+
+export interface VoiceQuery {
+  /** Only this instrument. */
+  instrument?: InstrumentName;
+  /** Voice must carry **every** one of these tags. Exact, case-insensitive. */
+  tags?: readonly string[];
+  /** Free text. Terms are alternatives, and more matches ranks higher. */
+  query?: string;
+  /** Drafts are excluded by default — the archive lists what was signed off. */
+  includeDrafts?: boolean;
+}
+
+/** A hit, with the score that ranked it. Zero-score voices are not returned. */
+export interface VoiceMatch {
+  entry: VoiceEntry;
+  score: number;
+}
+
+/**
+ * Search the library the way a piece is actually started: a scene in words, and
+ * maybe an instrument.
+ *
+ * `tags` narrows (all must be present) and `query` ranks (any may match), which
+ * is the split between the two things a caller means. "Western trumpet" should
+ * surface the trumpet *and* the other western voices — it is a scene, not a
+ * filter — whereas `--tags spaghetti-western` is a request for exactly that
+ * shelf.
+ *
+ * A tag or slug hit is worth double a hit in the prose: the tags are the
+ * vocabulary the library was filed under, so matching one is a stronger signal
+ * than a word happening to appear in a sentence.
+ */
+export function findVoices(entries: readonly VoiceEntry[], opts: VoiceQuery = {}): VoiceMatch[] {
+  const wanted = (opts.tags ?? []).map((t) => t.trim().toLowerCase()).filter(Boolean);
+  const terms = (opts.query ?? "")
+    .toLowerCase()
+    .split(/[^a-z0-9-]+/)
+    .filter((term) => term.length > 1);
+
+  const matches: VoiceMatch[] = [];
+  for (const entry of entries) {
+    if (entry.issues.length > 0) continue;
+    if (!opts.includeDrafts && entry.preset.status !== "approved") continue;
+    if (opts.instrument && entry.instrument !== opts.instrument) continue;
+
+    const tags = (entry.preset.tags ?? []).map((t) => t.toLowerCase());
+    if (!wanted.every((tag) => tags.includes(tag))) continue;
+
+    let score = 0;
+    for (const term of terms) {
+      const strong = entry.slug.toLowerCase().includes(term) || tags.some((t) => t.includes(term));
+      const weak = `${entry.preset.title ?? ""} ${entry.preset.summary ?? ""}`
+        .toLowerCase()
+        .includes(term);
+      score += strong ? 2 : weak ? 1 : 0;
+    }
+    if (terms.length > 0 && score === 0) continue;
+    matches.push({ entry, score });
+  }
+  // Ties keep library order — instrument, then slug — so the same query twice
+  // never reshuffles, and an unranked listing reads like the archive does.
+  return matches.sort((a, b) => b.score - a.score);
+}
+
+/**
+ * A voice and its ancestors, root first — the chain of forks it came out of.
+ *
+ * This is what you want before forking: a voice's `notes` are written against
+ * its parent ("it forks string-bed and changes one thing"), so the chain is the
+ * reading list. Stops at a parent that is missing from the library, and cannot
+ * loop on a cycle in `forkedFrom`.
+ */
+export function lineageOf(entries: readonly VoiceEntry[], id: string): VoiceEntry[] {
+  const byId = new Map(entries.map((e) => [e.id, e]));
+  const chain: VoiceEntry[] = [];
+  const seen = new Set<string>();
+  let current = byId.get(id);
+  while (current && !seen.has(current.id)) {
+    seen.add(current.id);
+    chain.unshift(current);
+    const parent = current.preset.forkedFrom;
+    current = parent ? byId.get(parent) : undefined;
+  }
+  return chain;
 }
 
 /**
@@ -169,7 +254,7 @@ export function searchVoices(entries: readonly VoiceEntry[], query: string): Voi
  */
 export function approvePreset(
   preset: VoicePreset,
-  opts: { today: string; makeDefault?: boolean; notes?: string },
+  opts: { today: string; makeDefault?: boolean; notes?: string; summary?: string },
 ): VoicePreset {
   return {
     ...preset,
@@ -177,6 +262,7 @@ export function approvePreset(
     approvedAt: opts.today,
     ...(opts.makeDefault ? { default: true } : {}),
     ...(opts.notes ? { notes: opts.notes } : {}),
+    ...(opts.summary ? { summary: opts.summary } : {}),
   };
 }
 
@@ -205,6 +291,11 @@ export function forkPreset(
     status: "draft",
     default: undefined,
     approvedAt: undefined,
+    // The parent's `notes` carry over as the starting draft of the essay — a
+    // fork is written against them. Its `summary` does not: that line says
+    // which voice to pick, and inheriting it would put the parent's row in the
+    // archive under the child's name, silently and wrongly.
+    summary: undefined,
     forkedFrom: `${preset.instrument}/${preset.slug}`,
   };
 }
@@ -227,12 +318,79 @@ export function clearDefaults(
 }
 
 /**
- * The archive: every approved voice, grouped by instrument, as markdown.
+ * One line for the archive table: the voice's `summary`, or a salvaged
+ * first sentence of its `notes` for a voice written before the split.
  *
- * This is the file to read when picking sounds for a new piece — it is the
- * record of what we listened to and kept, with the notes that say what each one
- * is for. Regenerated by `npm run voice:approve`, never hand-edited: the JSON
- * files are the source of truth, and a hand edit here would be a second one.
+ * The fallback is not a substitute — it truncates mid-thought and it is not
+ * capped by validation, which is the point: the approve script complains until
+ * a real summary exists.
+ */
+export function voiceSummary(preset: VoicePreset): string {
+  const summary = preset.summary?.trim();
+  if (summary) return summary;
+  const notes = preset.notes?.trim();
+  if (!notes) return "—";
+  const firstSentence = /^[\s\S]{0,200}?[.?!](?=\s|$)/.exec(notes)?.[0] ?? notes;
+  const salvaged = firstSentence.replace(/\s+/g, " ").trim();
+  return salvaged.length > SUMMARY_MAX ? `${salvaged.slice(0, SUMMARY_MAX - 1).trimEnd()}…` : salvaged;
+}
+
+/** Table cells are pipe-delimited, so a pipe in prose would end the column. */
+function cell(text: string): string {
+  return text.replace(/\|/g, "\\|");
+}
+
+/**
+ * The fork trees, as indented ids — who was forked from whom.
+ *
+ * A voice's design notes are written *against its parent* ("this forks
+ * string-bed and changes one thing"), so the lineage is what tells you which
+ * file to read before forking, and which sibling you are about to duplicate.
+ * Rendered once, globally, rather than restated in every entry: a fork may
+ * cross instruments, and a tree drawn per instrument would cut those edges.
+ */
+function renderLineage(approved: readonly VoiceEntry[]): string[] {
+  const ids = new Set(approved.map((e) => e.id));
+  const parentOf = (entry: VoiceEntry): string | null => {
+    const parent = entry.preset.forkedFrom;
+    return parent && ids.has(parent) ? parent : null;
+  };
+  const children = new Map<string, VoiceEntry[]>();
+  const roots: VoiceEntry[] = [];
+  for (const entry of approved) {
+    const parent = parentOf(entry);
+    if (parent === null) roots.push(entry);
+    else children.set(parent, [...(children.get(parent) ?? []), entry]);
+  }
+  // A root nobody forked is a whole tree of one, which the table already said.
+  const trees = roots.filter((root) => children.has(root.id));
+  if (trees.length === 0) return [];
+
+  const lines = ["## Lineage", "", "Who was forked from whom. Read the parent's `notes` before forking a child.", "", "```"];
+  const walk = (entry: VoiceEntry, depth: number): void => {
+    lines.push(`${"  ".repeat(depth)}${entry.id}`);
+    for (const child of children.get(entry.id) ?? []) walk(child, depth + 1);
+  };
+  for (const root of trees) walk(root, 0);
+  lines.push("```", "");
+  return lines;
+}
+
+/**
+ * The archive: every approved voice, one row each, grouped by instrument.
+ *
+ * This is the file to read when **picking** sounds for a new piece, and it is
+ * built to be cheap enough to read every time — a row is an id, its tags and
+ * one line saying when to reach for it.
+ *
+ * It deliberately does **not** carry each voice's design notes. Those are the
+ * brief for forking one specific voice; carrying forty of them made the index
+ * cost more to read than the piece cost to write, and it grew with every voice
+ * approved. The notes live in the JSON, one link away, where the fork loop
+ * already goes. See `VoicePreset.summary` / `.notes`.
+ *
+ * Regenerated by `npm run voice:approve`, never hand-edited: the JSON files are
+ * the source of truth, and a hand edit here would be a second one.
  */
 export function renderVoiceArchive(
   entries: readonly VoiceEntry[],
@@ -244,7 +402,7 @@ export function renderVoiceArchive(
   const lines = [
     "---",
     "title: Approved voices",
-    "purpose: The instrument sounds we listened to and kept — read this before choosing voices for a new piece.",
+    "purpose: Index of the instrument sounds we kept — read this before choosing voices for a new piece.",
     "audience: [claude, human]",
     `updated: ${opts.updated}`,
     "generated_by: npm run voice:approve",
@@ -252,9 +410,14 @@ export function renderVoiceArchive(
     "",
     "# Approved voices",
     "",
-    "Generated — edit the JSON under `voices/`, then re-approve. Each entry is a",
+    "Generated — edit the JSON under `voices/`, then re-approve. Each row is a",
     "sound that was auditioned in the voices bench and signed off, so it can be",
     "named by any track: `{ \"instrument\": \"lead\", \"voice\": \"<slug>\" }`.",
+    "",
+    "**This is the index, not the design record.** Why a voice is built the way it",
+    "is — which numbers matter, what happens either side of them — is the `notes`",
+    "field of its JSON. Read that for the *one* voice you are forking; read this",
+    "table to choose.",
     "",
   ];
 
@@ -267,26 +430,18 @@ export function renderVoiceArchive(
     const voices = approved.filter((e) => e.instrument === instrument);
     if (voices.length === 0) continue;
     lines.push(`## ${instrument}`, "", INSTRUMENT_BLURBS[instrument], "");
+    lines.push("| voice | tags | when to pick it |", "| --- | --- | --- |");
     for (const entry of voices) {
       const preset = entry.preset;
-      const flags = [
-        preset.default ? "**default**" : "",
-        preset.tags?.length ? preset.tags.map((t) => `\`${t}\``).join(" ") : "",
-      ].filter(Boolean);
-      lines.push(`### ${preset.title} — \`${entry.id}\``);
-      lines.push("");
-      if (flags.length > 0) lines.push(flags.join(" · "), "");
-      if (preset.notes) lines.push(preset.notes.trim(), "");
       // Link relative to the archive's own home (`voices/archive.md`) rather than
       // to `entry.path`, which carries Vite's `../../` prefix in the browser.
       const file = `${entry.instrument}/${entry.slug}.json`;
-      const provenance = [
-        `approved ${preset.approvedAt ?? "—"}`,
-        preset.forkedFrom ? `forked from \`${preset.forkedFrom}\`` : "",
-        `[\`voices/${file}\`](./${file})`,
-      ].filter(Boolean);
-      lines.push(provenance.join(" · "), "");
+      const name = `[\`${entry.id}\`](./${file})${preset.default ? " **default**" : ""}`;
+      lines.push(`| ${name} | ${cell((preset.tags ?? []).join(" "))} | ${cell(voiceSummary(preset))} |`);
     }
+    lines.push("");
   }
+
+  lines.push(...renderLineage(approved));
   return lines.join("\n");
 }

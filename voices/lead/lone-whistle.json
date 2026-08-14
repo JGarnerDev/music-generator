@@ -1,0 +1,55 @@
+{
+  "instrument": "lead",
+  "slug": "lone-whistle",
+  "title": "Lone whistle",
+  "status": "approved",
+  "forkedFrom": "lead/violin-arco",
+  "tags": [
+    "whistle",
+    "human",
+    "spaghetti-western",
+    "lonely",
+    "solo",
+    "sine"
+  ],
+  "summary": "A man whistling the tune — near-pure sine, no instrument at all. The loneliest top line in the palette.",
+  "notes": "A man whistling the tune — Alessandroni's job on those records, and the only instrument in the palette that is a person with no instrument at all. It is a `lead` because it carries the top line; it has **no amp** for the usual reason (the fixed 0.18 power stage makes every amped voice gritty, and a whistle is the purest sound here).\n\n**A whistle is a sine, and almost nothing else.** That is not a simplification: a mouth whistling is a Helmholtz resonator running at its own resonance, so the second harmonic is 25–30 dB down and everything above it is gone. So the oscillator is a plain sine and the preset is `synth` rather than `mono` — there is no filter envelope because there are no harmonics for a filter to move. Every failed attempt at this sound starts by adding some.\n\n**The breath is the instrument.** `breath` at 0.09 is the highest level in the archive, and its Q of 2.5 is the point: the doc's rule is that a wide band is air and a narrow band is a whistle, and this is literally that — the turbulent air jet across the lips is *itself* filtered by the same resonance that makes the pitch. Remove it and what is left is a test tone. The follower's 50 ms attack matches how a whistle speaks: the note arrives after the air does.\n\n**Vibrato is 0.03 at 5 Hz with heavy drift.** A whistler's pitch wanders more than a string player's because nothing is fretted or stopped — the pitch is a cavity being held by muscle, and it is never twice the same. This is the one voice where the drift matters more than the depth.\n\nThe envelope is slow at both ends by plucked standards — 90 ms to arrive, 0.85 sustain, 0.22 s release. A whistle cannot be struck and cannot ring: it exists exactly as long as the air is moving. Polyphony is 2, and that is generous — one mouth is one note, and the second voice is only there so a phrase can overlap itself at the seam rather than cut.\n\n`body` is two broad shapes rather than a box, because there is no box: a lift at 2.2 kHz where the whistle's formant sits regardless of the note, and a deep cut at 600 Hz. That cut is what stops it reading as a flute — a flute has a chest, a whistle has none at all.",
+  "synth": {
+    "kind": "synth",
+    "oscillator": {
+      "type": "sine"
+    },
+    "envelope": {
+      "attack": 0.09,
+      "decay": 0.15,
+      "sustain": 0.85,
+      "release": 0.22
+    },
+    "maxPolyphony": 2
+  },
+  "vibrato": {
+    "rate": 5,
+    "depth": 0.03,
+    "drift": 0.55
+  },
+  "body": [
+    {
+      "frequency": 600,
+      "q": 1,
+      "gain": -6
+    },
+    {
+      "frequency": 2200,
+      "q": 0.7,
+      "gain": 4
+    }
+  ],
+  "breath": {
+    "level": 0.09,
+    "hz": 2400,
+    "q": 2.5,
+    "attack": 0.05,
+    "release": 0.15
+  },
+  "approvedAt": "2026-08-14"
+}

@@ -1,0 +1,81 @@
+{
+  "instrument": "lead",
+  "slug": "harmonica-reed",
+  "title": "Harmonica reed",
+  "status": "approved",
+  "forkedFrom": "lead/violin-arco",
+  "tags": [
+    "harmonica",
+    "harp",
+    "reed",
+    "spaghetti-western",
+    "wail",
+    "dust"
+  ],
+  "summary": "Wailing cupped harmonica, rasp under 3 kHz. One held note over an empty station — the western that answers a man.",
+  "notes": "The harmonica that answers the man who plays it — the *Once Upon a Time in the West* sound, one wailing note held over an empty station. A `lead`. **No amp**: the rig's fixed 0.18 power stage is the wrong grit, in the wrong band. A harmonica's rasp is two reeds beating and a cupped hand, both of which are below 3 kHz, and a guitar cab bump sits on top of exactly the frequencies that make it sound like a harp instead of a kazoo.\n\n**A free reed is odd harmonics, so the oscillator is a square.** Manufacturing that spectrum downstream from a sawtooth is the long way round, the same argument the fuzz voices make. Two of them at 9 cents: a ten-hole harp has a blow plate and a draw plate, and they are never in perfect agreement — that slow beating is the instrument's signature and the reason a single clean oscillator reads as an accordion sample.\n\n**Breath is at 0.11, the loudest in the archive, and it belongs at 1.8 kHz.** A harmonica is mostly air: the player is breathing *through* the instrument, so the wind noise is not an onset artifact like a pick click, it is a continuous component sitting right in the middle of the band. Every attempt at this sound that puts the noise up at 4 kHz where a bow lives ends up as a synth lead with hiss on it.\n\n**The hand is the filter, and the hand moves.** Vibrato runs at 6.5 Hz with the archive's widest drift (0.55) at a real depth of 0.05, because harmonica vibrato is produced by opening and closing a cupped hand and by the throat — mechanically irregular in a way a string player's is not. On the real instrument some of that wobble is timbre rather than pitch; this rig has no amplitude LFO, so the pitch modulation carries it, which is an approximation and worth knowing about.\n\n`body` is the comb and the cup: 500 Hz and 1700 Hz lifted, a narrow 2.9 kHz honk, and −6 dB at 5 kHz. That last one matters — a harmonica has no sparkle at all, the reeds simply stop producing up there, and any air above 5 kHz reads as a melodica.\n\nThe envelope is 30 ms in (a reed has mass and takes air to start moving), 0.85 sustain (it holds as long as the breath does), and only 0.18 s out, because closing the hand or stopping the breath kills the reed almost instantly. Polyphony 4 — chords are possible on a harp and the low chugging ones are half of the style.",
+  "synth": {
+    "kind": "mono",
+    "oscillator": {
+      "type": "fatsquare",
+      "count": 2,
+      "spread": 9
+    },
+    "envelope": {
+      "attack": 0.03,
+      "decay": 0.12,
+      "sustain": 0.85,
+      "release": 0.18
+    },
+    "filter": {
+      "type": "lowpass",
+      "rolloff": -12,
+      "Q": 0.9
+    },
+    "filterEnvelope": {
+      "attack": 0.04,
+      "decay": 0.25,
+      "sustain": 0.7,
+      "release": 0.25,
+      "baseFrequency": 500,
+      "octaves": 3.4,
+      "exponent": 1.5
+    },
+    "maxPolyphony": 4
+  },
+  "vibrato": {
+    "rate": 6.5,
+    "depth": 0.05,
+    "drift": 0.55
+  },
+  "body": [
+    {
+      "frequency": 500,
+      "q": 2,
+      "gain": 4
+    },
+    {
+      "frequency": 1700,
+      "q": 1.2,
+      "gain": 5
+    },
+    {
+      "frequency": 2900,
+      "q": 2,
+      "gain": 3
+    },
+    {
+      "frequency": 5000,
+      "q": 1,
+      "gain": -6
+    }
+  ],
+  "breath": {
+    "level": 0.11,
+    "hz": 1800,
+    "q": 0.7,
+    "attack": 0.02,
+    "release": 0.12
+  },
+  "approvedAt": "2026-08-14"
+}

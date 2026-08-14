@@ -1,0 +1,71 @@
+{
+  "instrument": "bass",
+  "slug": "machine-fuzz",
+  "title": "Machine fuzz",
+  "status": "approved",
+  "tags": [
+    "bass",
+    "fuzz",
+    "garage",
+    "dance-punk",
+    "riff"
+  ],
+  "summary": "Bass through a guitar rig, doing the whole guitar section's job. Garage and dance-punk, where the riff is the bass.",
+  "notes": "Early Death From Above 1979 — a bass doing the job of the whole guitar section, so it is a bass through a guitar rig rather than a bass with a distortion knob, and it is the first voice to use the amp outside pluck/lead. Four things make it that record instead of a fuzz pedal. The drive is fed the low strings on purpose: `tighten` sits at 42 Hz, not the guitars' 150–260, because the intermodulation of a fundamental against its own harmonics is what makes one bass sound like a bass and a guitar at once — the mud the brown rig engineers out is the entire point here. The honk is at 1600 Hz, an octave below the HM-2 band the guitar voices bump, and the cab shuts at 3.2 kHz: fuzz bass is woolly and midrange-forward, and anything above that reads as a fizzy guitar rather than a big bass. Sag is light (3:1 at -18 dB) because this is dance-punk before it is doom — the eighth notes have to arrive as separate hits, and a hard ratio turns a driving riff into one sustained chord. And it is narrow (0.14) and short: 0.35 s release, decay-dominant to a 0.7 sustain, so a riff at 150 BPM stays a riff. The oscillator is a fat square at 14 cents — square because fuzz is a squaring curve and starting from odd harmonics beats manufacturing them, narrow because detune that reads as thickness on a guitar chord reads as a tuning problem down at E1.",
+  "synth": {
+    "kind": "mono",
+    "oscillator": {
+      "type": "fatsquare",
+      "count": 3,
+      "spread": 14
+    },
+    "envelope": {
+      "attack": 0.004,
+      "decay": 0.28,
+      "sustain": 0.7,
+      "release": 0.35
+    },
+    "filter": {
+      "type": "lowpass",
+      "rolloff": -12,
+      "Q": 0.8
+    },
+    "filterEnvelope": {
+      "attack": 0.004,
+      "decay": 0.22,
+      "sustain": 0.55,
+      "release": 0.3,
+      "baseFrequency": 240,
+      "octaves": 3,
+      "exponent": 1.5
+    },
+    "maxPolyphony": 8
+  },
+  "amp": {
+    "input": 7,
+    "tighten": 42,
+    "sag": {
+      "threshold": -18,
+      "ratio": 3
+    },
+    "preamp": 0.82,
+    "toneStack": {
+      "low": 3,
+      "mid": 5,
+      "high": -3
+    },
+    "cab": 3200,
+    "presence": {
+      "frequency": 1600,
+      "gain": 6
+    },
+    "width": 0.14,
+    "slap": {
+      "delayTime": 0.09,
+      "wet": 0.04
+    },
+    "sum": 0.5
+  },
+  "forkedFrom": "bass/saw-round",
+  "approvedAt": "2026-08-14"
+}
