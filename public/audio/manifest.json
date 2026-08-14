@@ -9,6 +9,22 @@
       "renderedAt": "2026-08-14T12:40:21.021Z"
     },
     {
+      "name": "black-hat-arrives",
+      "file": "black-hat-arrives.mp3",
+      "seconds": 128.9315,
+      "bytes": 2579520,
+      "isLoop": false,
+      "renderedAt": "2026-08-14T18:45:02.565Z"
+    },
+    {
+      "name": "black-hat-arrives.loop",
+      "file": "black-hat-arrives.loop.mp3",
+      "seconds": 105.20547916666666,
+      "bytes": 2104800,
+      "isLoop": true,
+      "renderedAt": "2026-08-14T18:39:54.237Z"
+    },
+    {
       "name": "demo-sad",
       "file": "demo-sad.mp3",
       "seconds": 21.647041666666667,

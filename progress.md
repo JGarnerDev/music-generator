@@ -2,7 +2,7 @@
 title: Progress & Roadmap
 purpose: Prioritized backlog of what to build. Living doc — check items off, reorder as reality shifts.
 audience: [claude, human]
-updated: 2026-08-13
+updated: 2026-08-14
 read_order: 2
 see_also: [readme.md, docs/vision.md]
 status: living
@@ -10,25 +10,61 @@ status: living
 
 # Progress & Roadmap
 
-Ordered by priority. **P0** = foundation is incomplete without it. **P1** = makes
-the core loop good. **P2** = depth/polish. **P3** = nice-to-have / speculative.
+Ordered by priority. **P0** = the music itself is the product; nothing ships
+above it. **P1** = makes the core loop good. **P2** = app architecture &
+hosting. **P3** = depth/polish. **P4** = nice-to-have / speculative.
 
 Legend: `[ ]` todo · `[~]` in progress. **Delete an item once it's done** — this
 doc is the *remaining* backlog, not a changelog. Git history is the record of what
 shipped; keep this list short and forward-looking.
 
-## P0 — App architecture & hosting
+## P0 — Make the music better (variety first)
 
-- [ ] **Split the web app into its own deployable folder.** Composition happens
-      through Claude in the repo; the app only needs to *play and export*. Carve
-      `src/app` (+ its entry/HTML/build config) into a self-contained package so
-      it deploys without the generation toolchain (`scripts/`, palette loader,
-      `src/engine`'s authoring path) riding along.
-- [ ] **Migrate the app to React.** Adopt a practical `components/` `hooks/`
-      `helpers/` layout inside the app package. Keep audio glue thin — engine
-      logic still belongs in `src/engine`/`src/utils` with tests.
-- [ ] **Host on Cloudflare.** Deploy the split app (Pages/Workers) so it's usable
-      from a phone, not just `npm run dev` on the desktop.
+**The problem, stated once.** Three of the four loop plans are the same song:
+`high-noon-warpath`, `six-gun-shredout` and `black-hat-arrives` share one section
+arc (intro → riff-a → variation → halved harmonic rhythm → breakdown → rebuild →
+riff → climb → turnaround), all-8-bar sections, 146–158 BPM, and a minor
+i–VII–VI–V. `vulture-mile` is the only outlier, and the only one that reads as a
+different piece. Variety has to come from the *engine offering choices* and from
+**the user's prompt selecting them** — not from Claude remembering to be
+different. Experiment freely inside these knobs; they are the reasonable bounds.
+
+- [ ] **Riff rhythm figures — the single biggest cause.** `gallopLine` and
+      `powerChordGallop` walk `GALLOP_OFFSETS`, a module constant
+      (`src/engine/riff.ts`), so *every* `riff` bar in *every* piece is the same
+      sixteenth figure with a different root. Parameterise it: a named figure set
+      (`gallop`, `3+3+2`, `pushed-eighths`, `half-time-chug`, `triplet-canter`,
+      `four-on-floor-stab`), pure and testable, selectable per section from the
+      plan. Until this lands, no amount of new harmony makes two pieces sound
+      unalike.
+- [ ] **Get off the 8-bar grid.** Every section in every plan is 8 bars and every
+      chord change lands on a barline, so the meter is fully predicted two bars
+      in. Want phrase lengths of 6/10/12, 2-bar tags, and chord changes on the
+      half-bar. Mostly a plan-authoring habit, but `build-song` should stop making
+      8 the path of least resistance (e.g. allow `"chords"` entries to carry a
+      duration).
+- [ ] **Harmony beyond the Andalusian minor.** i–VII–VI–V with a harmonic-minor V
+      is the only progression these loops use. Want: Dorian (natural VI), a
+      Phrygian bII drone, pedal-point harmony that refuses to move, and major-key
+      westerns. Overlaps the P1 mode work — phrygian-dominant is still
+      unsupported (`MODE_FAMILY` is the seven church modes only), and it is the
+      mode this genre most wants.
+- [ ] **Register: the key is currently inaudible.** `BASS_BAND` is hard-coded to
+      G1–D2 (`scripts/build-song.ts`), 8 semitones, so every root folds into the
+      same octave and C minor sits where D minor sat. Make the band plan-settable
+      (and let a piece sit low and heavy or high and frantic), then the key is a
+      real choice.
+- [ ] **Kit and mix are one preset.** Near-identical kick/snare/ride across
+      pieces, `house-kit` on all of them, and gains fixed in the builder
+      (`drums 0.85 / pad 0.35 / bass 0.95 / pluck 0.62 / lead 0.85 / piano 0.8`).
+      Let a plan override per-track gain, and pick kit voices per piece the way
+      `voices:` now picks the others.
+- [ ] **The prompt should drive the knobs.** Once the above exist, the composing
+      loop reads the user's scene words and *chooses*: figure, tempo band,
+      register, mode, section arc. Write the mapping down (a `docs/` note or a
+      palette field) so it is repeatable rather than vibes, and check a new plan
+      against the existing ones before writing it — same arc + same tempo band +
+      same mode as a piece we already have is the signal to change something.
 
 ## P1 — Make the core loop *good*
 
@@ -140,7 +176,23 @@ shipped; keep this list short and forward-looking.
 - [ ] **Sampled instruments via `smplr`.** Swap synth piano/pad for real samples
       (SoundFonts in `assets/samples/`) behind the same instrument interface.
 
-## P2 — Depth & polish
+## P2 — App architecture & hosting
+
+Below the music work by decision (2026-08-14): the product is the music, and a
+better-hosted player does not make a loop sound less like the last loop.
+
+- [ ] **Split the web app into its own deployable folder.** Composition happens
+      through Claude in the repo; the app only needs to *play and export*. Carve
+      `src/app` (+ its entry/HTML/build config) into a self-contained package so
+      it deploys without the generation toolchain (`scripts/`, palette loader,
+      `src/engine`'s authoring path) riding along.
+- [ ] **Migrate the app to React.** Adopt a practical `components/` `hooks/`
+      `helpers/` layout inside the app package. Keep audio glue thin — engine
+      logic still belongs in `src/engine`/`src/utils` with tests.
+- [ ] **Host on Cloudflare.** Deploy the split app (Pages/Workers) so it's usable
+      from a phone, not just `npm run dev` on the desktop.
+
+## P3 — Depth & polish
 
 - [ ] **MP3 export.** Optional, on top of WAV, if user wants smaller/shareable
       files (ffmpeg.wasm or a script). WAV is the default per decision.
@@ -165,7 +217,7 @@ shipped; keep this list short and forward-looking.
 - [ ] **Melody quality passes.** Motif repetition, tension/resolution, phrase
       contour rules so generated tunes feel composed, not random.
 
-## P3 — Speculative
+## P4 — Speculative
 
 - [ ] **MIDI export** (`@tonejs/midi`) so pieces open in a DAW.
 - [ ] **Loudness normalize** exports to a target LUFS.

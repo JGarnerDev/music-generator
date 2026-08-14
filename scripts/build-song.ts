@@ -10,13 +10,14 @@
  *
  * Named flags only (repo convention: no positional arguments).
  */
-import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve, basename, dirname } from "node:path";
 import { Command } from "commander";
 import { COMPOSITION_KINDS, isCompositionKind } from "../src/engine/library";
 import {
   validateComposition,
   type Composition,
+  type InstrumentName,
   type LoFiSettings,
   type Note,
   type Track,
@@ -82,6 +83,14 @@ interface Plan {
    * drums keep doing what they were doing" is most bars.
    */
   groove?: Groove;
+  /**
+   * Which sound each instrument plays, `{ "pad": "mens-choir" }` — the slug of a
+   * preset in `voices/<instrument>/`. Stated in the plan rather than patched into
+   * the built composition, because the composition is regenerated on every edit
+   * and a hand-added `voice` would be lost with it. Omitted instruments keep
+   * their default voice.
+   */
+  voices?: Partial<Record<InstrumentName, string>>;
   /** Section id where the loop body begins; everything before it is the intro. */
   loopFrom?: string;
   sections: PlanSection[];
@@ -198,14 +207,18 @@ function buildComposition(plan: Plan): Composition {
   // matching their gains buries it — it has to sit above the rhythm part, not
   // level with it. It also plays the `lead` voice rather than `pluck`: a
   // different rig, not the same rig louder (see `src/app/instruments.ts`).
-  const tracks: Track[] = [
-    { instrument: "drums", gain: 0.85, notes: voices.drums },
-    { instrument: "pad", gain: 0.35, notes: voices.pad },
-    { instrument: "bass", gain: 0.95, notes: voices.bass },
-    { instrument: "pluck", gain: 0.62, notes: voices.rhythm },
-    { instrument: "lead", gain: 0.85, notes: voices.lead },
-    { instrument: "piano", gain: 0.8, notes: voices.piano },
-  ].filter((t) => t.notes.length > 0) as Track[];
+  const tracks: Track[] = (
+    [
+      { instrument: "drums", gain: 0.85, notes: voices.drums },
+      { instrument: "pad", gain: 0.35, notes: voices.pad },
+      { instrument: "bass", gain: 0.95, notes: voices.bass },
+      { instrument: "pluck", gain: 0.62, notes: voices.rhythm },
+      { instrument: "lead", gain: 0.85, notes: voices.lead },
+      { instrument: "piano", gain: 0.8, notes: voices.piano },
+    ] as Track[]
+  )
+    .filter((t) => t.notes.length > 0)
+    .map((t) => ({ ...t, ...voiceFor(plan, t.instrument) }));
 
   return {
     name: plan.name,
@@ -216,6 +229,22 @@ function buildComposition(plan: Plan): Composition {
     ...(loopStartBar === null ? {} : { loop: { startBar: loopStartBar, endBar: bar } }),
     tracks,
   };
+}
+
+/**
+ * The `voice` field for one track, from the plan's `voices` map. The slug is
+ * checked against `voices/` here so a typo fails at build time rather than
+ * silently rendering the instrument's default an hour later.
+ */
+function voiceFor(plan: Plan, instrument: InstrumentName): { voice?: string } {
+  const slug = plan.voices?.[instrument];
+  if (!slug) return {};
+  if (!existsSync(resolve(process.cwd(), `voices/${instrument}/${slug}.json`))) {
+    console.error(`voices.${instrument}: no such voice "${instrument}/${slug}"`);
+    console.error(`  find one with: npm run voice:find -- --instrument ${instrument}`);
+    process.exit(2);
+  }
+  return { voice: slug };
 }
 
 /**

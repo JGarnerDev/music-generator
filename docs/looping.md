@@ -89,6 +89,12 @@ repeat — so the intro is skipped and the seam you hear is the seam the game
 gets. Nothing is rendered in the browser: if you changed the notes, run
 `npm run render` again or you are auditioning the old take.
 
+Sounds are named in the plan, not in the built file: `"voices": { "pad":
+"mens-choir", "lead": "string-section" }` sets each track's `voice` (see
+[voices](voices.md)). A slug that doesn't exist fails the build. Patching
+`voice` into the generated composition instead would be erased by the next
+rebuild, same as editing the notes.
+
 A plan is sections — an id, a `style`, a chord per bar, and any melody — and
 [`scripts/build-song.ts`](../scripts/build-song.ts) expands it with the tested
 builders in [`src/engine/riff.ts`](../src/engine/riff.ts). Edit the plan, rebuild,
