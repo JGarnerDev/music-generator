@@ -1,5 +1,13 @@
 import { describe, it, expect } from "vitest";
-import { gallopLine, powerChordGallop, sustainLine, tremoloLine, shiftBars } from "./riff";
+import {
+  gallopLine,
+  motorLine,
+  powerChordGallop,
+  powerChordMotor,
+  sustainLine,
+  tremoloLine,
+  shiftBars,
+} from "./riff";
 
 describe("gallopLine", () => {
   it("emits an eighth plus two sixteenths on every beat", () => {
@@ -52,6 +60,70 @@ describe("powerChordGallop", () => {
     const notes = powerChordGallop({ startBar: 0, roots: ["A2"], approaches: ["C#3"] });
     // the approach lands on a sixteenth, so it stays a bare root
     expect(notes.at(-1)).toMatchObject({ pitch: "C#3", duration: "16n" });
+  });
+});
+
+describe("motorLine", () => {
+  it("fills the bar with straight eighths by default", () => {
+    const notes = motorLine({ startBar: 0, roots: ["A1"] });
+    expect(notes).toHaveLength(8);
+    expect(notes.map((n) => n.time)).toEqual([
+      "0:0:0", "0:0:2", "0:1:0", "0:1:2", "0:2:0", "0:2:2", "0:3:0", "0:3:2",
+    ]);
+    expect(notes.every((n) => n.duration === "8n")).toBe(true);
+    expect(notes.every((n) => n.pitch === "A1")).toBe(true);
+  });
+
+  it("chugs sixteenths at subdivision 4", () => {
+    const notes = motorLine({ startBar: 1, roots: ["A1"], subdivision: 4 });
+    expect(notes).toHaveLength(16);
+    expect(notes.slice(0, 4).map((n) => n.time)).toEqual(["1:0:0", "1:0:1", "1:0:2", "1:0:3"]);
+    expect(notes[0]!.duration).toBe("16n");
+  });
+
+  it("advances one bar per root", () => {
+    const notes = motorLine({ startBar: 4, roots: ["A1", "Bb1"] });
+    expect(notes[8]).toMatchObject({ time: "5:0:0", pitch: "Bb1" });
+  });
+
+  it("puts the approach note on the last hit only", () => {
+    const notes = motorLine({ startBar: 0, roots: ["A1"], approaches: ["Bb1"] });
+    expect(notes.at(-1)).toMatchObject({ time: "0:3:2", pitch: "Bb1" });
+    expect(notes.filter((n) => n.pitch === "Bb1")).toHaveLength(1);
+  });
+
+  it("accents on the beat, with odd beats backed off", () => {
+    const notes = motorLine({ startBar: 0, roots: ["A1"], accent: 0.95, ghost: 0.82 });
+    expect(notes[0]!.velocity).toBe(0.95); // beat 0
+    expect(notes[1]!.velocity).toBe(0.82); // the "and"
+    expect(notes[2]!.velocity).toBeCloseTo(0.9); // beat 1
+  });
+
+  it("rejects a subdivision that would be a gallop or off the grid", () => {
+    const off = [1, 3, 8] as unknown as (2 | 4)[];
+    for (const subdivision of off) {
+      expect(() => motorLine({ startBar: 0, roots: ["A1"], subdivision })).toThrow(
+        /subdivision must be 2 or 4/,
+      );
+    }
+  });
+});
+
+describe("powerChordMotor", () => {
+  it("adds a fifth on the beat but not off it", () => {
+    const notes = powerChordMotor({ startBar: 0, roots: ["A2"] });
+    expect(notes.filter((n) => n.time === "0:0:0").map((n) => n.pitch)).toEqual(["A2", "E3"]);
+    expect(notes.filter((n) => n.time === "0:0:2").map((n) => n.pitch)).toEqual(["A2"]);
+  });
+
+  it("voices the fifth below the root in velocity", () => {
+    const [root, fifth] = powerChordMotor({ startBar: 0, roots: ["A2"], accent: 0.9 });
+    expect(fifth!.velocity!).toBeLessThan(root!.velocity!);
+  });
+
+  it("leaves the approach note bare — it lands off the beat", () => {
+    const notes = powerChordMotor({ startBar: 0, roots: ["A2"], approaches: ["Bb2"] });
+    expect(notes.filter((n) => n.pitch === "Bb2")).toHaveLength(1);
   });
 });
 

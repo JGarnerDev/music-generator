@@ -89,8 +89,15 @@ builders in [`src/engine/riff.ts`](../src/engine/riff.ts). Edit the plan, rebuil
 re-audition; don't edit generated note arrays by hand.
 
 Styles available: `standoff` (sparse intro), `riff` (gallop + power chords),
-`riff`-with-`lead`, `breakdown` (engine drops out), `rebuild` (eighths → gallop),
-`climb` (tremolo lift), `turnaround` (riff + low stabs, for the last section).
+`riff`-with-`lead`, `motor` (straight eighths pedalling the root — the desert/stoner
+engine; `"subdivision": 4` makes it a sixteenth chug), `kit` (drums alone, for a
+drum intro or a break), `breakdown` (engine drops out), `rebuild` (eighths →
+gallop), `climb` (tremolo lift), `turnaround` (riff + low stabs, for the last
+section).
+
+`riff` and `motor` are the two engines and they are opposites: a gallop leans
+forward and wants the next chord, a motor refuses to move and gets its weight
+from repetition. Don't mix them inside one piece — pick the one the genre wants.
 
 ## Exports
 

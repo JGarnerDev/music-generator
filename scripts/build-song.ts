@@ -21,7 +21,14 @@ import {
   type Note,
   type Track,
 } from "../src/engine/composition";
-import { gallopLine, powerChordGallop, sustainLine, tremoloLine } from "../src/engine/riff";
+import {
+  gallopLine,
+  motorLine,
+  powerChordGallop,
+  powerChordMotor,
+  sustainLine,
+  tremoloLine,
+} from "../src/engine/riff";
 import { approachNotes } from "../src/engine/parts";
 import { grooveNotes, validateGroove, type Groove } from "../src/engine/groove";
 import { chordPitches, fitToBand, transpose } from "../src/engine/theory";
@@ -30,7 +37,15 @@ const BEATS_PER_BAR = 4;
 /** Bass roots are fitted into one tight octave so the riff never jumps register. */
 const BASS_BAND: [number, number] = [31, 38]; // G1..D2
 
-type Style = "standoff" | "riff" | "breakdown" | "rebuild" | "climb" | "turnaround";
+type Style =
+  | "standoff"
+  | "riff"
+  | "motor"
+  | "kit"
+  | "breakdown"
+  | "rebuild"
+  | "climb"
+  | "turnaround";
 
 /** ["bar:beat:sixteenth", pitch, duration, velocity] — compact enough to read in bulk. */
 type PlanNote = [string, string, string, number];
@@ -46,9 +61,11 @@ interface PlanSection {
   drums?: boolean;
   /** Scales the kit's dynamics here: 0.6 for a verse, 1 for the chorus. */
   intensity?: number;
+  /** `motor` only — hits per beat: 2 = straight eighths, 4 = a sixteenth chug. */
+  subdivision?: 2 | 4;
   /** Whistle/bell voice (piano), times relative to the section start. */
   melody?: PlanNote[];
-  /** Guitar lead voice (pluck), times relative to the section start. */
+  /** Guitar lead voice, times relative to the section start. */
   lead?: PlanNote[];
 }
 
@@ -176,12 +193,17 @@ function buildComposition(plan: Plan): Composition {
     bar = span.end;
   }
 
+  // Gain staging. The lead is one note at a time competing with a rhythm guitar
+  // that is doubled at the fifth *and* reinforced by the bass an octave down, so
+  // matching their gains buries it — it has to sit above the rhythm part, not
+  // level with it. It also plays the `lead` voice rather than `pluck`: a
+  // different rig, not the same rig louder (see `src/app/instruments.ts`).
   const tracks: Track[] = [
     { instrument: "drums", gain: 0.85, notes: voices.drums },
     { instrument: "pad", gain: 0.35, notes: voices.pad },
     { instrument: "bass", gain: 0.95, notes: voices.bass },
-    { instrument: "pluck", gain: 0.7, notes: voices.rhythm },
-    { instrument: "pluck", gain: 0.5, notes: voices.lead },
+    { instrument: "pluck", gain: 0.62, notes: voices.rhythm },
+    { instrument: "lead", gain: 0.85, notes: voices.lead },
     { instrument: "piano", gain: 0.8, notes: voices.piano },
   ].filter((t) => t.notes.length > 0) as Track[];
 
@@ -238,6 +260,8 @@ function buildSection(ctx: SectionContext, voices: Voices): void {
   const builders: Record<Style, (ctx: SectionContext, voices: Voices) => void> = {
     standoff: buildStandoff,
     riff: buildRiff,
+    motor: buildMotor,
+    kit: buildKit,
     turnaround: buildTurnaround,
     breakdown: buildBreakdown,
     rebuild: buildRebuild,
@@ -291,6 +315,41 @@ function buildRiff(ctx: SectionContext, voices: Voices): void {
     }),
   );
 }
+
+/**
+ * The desert-rock engine: straight eighths (or a sixteenth chug) pedalling the
+ * root, guitar in unison an octave up. `riff` gallops and therefore *moves*; this
+ * one refuses to, which is the whole style — the weight comes from repetition.
+ * The pad sits lower than under `riff` because fuzz and sustained voices fight.
+ */
+function buildMotor(ctx: SectionContext, voices: Voices): void {
+  const subdivision = ctx.section.subdivision ?? 2;
+  voices.pad.push(...padFor(ctx, 0.26));
+  voices.bass.push(
+    ...motorLine({
+      startBar: ctx.startBar,
+      roots: ctx.bassRoots,
+      approaches: ctx.approaches,
+      subdivision,
+    }),
+  );
+  voices.rhythm.push(
+    ...powerChordMotor({
+      startBar: ctx.startBar,
+      roots: ctx.guitarRoots,
+      approaches: ctx.approaches.map((a) => (a ? transpose(a, 12) : null)),
+      subdivision,
+      accent: 0.92,
+      ghost: 0.8,
+    }),
+  );
+}
+
+/**
+ * Drums alone — the kit intro, the break where the band stops and the drummer
+ * doesn't. Writes no pitched voice at all; the section's groove is the section.
+ */
+function buildKit(_ctx: SectionContext, _voices: Voices): void {}
 
 /** The riff, plus a low piano stab per bar to mark the last section before the wrap. */
 function buildTurnaround(ctx: SectionContext, voices: Voices): void {

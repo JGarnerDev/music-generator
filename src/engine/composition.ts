@@ -17,10 +17,17 @@ export interface Note {
   velocity?: number;
 }
 
-export type InstrumentName = "piano" | "epiano" | "pad" | "bass" | "pluck" | "drums";
+/**
+ * `pluck` and `lead` are both the electric guitar, split because they are two
+ * different jobs: `pluck` is the rhythm part (tight, fast-decaying, wide, low in
+ * the mix) and `lead` is the top line (compressed into sustain, mid-forward,
+ * centred, loud). One voice cannot do both — a lead played on the rhythm tone is
+ * the classic "puny solo" problem.
+ */
+export type InstrumentName = "piano" | "epiano" | "pad" | "bass" | "pluck" | "lead" | "drums";
 
 /** The known instrument voices, in a stable order. Source of truth for validation + blending. */
-export const INSTRUMENT_NAMES = ["piano", "epiano", "pad", "bass", "pluck", "drums"] as const satisfies readonly InstrumentName[];
+export const INSTRUMENT_NAMES = ["piano", "epiano", "pad", "bass", "pluck", "lead", "drums"] as const satisfies readonly InstrumentName[];
 
 /**
  * Pitched voices — the ones a chord, a scale ladder or a transpose applies to.

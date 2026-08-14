@@ -13551,7 +13551,7 @@
     },
     {
       "instrument": "pluck",
-      "gain": 0.7,
+      "gain": 0.62,
       "notes": [
         {
           "time": "4:0:0",
@@ -19172,8 +19172,8 @@
       ]
     },
     {
-      "instrument": "pluck",
-      "gain": 0.5,
+      "instrument": "lead",
+      "gain": 0.85,
       "notes": [
         {
           "time": "0:0:0",

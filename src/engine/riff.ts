@@ -21,6 +21,9 @@ const BEATS_PER_BAR = 4;
 /** Note value each tremolo subdivision produces. Keys double as the allowed set. */
 const TREMOLO_DURATIONS: Record<number, string | undefined> = { 1: "4n", 2: "8n", 4: "16n" };
 
+/** Note value each motor subdivision produces. Keys double as the allowed set. */
+const MOTOR_DURATIONS: Record<number, string | undefined> = { 2: "8n", 4: "16n" };
+
 export interface RiffOptions {
   /** Bar the pattern starts on; roots advance one bar each. */
   startBar: number;
@@ -80,6 +83,69 @@ export function gallopLine(opts: RiffOptions): Note[] {
  * palette).
  */
 export function powerChordGallop(opts: RiffOptions): Note[] {
+  // the long notes are the strummed ones; the fast sixteenths stay bare
+  return withFifths(gallopLine(opts), (note) => note.duration === "8n");
+}
+
+export interface MotorOptions extends RiffOptions {
+  /**
+   * Hits per beat: 2 = straight eighths (the desert-rock motor), 4 = a sixteenth
+   * chug. Only these two — anything else is either a gallop or off the grid.
+   */
+  subdivision?: 2 | 4;
+}
+
+/**
+ * Straight, unvarying subdivision on one root per bar — the *other* driving
+ * engine, and the opposite principle to `gallopLine`.
+ *
+ * A gallop moves: its long-short-short cell leans forward and wants the next
+ * chord. A motor refuses to. Every hit is the same length, the root pedals, and
+ * the force comes from how long it goes on without changing — desert/stoner rock,
+ * krautrock, anything hypnotic. Only the beat accents keep it from reading as a
+ * machine, and the approach note on the last hit is the one place it admits the
+ * bar is ending.
+ */
+export function motorLine(opts: MotorOptions): Note[] {
+  const { startBar, roots, approaches = [], accent = 0.95, ghost = 0.82, subdivision = 2 } = opts;
+  const duration = MOTOR_DURATIONS[subdivision];
+  if (duration === undefined) {
+    throw new Error(`subdivision must be 2 or 4, got ${subdivision}`);
+  }
+  const step = 4 / subdivision;
+  const notes: Note[] = [];
+
+  roots.forEach((root, i) => {
+    const bar = startBar + i;
+    const approach = approaches[i] ?? null;
+    for (let beat = 0; beat < BEATS_PER_BAR; beat++) {
+      for (let hit = 0; hit < subdivision; hit++) {
+        const isLastHit = beat === BEATS_PER_BAR - 1 && hit === subdivision - 1;
+        notes.push({
+          time: `${bar}:${beat}:${hit * step}`,
+          pitch: isLastHit && approach ? approach : root,
+          duration,
+          // downbeat and beat 3 carry the bar; off-beats sit back a hair
+          velocity: hit === 0 ? (beat % 2 === 0 ? accent : accent - 0.05) : ghost,
+        });
+      }
+    }
+  });
+
+  return notes;
+}
+
+/**
+ * The motor voiced as power chords: root + fifth on the beat, root alone
+ * off it. Same reasoning as `powerChordGallop` — full chords on every
+ * subdivision turn to mud, and the bare root reads as palm-muting.
+ */
+export function powerChordMotor(opts: MotorOptions): Note[] {
+  return withFifths(motorLine(opts), (note) => note.time.endsWith(":0"));
+}
+
+/** Stack a fifth over the notes `voiced` picks, memoising the interval math. */
+function withFifths(notes: Note[], voiced: (note: Note) => boolean): Note[] {
   const fifths = new Map<string, string>();
   const fifthOf = (root: string): string => {
     let f = fifths.get(root);
@@ -90,8 +156,8 @@ export function powerChordGallop(opts: RiffOptions): Note[] {
     return f;
   };
 
-  return gallopLine(opts).flatMap((note) => {
-    if (note.duration !== "8n") return [note];
+  return notes.flatMap((note) => {
+    if (!voiced(note)) return [note];
     return [
       note,
       { ...note, pitch: fifthOf(note.pitch), velocity: (note.velocity ?? 0.9) - 0.05 },

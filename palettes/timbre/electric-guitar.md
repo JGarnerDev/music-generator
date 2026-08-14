@@ -19,8 +19,13 @@ layers this file first and then overrides.
 
 ## Sound
 
-- **Source:** the pluck voice. Chords are three or four notes, not six — the
-  engine has no strum, so voice them tight and let the amp stage thicken them.
+- **Source:** the pluck voice for rhythm parts, the **lead** voice for a top
+  line. They are one instrument played two ways and the engine keeps them apart:
+  `pluck` decays fast, sits wide and stays low in the mix, while `lead` is
+  compressed into sustain, mid-forward, near-centre and louder. Putting a solo on
+  `pluck` is what makes it sound puny — it is fighting the rhythm part in the
+  same band and losing. Chords are three or four notes, not six — the engine has
+  no strum, so voice them tight and let the amp stage thicken them.
 - **Signal chain:** pickup (narrow, mid-forward, no deep low end and no air —
   the band-limiting happens before anything else) → speaker cabinet, which
   rolls off everything above roughly 5 kHz. Every subtype's drive stage sits
