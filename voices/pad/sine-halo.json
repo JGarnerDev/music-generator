@@ -1,0 +1,15 @@
+{
+  "instrument": "pad",
+  "slug": "sine-halo",
+  "title": "Sine halo",
+  "status": "approved",
+  "default": true,
+  "approvedAt": "2026-08-14",
+  "tags": ["soft", "atmosphere", "slow"],
+  "notes": "Pure sine, 0.8 s to arrive and 3 s to leave. The slow attack is the instrument: it means a pad can never accidentally sound like a hit, so it glues an arrangement without ever competing for the front of it. The long release is what makes a chord change a swell instead of a cut.",
+  "synth": {
+    "kind": "synth",
+    "oscillator": { "type": "sine" },
+    "envelope": { "attack": 0.8, "decay": 1.5, "sustain": 0.7, "release": 3 }
+  }
+}

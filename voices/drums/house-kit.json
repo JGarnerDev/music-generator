@@ -1,0 +1,43 @@
+{
+  "instrument": "drums",
+  "slug": "house-kit",
+  "title": "House kit",
+  "status": "approved",
+  "default": true,
+  "approvedAt": "2026-08-14",
+  "tags": ["kit", "neutral", "lo-fi"],
+  "notes": "The kit every piece has used so far. Membrane pieces are pitched thumps — tuning is the only thing separating a kick from a floor tom — and everything else is a filtered noise burst where cutoff plus decay is the whole character. Levels live here rather than in the pattern: how loud a hat sits under a kick is a property of the kit, not of the groove. The snare is a burst plus a short membrane hit at 45% of its level, because the rattle alone reads as a hi-hat pitched down.",
+  "kit": {
+    "levels": {
+      "kick": 1,
+      "snare": 0.8,
+      "rim": 0.5,
+      "clap": 0.6,
+      "hat": 0.32,
+      "open-hat": 0.3,
+      "ride": 0.3,
+      "crash": 0.45,
+      "tom-lo": 0.7,
+      "tom-mid": 0.7,
+      "tom-hi": 0.65,
+      "shaker": 0.25
+    },
+    "membrane": {
+      "kick": { "pitch": "C1", "decay": 0.4, "pitchDecay": 0.03, "octaves": 6 },
+      "tom-lo": { "pitch": "A1", "decay": 0.5, "pitchDecay": 0.03, "octaves": 6 },
+      "tom-mid": { "pitch": "D2", "decay": 0.45, "pitchDecay": 0.03, "octaves": 6 },
+      "tom-hi": { "pitch": "G2", "decay": 0.4, "pitchDecay": 0.03, "octaves": 6 }
+    },
+    "noise": {
+      "snare": { "hz": 1400, "decay": 0.18, "type": "white", "q": 0.9 },
+      "rim": { "hz": 2600, "decay": 0.04, "type": "white", "q": 0.9 },
+      "clap": { "hz": 1200, "decay": 0.12, "type": "white", "q": 0.9 },
+      "hat": { "hz": 7000, "decay": 0.04, "type": "white", "q": 0.9 },
+      "open-hat": { "hz": 6500, "decay": 0.35, "type": "white", "q": 0.9 },
+      "ride": { "hz": 5200, "decay": 0.6, "type": "white", "q": 0.9 },
+      "crash": { "hz": 4200, "decay": 1.6, "type": "white", "q": 0.9 },
+      "shaker": { "hz": 8000, "decay": 0.06, "type": "pink", "q": 0.9 }
+    },
+    "snareBody": { "pitch": "D2", "decay": 0.12, "pitchDecay": 0.02, "octaves": 3, "level": 0.45 }
+  }
+}

@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>music-generator — voice bench</title>
+    <style>
+      /* Border-box everywhere: the body's padding has to live *inside* its
+         100vh, or the page overflows by exactly that padding. */
+      *, *::before, *::after { box-sizing: border-box; }
+      :root {
+        color-scheme: dark;
+        --bg: #14121a;
+        --panel: #2a2440;
+        --panel-hi: #362e52;
+        --line: #443a66;
+        --ink: #e8e4f0;
+        --accent: #b6a6e6;
+        --draft: #e0c07a;
+        --approved: #8fd3a6;
+      }
+      /*
+       * Same discipline as the composition bench: every block is a fixed size,
+       * because this is a tool you use with your ears and your eyes in one
+       * place. Switching instrument or selecting a voice must never move the
+       * Play button — you are A/B-ing two sounds, and hunting for the button
+       * between them is how you lose the comparison.
+       */
+      body {
+        font-family: ui-monospace, "Cascadia Code", monospace;
+        background: var(--bg);
+        color: var(--ink);
+        display: grid;
+        justify-content: center;
+        align-content: start;
+        min-height: 100vh;
+        margin: 0;
+        padding: 2rem 0 1.5rem;
+      }
+      main {
+        width: min(680px, 92vw);
+        height: calc(100vh - 3.5rem);
+        min-height: 40rem;
+        max-height: 54rem;
+        display: grid;
+        grid-template-rows:
+          auto auto auto auto /* title · tabs · blurb · filter */
+          minmax(6rem, 1fr) /* voice table — absorbs the slack */
+          auto auto auto auto auto; /* selected · notes · transport · workflow · status */
+        gap: 0.7rem;
+      }
+      h1 {
+        font-size: 1.1rem;
+        color: var(--accent);
+        letter-spacing: 0.02em;
+        margin: 0;
+        height: 1.4rem;
+        line-height: 1.4rem;
+      }
+      h1 a { color: inherit; opacity: 0.45; text-decoration: none; font-size: 0.8rem; float: right; }
+      h1 a:hover { opacity: 0.9; }
+      .row { display: flex; gap: 0.6rem; }
+
+      /* ── Instrument tabs ──────────────────────────────────────────────── */
+      #tabs {
+        display: flex;
+        gap: 0.3rem;
+        flex-wrap: wrap;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 0.4rem;
+      }
+      .tab {
+        /* Equal shares, not content-sized: a count going 9 → 10 must not resize tabs. */
+        flex: 1 1 0;
+        min-width: 0;
+        padding: 0.4rem 0.35rem;
+        background: transparent;
+        border: 1px solid transparent;
+        border-radius: 7px;
+        color: var(--ink);
+        opacity: 0.6;
+        font: inherit;
+        font-size: 0.78rem;
+        cursor: pointer;
+        white-space: nowrap;
+      }
+      .tab:hover { opacity: 0.9; background: var(--panel); }
+      .tab[aria-selected="true"] {
+        opacity: 1;
+        background: var(--panel);
+        border-color: var(--line);
+        color: var(--accent);
+      }
+      .tab .count { opacity: 0.55; margin-left: 0.3rem; }
+      #blurb {
+        font-size: 0.78rem;
+        opacity: 0.5;
+        margin: 0;
+        height: 1.1rem;
+        line-height: 1.1rem;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      /* ── Voice table ──────────────────────────────────────────────────── */
+      #listWrap {
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        min-height: 0;
+        overflow-y: scroll; /* always on, so 1 row and 20 rows are the same box */
+      }
+      #listWrap::-webkit-scrollbar { width: 10px; }
+      #listWrap::-webkit-scrollbar-thumb { background: var(--line); border-radius: 999px; }
+      table#voices { width: 100%; table-layout: fixed; border-collapse: collapse; font-size: 0.85rem; }
+      #voices tr { border-bottom: 1px solid #241f38; cursor: pointer; }
+      #voices tr:last-child { border-bottom: none; }
+      #voices tr:hover { background: #1d1a2b; }
+      #voices tr[aria-selected="true"] { background: var(--panel); }
+      #voices td {
+        height: 2.2rem;
+        padding: 0 0.5rem;
+        vertical-align: middle;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .col-play { width: 2.4rem; }
+      .col-slug { width: 34%; }
+      .col-status { width: 6.5rem; }
+      td.cell-play { text-align: center; padding: 0; }
+      td.cell-slug { font-weight: 600; }
+      td.cell-slug .instrument { opacity: 0.4; font-weight: 400; font-size: 0.75rem; margin-left: 0.4rem; }
+      td.cell-title { opacity: 0.75; }
+      .chip {
+        display: inline-block;
+        padding: 0.05rem 0.45rem;
+        line-height: 1.35;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        font-size: 0.7rem;
+        opacity: 0.85;
+      }
+      .chip.draft { border-color: var(--draft); color: var(--draft); }
+      .chip.approved { border-color: var(--approved); color: var(--approved); }
+      .chip.broken { border-color: #e08a8a; color: #e08a8a; }
+      .chip.default { border-color: var(--accent); color: var(--accent); margin-left: 0.3rem; }
+      .icon {
+        flex: none;
+        padding: 0.25rem 0.45rem;
+        background: transparent;
+        border: 1px solid transparent;
+        border-radius: 6px;
+        color: inherit;
+        font: inherit;
+        cursor: pointer;
+        opacity: 0.7;
+      }
+      .icon:hover { background: var(--panel-hi); opacity: 1; }
+      #empty { padding: 1.2rem 0.6rem; text-align: center; opacity: 0.45; font-size: 0.85rem; }
+
+      /* ── The voice under the needle ───────────────────────────────────── */
+      #selected {
+        opacity: 0.9;
+        font-size: 0.95rem;
+        height: 1.3rem;
+        line-height: 1.3rem;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      /* Two lines, always: notes run from one clause to a paragraph, and the
+         transport underneath must not move when they do. */
+      #notes {
+        height: 3.4em;
+        line-height: 1.15em;
+        overflow-y: auto;
+        opacity: 0.62;
+        font-size: 0.8rem;
+        border-left: 2px solid var(--line);
+        padding-left: 0.6rem;
+      }
+      button {
+        flex: 1 1 0;
+        min-width: 0;
+        height: 2.7rem;
+        padding: 0 0.8rem;
+        background: var(--panel);
+        color: var(--ink);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        font: inherit;
+        font-size: 0.9rem;
+        cursor: pointer;
+      }
+      button:hover:not(:disabled) { background: var(--panel-hi); }
+      button:disabled { opacity: 0.4; cursor: not-allowed; }
+      #approve { border-color: var(--approved); color: var(--approved); }
+      .check {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        font-size: 0.8rem;
+        opacity: 0.8;
+        cursor: pointer;
+        white-space: nowrap;
+      }
+      #filters { display: flex; gap: 1rem; align-items: center; height: 1.4rem; }
+      /* Two lines reserved: status runs from "Playing" to a full render hint. */
+      #status {
+        height: 2.6em;
+        line-height: 1.3em;
+        overflow: hidden;
+        opacity: 0.7;
+        font-size: 0.85rem;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>music-generator · voice bench<a href="/index.html">compositions →</a></h1>
+
+      <nav id="tabs" role="tablist" aria-label="Instruments"></nav>
+      <div id="blurb"></div>
+      <div id="filters">
+        <label class="check"><input id="draftsOnly" type="checkbox" /> <span>drafts only</span></label>
+        <label class="check"><input id="loop" type="checkbox" /> <span>loop the probe</span></label>
+        <span id="probeName" class="chip">probe</span>
+      </div>
+
+      <div id="listWrap">
+        <table id="voices">
+          <colgroup>
+            <col class="col-play" />
+            <col class="col-slug" />
+            <col class="col-title" />
+            <col class="col-status" />
+          </colgroup>
+          <tbody id="rows"></tbody>
+        </table>
+        <div id="empty" hidden></div>
+      </div>
+
+      <div id="selected">loading…</div>
+      <div id="notes"></div>
+      <div class="row">
+        <button id="play">▶ Play</button>
+        <button id="pause">⏸ Pause</button>
+        <button id="stop">■ Stop</button>
+      </div>
+      <div class="row">
+        <button id="approve">✓ Approve</button>
+        <label class="check"><input id="makeDefault" type="checkbox" /> <span>as default</span></label>
+        <button id="fork">⑂ Fork</button>
+      </div>
+      <div id="status"></div>
+    </main>
+    <script type="module" src="/src/app/voices-main.ts"></script>
+  </body>
+</html>

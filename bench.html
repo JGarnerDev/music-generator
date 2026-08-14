@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>render bench — music-generator</title>
+    <style>
+      body {
+        font: 14px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace;
+        margin: 2rem;
+        max-width: 60rem;
+      }
+      h1 { font-size: 1.1rem; }
+      p { color: #555; max-width: 46rem; }
+      table { border-collapse: collapse; margin-top: 1rem; width: 100%; }
+      th, td { text-align: right; padding: 0.3rem 0.6rem; border-bottom: 1px solid #ddd; }
+      th:first-child, td:first-child { text-align: left; }
+      td.slow { color: #b00; font-weight: 600; }
+      td.fast { color: #070; }
+      button { font: inherit; padding: 0.4rem 0.9rem; margin-right: 0.5rem; }
+      #status { margin-top: 1rem; color: #555; }
+    </style>
+  </head>
+  <body>
+    <h1>render bench</h1>
+    <p>
+      Times an offline render of a slice of each piece, then strips the graph
+      down part by part so the expensive part shows up as a drop in render time.
+      "×realtime" is audio seconds produced per wall-clock second — under 1× is
+      slower than just playing it.
+    </p>
+    <p><strong>The page freezes during each run.</strong> The clock walk is synchronous; that
+      is what is being measured.</p>
+    <div>
+      <button id="run">Run bench (10s slices)</button>
+      <button id="runProfiles">Run quality profiles (10s slices)</button>
+      <button id="runFull">Render six-gun-shredout in full (may take minutes)</button>
+    </div>
+    <div id="status">Idle.</div>
+    <table id="results">
+      <thead>
+        <tr>
+          <th>run</th>
+          <th>audio</th>
+          <th>build</th>
+          <th>render</th>
+          <th>×realtime</th>
+          <th>notes</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+    <script type="module" src="/src/dev/bench.ts"></script>
+  </body>
+</html>

@@ -18,3 +18,7 @@ assets/samples/*
 
 # Deleted compositions are moved here by the bench, not unlinked — recoverable, not committed
 compositions/_trash/
+
+# Full-quality WAVs from `npm run render -- --wav` — MP3s beside them are committed.
+public/audio/*.wav
+public/audio/voices/*.wav

@@ -1,0 +1,76 @@
+{
+  "entries": [
+    {
+      "name": "bass.saw-round",
+      "file": "bass.saw-round.mp3",
+      "seconds": 24.8695625,
+      "bytes": 498240,
+      "isLoop": false,
+      "renderedAt": "2026-08-14T15:44:34.901Z"
+    },
+    {
+      "name": "drums.house-kit",
+      "file": "drums.house-kit.mp3",
+      "seconds": 24.8695625,
+      "bytes": 498240,
+      "isLoop": false,
+      "renderedAt": "2026-08-14T15:44:49.316Z"
+    },
+    {
+      "name": "epiano.fm-rhodes",
+      "file": "epiano.fm-rhodes.mp3",
+      "seconds": 26.857125,
+      "bytes": 538080,
+      "isLoop": false,
+      "renderedAt": "2026-08-14T15:44:42.972Z"
+    },
+    {
+      "name": "lead.brown-lead",
+      "file": "lead.brown-lead.mp3",
+      "seconds": 22.461520833333335,
+      "bytes": 449760,
+      "isLoop": false,
+      "renderedAt": "2026-08-14T15:44:47.251Z"
+    },
+    {
+      "name": "lead.doom-fuzz",
+      "file": "lead.doom-fuzz.mp3",
+      "seconds": 22.461520833333335,
+      "bytes": 449760,
+      "isLoop": false,
+      "renderedAt": "2026-08-14T16:02:13.331Z"
+    },
+    {
+      "name": "pad.sine-halo",
+      "file": "pad.sine-halo.mp3",
+      "seconds": 27.999979166666666,
+      "bytes": 560640,
+      "isLoop": false,
+      "renderedAt": "2026-08-14T15:44:40.195Z"
+    },
+    {
+      "name": "piano.soft-triangle",
+      "file": "piano.soft-triangle.mp3",
+      "seconds": 26.857125,
+      "bytes": 538080,
+      "isLoop": false,
+      "renderedAt": "2026-08-14T15:44:37.731Z"
+    },
+    {
+      "name": "pluck.brown-rhythm",
+      "file": "pluck.brown-rhythm.mp3",
+      "seconds": 22.461520833333335,
+      "bytes": 449760,
+      "isLoop": false,
+      "renderedAt": "2026-08-14T15:44:45.072Z"
+    },
+    {
+      "name": "pluck.chainsaw-chug",
+      "file": "pluck.chainsaw-chug.mp3",
+      "seconds": 22.461520833333335,
+      "bytes": 449760,
+      "isLoop": false,
+      "renderedAt": "2026-08-14T16:08:53.352Z"
+    }
+  ]
+}

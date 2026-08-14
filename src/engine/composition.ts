@@ -70,6 +70,13 @@ export interface Track {
   notes: Note[];
   /** Linear gain 0..1. Defaults to 1. */
   gain?: number;
+  /**
+   * Which sound this instrument plays: the slug of a preset in
+   * `voices/<instrument>/`. Omitted means the instrument's default voice, so a
+   * piece written before a voice existed keeps rendering the same way. See
+   * [`./voice`](./voice.ts) and `voices/archive.md` for what is available.
+   */
+  voice?: string;
 }
 
 export interface LoFiSettings {
@@ -176,6 +183,12 @@ export function validateComposition(input: unknown): ValidationIssue[] {
     }
     if (t.gain !== undefined && !isUnit(t.gain)) {
       push(`${base}.gain`, "must be a number in 0..1");
+    }
+    // Only the shape is checked here: whether a voice by that slug exists is a
+    // question about the `voices/` folder, which this pure contract can't see.
+    // An unknown slug falls back to the instrument's default at build time.
+    if (t.voice !== undefined && (typeof t.voice !== "string" || t.voice.trim() === "")) {
+      push(`${base}.voice`, "must be a non-empty voice slug");
     }
     if (!Array.isArray(t.notes) || t.notes.length === 0) {
       push(`${base}.notes`, "must be a non-empty array");

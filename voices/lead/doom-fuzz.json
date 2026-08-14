@@ -1,0 +1,70 @@
+{
+  "instrument": "lead",
+  "slug": "doom-fuzz",
+  "title": "Doom fuzz",
+  "status": "approved",
+  "tags": [
+    "guitar",
+    "lead",
+    "fuzz",
+    "doom",
+    "sustain"
+  ],
+  "notes": "Chainsaw doom fuzz — Fuzz/Ty Segall and Mastodon, where even a single note reads as a huge power chord, with the HM-2 rasp on top. It inverts the brown-sound rig's central rule rather than turning it up: the high-pass sits at 150 Hz instead of 260 so the low strings *do* hit the drive and intermodulate, because that woolly low-mid smear is the sound rather than a mistake to be engineered out. The oscillator is a fat square, not a saw — fuzz is a squaring transfer curve, and starting from odd harmonics beats manufacturing them downstream. The rip is two things and neither is gain: five oscillators at 44 cents, whose beating is the serration you hear as a chainsaw, and a +7 dB bump at 2.7 kHz under a 4.3 kHz cab, which is the band an HM-2 lives in. Sag is 9:1 rather than a limiter, because squashing the attack is exactly what files the teeth off — the note still blooms and never decays, but the pick arrives first. Wider than a brown lead (0.4) because size is the point, but not rhythm-wide: it is still a top line. Output sums low (0.42), since all that gain arrives as level.",
+  "synth": {
+    "kind": "mono",
+    "oscillator": {
+      "type": "fatsquare",
+      "count": 5,
+      "spread": 44
+    },
+    "envelope": {
+      "attack": 0.003,
+      "decay": 1.2,
+      "sustain": 1,
+      "release": 1.4
+    },
+    "filter": {
+      "type": "lowpass",
+      "rolloff": -12,
+      "Q": 1.2
+    },
+    "filterEnvelope": {
+      "attack": 0.003,
+      "decay": 0.6,
+      "sustain": 0.9,
+      "release": 1.2,
+      "baseFrequency": 520,
+      "octaves": 3.4,
+      "exponent": 1.5
+    },
+    "maxPolyphony": 16
+  },
+  "amp": {
+    "input": 6.6,
+    "tighten": 150,
+    "sag": {
+      "threshold": -30,
+      "ratio": 9
+    },
+    "preamp": 0.95,
+    "toneStack": {
+      "low": 5,
+      "mid": 4,
+      "high": -1
+    },
+    "cab": 4300,
+    "presence": {
+      "frequency": 2700,
+      "gain": 7
+    },
+    "width": 0.4,
+    "slap": {
+      "delayTime": 0.15,
+      "wet": 0.2
+    },
+    "sum": 0.42
+  },
+  "forkedFrom": "lead/brown-lead",
+  "approvedAt": "2026-08-14"
+}

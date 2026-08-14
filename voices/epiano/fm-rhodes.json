@@ -1,0 +1,17 @@
+{
+  "instrument": "epiano",
+  "slug": "fm-rhodes",
+  "title": "FM Rhodes",
+  "status": "approved",
+  "default": true,
+  "approvedAt": "2026-08-14",
+  "tags": ["warm", "bell", "lo-fi"],
+  "notes": "Two-operator FM at a 2:1 ratio — the bell in the attack that reads as an electric piano, over a body that decays away fast enough to leave room. The modulation index is the character knob: past about 8 it stops being a Rhodes and starts being a bell.",
+  "synth": {
+    "kind": "fm",
+    "oscillator": { "type": "sine" },
+    "harmonicity": 2,
+    "modulationIndex": 6,
+    "envelope": { "attack": 0.01, "decay": 0.6, "sustain": 0.1, "release": 1.2 }
+  }
+}

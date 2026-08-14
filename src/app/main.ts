@@ -3,13 +3,21 @@
  * pick a piece — or drop an external one — and wire the Play / Stop / Export
  * buttons. Deliberately minimal — a workshop bench, not a DAW.
  */
-import * as Tone from "tone";
 import { validateComposition, type Composition } from "@engine/composition";
 import { buildLibrary, type CompositionKind, type LibraryEntry } from "@engine/library";
+import { audioName, indexManifest } from "@engine/manifest";
 import { TRASH_ENDPOINT } from "../dev/endpoints";
 import { renderLibrary, type LibraryViewState } from "./library-view";
-import { scheduleComposition } from "./graph";
-import { renderToWav, renderLoopToWav, downloadWav } from "./render";
+import { playFile, stopPlayback } from "./playback";
+
+// What `npm run render` produced. Fetched rather than imported because it sits
+// in `public/` beside the audio it describes, and Vite does not let JavaScript
+// import out of `public/`. The app renders nothing itself: a piece missing from
+// this manifest has no audio yet.
+const rendered = fetch("/audio/manifest.json")
+  .then((res) => (res.ok ? (res.json() as Promise<unknown>) : null))
+  .then(indexManifest)
+  .catch(() => indexManifest(null));
 
 // Vite bundles every composition in the tree at build time; add a JSON under
 // compositions/<kind>/ (e.g. via `npm run compose`) and it shows up after reload.
@@ -47,7 +55,6 @@ const view: LibraryViewState = {
 };
 
 let current: Composition | null = null;
-let scheduled = false;
 
 function setStatus(msg: string): void {
   els.status.textContent = msg;
@@ -73,15 +80,13 @@ function loadComposition(comp: unknown, source: string): boolean {
   const issues = validateComposition(comp);
   if (issues.length > 0) {
     setStatus(`Invalid ${source}: ${issues.map((i) => `${i.path} ${i.message}`).join("; ")}`);
-    els.play.disabled = true;
-    els.export.disabled = true;
+    for (const button of [els.play, els.export]) button.disabled = true;
     return false;
   }
   current = comp as Composition;
   const loop = current.loop;
   els.title.textContent = `${current.name} — ${current.key} @ ${current.bpm} BPM`;
-  els.play.disabled = false;
-  els.export.disabled = false;
+  for (const button of [els.play, els.export]) button.disabled = false;
   // Loop controls only mean something for a piece that declares a loop window.
   els.exportLoop.disabled = !loop;
   els.loop.disabled = !loop;
@@ -121,7 +126,9 @@ async function remove(entry: LibraryEntry): Promise<void> {
       view.selectedId = null;
       current = null;
       els.title.textContent = "No composition selected.";
-      for (const button of [els.play, els.export, els.exportLoop]) button.disabled = true;
+      for (const button of [els.play, els.export, els.exportLoop]) {
+        button.disabled = true;
+      }
     }
     draw();
     setStatus(`Moved ${body.trashed} to compositions/_trash/.`);
@@ -130,50 +137,65 @@ async function remove(entry: LibraryEntry): Promise<void> {
   }
 }
 
+/**
+ * Play = play the rendered file (see `playback.ts`). Nothing is synthesised in
+ * the browser, so playback cannot stutter however dense the arrangement is, and
+ * a piece is ready the moment the page loads.
+ *
+ * A piece with no audio yet is not playable — `npm run render` is what makes it
+ * so. Same for a piece whose notes changed since it was rendered: the audio has
+ * no idea, and re-rendering is a command, not a button.
+ */
 async function play(): Promise<void> {
   if (!current) return;
-  await Tone.start();
-  stop(); // reset any prior schedule
-  const looping = els.loop.checked && !!current.loop;
-  scheduleComposition(current, { loop: looping });
-  scheduled = true;
-  Tone.getTransport().start();
-  setStatus(looping ? "Playing (looping)…" : "Playing…");
+  const comp = current;
+  const looping = els.loop.checked && !!comp.loop;
+  const name = audioName(comp.name, { loop: looping });
+  const entry = (await rendered).get(name);
+  if (!entry) {
+    setStatus(`No audio for ${name}. Run: npm run render -- --file <its .json>`);
+    return;
+  }
+
+  els.play.disabled = true;
+  try {
+    await playFile(`/audio/${entry.file}`, {
+      loop: looping,
+      onEnded: () => setStatus("Finished."),
+    });
+    setStatus(
+      `${looping ? "Playing loop" : "Playing"} — ${entry.seconds.toFixed(0)}s, ` +
+        `rendered ${new Date(entry.renderedAt).toLocaleDateString()}.`,
+    );
+  } catch (err) {
+    setStatus(`Could not play ${name}: ${(err as Error).message}`);
+  } finally {
+    els.play.disabled = current === null;
+  }
 }
 
 function stop(): void {
-  const t = Tone.getTransport();
-  t.stop();
-  t.cancel(0);
-  if (scheduled) {
-    // Drop old nodes so a re-play rebuilds a clean graph.
-    Tone.getContext().dispose();
-    Tone.setContext(new Tone.Context());
-    scheduled = false;
-  }
+  stopPlayback();
   setStatus("Stopped.");
 }
 
 /**
- * Render and download. `loopOnly` exports the seamless loop body under a
- * `.loop` suffix, so a game can drop it straight in beside the full take.
+ * Download what was rendered. `loopOnly` grabs the seam-wrapped loop body, the
+ * file a game ships. Full-quality WAVs come from `npm run render -- --wav`.
  */
-async function exportWav(loopOnly: boolean): Promise<void> {
+async function exportAudio(loopOnly: boolean): Promise<void> {
   if (!current) return;
-  const comp = current;
-  setStatus(loopOnly ? "Rendering seamless loop…" : "Rendering WAV…");
-  els.export.disabled = true;
-  els.exportLoop.disabled = true;
-  try {
-    const bytes = loopOnly ? await renderLoopToWav(comp) : await renderToWav(comp);
-    downloadWav(bytes, loopOnly ? `${comp.name}.loop` : comp.name);
-    setStatus(loopOnly ? "Exported seamless loop WAV." : "Exported WAV.");
-  } catch (err) {
-    setStatus(`Export failed: ${(err as Error).message}`);
-  } finally {
-    els.export.disabled = false;
-    els.exportLoop.disabled = !comp.loop;
+  const name = audioName(current.name, { loop: loopOnly });
+  const entry = (await rendered).get(name);
+  if (!entry) {
+    setStatus(`No audio for ${name}. Run: npm run render -- --file <its .json>`);
+    return;
   }
+  const link = document.createElement("a");
+  link.href = `/audio/${entry.file}`;
+  link.download = entry.file;
+  link.click();
+  setStatus(`Downloading ${entry.file}.`);
 }
 
 /** Read a dropped/browsed .json file into the bench (does not touch the folder). */
@@ -191,8 +213,8 @@ async function loadFromFile(file: File): Promise<void> {
 
 els.play.addEventListener("click", () => void play());
 els.stop.addEventListener("click", () => stop());
-els.export.addEventListener("click", () => void exportWav(false));
-els.exportLoop.addEventListener("click", () => void exportWav(true));
+els.export.addEventListener("click", () => void exportAudio(false));
+els.exportLoop.addEventListener("click", () => void exportAudio(true));
 els.search.addEventListener("input", () => {
   view.query = els.search.value;
   draw();

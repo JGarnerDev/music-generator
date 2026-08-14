@@ -2,10 +2,25 @@
 import { defineConfig } from "vite";
 import { resolve } from "node:path";
 import { libraryApi } from "./src/dev/library-api";
+import { voiceApi } from "./src/dev/voice-api";
 
 export default defineConfig({
-  // Dev-only: lets the bench's delete button move a composition into _trash.
-  plugins: [libraryApi(resolve(__dirname, "compositions"))],
+  plugins: [
+    // Dev-only: lets the bench's delete button move a composition into _trash.
+    libraryApi(resolve(__dirname, "compositions")),
+    // Dev-only: Approve / Fork in the voices bench, writing voices/ + the archive.
+    voiceApi(resolve(__dirname, "voices")),
+  ],
+  build: {
+    // Two pages: the composition bench and the voice bench. `render.html` is
+    // deliberately absent — it is dev-only machinery for `npm run render`.
+    rollupOptions: {
+      input: {
+        main: resolve(__dirname, "index.html"),
+        voices: resolve(__dirname, "voices.html"),
+      },
+    },
+  },
   resolve: {
     alias: {
       "@engine": resolve(__dirname, "src/engine"),

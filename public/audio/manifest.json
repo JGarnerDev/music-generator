@@ -1,0 +1,84 @@
+{
+  "entries": [
+    {
+      "name": "ashen-king",
+      "file": "ashen-king.mp3",
+      "seconds": 17.636354166666667,
+      "bytes": 353280,
+      "isLoop": false,
+      "renderedAt": "2026-08-14T12:40:21.021Z"
+    },
+    {
+      "name": "demo-sad",
+      "file": "demo-sad.mp3",
+      "seconds": 21.647041666666667,
+      "bytes": 433440,
+      "isLoop": false,
+      "renderedAt": "2026-08-14T12:23:21.821Z"
+    },
+    {
+      "name": "dog-dies",
+      "file": "dog-dies.mp3",
+      "seconds": 21.142854166666666,
+      "bytes": 423360,
+      "isLoop": false,
+      "renderedAt": "2026-08-14T12:40:27.683Z"
+    },
+    {
+      "name": "dog-dies-funk",
+      "file": "dog-dies-funk.mp3",
+      "seconds": 16.5,
+      "bytes": 330720,
+      "isLoop": false,
+      "renderedAt": "2026-08-14T15:46:07.694Z"
+    },
+    {
+      "name": "quiet-camp-at-night",
+      "file": "quiet-camp-at-night.mp3",
+      "seconds": 20.438354166666667,
+      "bytes": 409440,
+      "isLoop": false,
+      "renderedAt": "2026-08-14T12:40:34.316Z"
+    },
+    {
+      "name": "rain-on-the-window-lights-off",
+      "file": "rain-on-the-window-lights-off.mp3",
+      "seconds": 19.584395833333332,
+      "bytes": 392640,
+      "isLoop": false,
+      "renderedAt": "2026-08-14T12:40:38.689Z"
+    },
+    {
+      "name": "six-gun-shredout",
+      "file": "six-gun-shredout.mp3",
+      "seconds": 119.44302083333334,
+      "bytes": 2389440,
+      "isLoop": false,
+      "renderedAt": "2026-08-14T12:52:12.490Z"
+    },
+    {
+      "name": "six-gun-shredout.loop",
+      "file": "six-gun-shredout.loop.mp3",
+      "seconds": 97.2151875,
+      "bytes": 1944960,
+      "isLoop": true,
+      "renderedAt": "2026-08-14T12:49:54.306Z"
+    },
+    {
+      "name": "vulture-mile",
+      "file": "vulture-mile.mp3",
+      "seconds": 107.291125,
+      "bytes": 2146560,
+      "isLoop": false,
+      "renderedAt": "2026-08-14T15:54:22.723Z"
+    },
+    {
+      "name": "vulture-mile.loop",
+      "file": "vulture-mile.loop.mp3",
+      "seconds": 97.2151875,
+      "bytes": 1944960,
+      "isLoop": true,
+      "renderedAt": "2026-08-14T15:54:07.748Z"
+    }
+  ]
+}

@@ -1,0 +1,38 @@
+{
+  "instrument": "pluck",
+  "slug": "brown-rhythm",
+  "title": "Brown rhythm",
+  "status": "approved",
+  "default": true,
+  "approvedAt": "2026-08-14",
+  "tags": ["guitar", "rhythm", "chug", "brown-sound"],
+  "notes": "The rhythm half of the brown-sound rig. Two detuned saws into a mild preamp, a mid-forward tone stack and a hard cab roll-off at 4.4 kHz; the high-pass at 170 Hz goes in *before* the drive so low strings never intermodulate into mud, and the bass owns everything under it. Compression stays gentle (2.5:1) on purpose — a chug that compresses is a chug that lost its attack. Wide (0.6 Haas) and low in the mix, because the lead lives in the centre.",
+  "synth": {
+    "kind": "mono",
+    "oscillator": { "type": "fatsawtooth", "count": 2, "spread": 10 },
+    "envelope": { "attack": 0.003, "decay": 0.3, "sustain": 0.55, "release": 0.28 },
+    "filter": { "type": "lowpass", "rolloff": -12, "Q": 1.4 },
+    "filterEnvelope": {
+      "attack": 0.002,
+      "decay": 0.16,
+      "sustain": 0.32,
+      "release": 0.4,
+      "baseFrequency": 380,
+      "octaves": 3.6,
+      "exponent": 2
+    },
+    "maxPolyphony": 16
+  },
+  "amp": {
+    "input": 1.7,
+    "tighten": 170,
+    "sag": { "threshold": -16, "ratio": 2.5 },
+    "preamp": 0.5,
+    "toneStack": { "low": -5, "mid": 3.5, "high": -6 },
+    "cab": 4400,
+    "presence": { "frequency": 2300, "gain": 3.5 },
+    "width": 0.6,
+    "slap": { "delayTime": 0.075, "wet": 0.09 },
+    "sum": 0.42
+  }
+}

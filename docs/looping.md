@@ -2,7 +2,7 @@
 title: Looping music for games
 purpose: How to write and export a track that repeats for minutes without fatiguing or clicking at the seam.
 audience: [claude, human]
-updated: 2026-08-13
+updated: 2026-08-14
 read_order: 3
 see_also: [../readme.md, ../claude.md, palette-authoring.md]
 ---
@@ -48,15 +48,15 @@ point: reverb tails, release envelopes and ringing notes spill past the end into
 silence. Repeat that file and every lap chops the decay and restarts dry — a
 click or a "breath", once per lap, forever.
 
-`renderLoopToWav` renders the body **plus four seconds**, then folds that
+The loop render takes the body **plus four seconds**, then folds that
 overhang back onto the head of the buffer ([`src/utils/loop.ts`](../src/utils/loop.ts)),
 which is exactly what the previous lap's tail would have been doing if the music
 had really been playing all along. The file's end runs into its own beginning.
 Folding adds signal, so the result is peak-limited by a uniform gain rather than
 clamped — a loop is heard too often to hide clipping distortion.
 
-Live playback gets the same effect for free: Tone's transport loop lets notes
-ring past `loopEnd` while the body restarts.
+That fold is why a loop is a *file*, not a live transport loop: the wrapped
+audio already contains what the previous lap was still ringing.
 
 ## Fighting fatigue
 
@@ -80,8 +80,14 @@ Long loops are thousands of mostly-mechanical notes, so they're generated from a
 ```bash
 npm run song:build -- --plan plans/high-noon-warpath.json
 npm run composition:validate -- --file compositions/high-noon-warpath.json
-npm run dev   # Play (Loop checked) → Export Loop
+npm run render -- --file compositions/high-noon-warpath.json
+npm run dev   # Play with Loop checked
 ```
+
+Play with **Loop** checked plays `<name>.loop.mp3` — the tail-wrapped body, on
+repeat — so the intro is skipped and the seam you hear is the seam the game
+gets. Nothing is rendered in the browser: if you changed the notes, run
+`npm run render` again or you are auditioning the old take.
 
 A plan is sections — an id, a `style`, a chord per bar, and any melody — and
 [`scripts/build-song.ts`](../scripts/build-song.ts) expands it with the tested
@@ -101,10 +107,15 @@ from repetition. Don't mix them inside one piece — pick the one the genre want
 
 ## Exports
 
-| Button | File | Use |
-|---|---|---|
-| Export WAV | `<name>.wav` | Intro + body once, with a decay tail. Auditioning. |
-| Export Loop | `<name>.loop.wav` | Body only, tail-wrapped. **This is the game asset** — set it to repeat with no crossfade and no gap. |
+`npm run render` writes both, per piece:
+
+| File | Use |
+|---|---|
+| `<name>.mp3` | Intro + body once, with a decay tail. Auditioning. |
+| `<name>.loop.mp3` | Body only, tail-wrapped. Repeat it with no crossfade and no gap. |
+
+Add `--wav` for full-quality `<name>.loop.wav` — **that** is the game asset;
+the committed MP3s are for auditioning in the bench.
 
 Ship the intro as a separate one-shot if the engine supports intro→loop
 chaining; otherwise the loop file alone is fine to start on.

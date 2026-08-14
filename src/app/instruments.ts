@@ -1,14 +1,23 @@
 /**
- * Instrument factory. Synth-based so the app makes sound with zero downloaded
- * sample packs — good enough to audition a piece instantly. Swap individual
- * instruments for `smplr` sampled sources later without touching the graph.
+ * Instrument factory: a **voice preset** (`voices/<instrument>/<slug>.json`) in,
+ * Tone nodes out.
  *
- * Browser-only (constructs Tone nodes); kept thin and logic-free so it needs no
- * unit tests — the pure decisions live in the engine.
+ * The sound used to be hardcoded here. It moved into JSON so it could be
+ * auditioned, refined and approved on its own clock — see
+ * [`docs/voices.md`](../../docs/voices.md) — and so a track can name which of an
+ * instrument's several sounds it wants. What is left in this file is the part
+ * that is genuinely code: which Tone class each kind of preset builds, and the
+ * guitar amp, whose *order* is the instrument.
+ *
+ * Browser-only (constructs Tone nodes); the decisions it can't make itself —
+ * which preset, what a preset may contain — live in the tested engine.
  */
 import * as Tone from "tone";
 import type { InstrumentName } from "@engine/composition";
+import type { AmpSpec, SynthSpec, VoicePreset } from "@engine/voice";
+import { getQuality } from "./quality";
 import { DrumKit } from "./drums";
+import { voiceFor } from "./voices";
 
 export type Playable = Tone.PolySynth | Tone.Sampler | DrumKit;
 
@@ -25,80 +34,21 @@ export interface Voice {
 /**
  * An instrument and its own signal chain, ready to be connected to the mix.
  *
+ * `slug` is the track's `voice` field — omitted means the instrument's default
+ * preset, which is what every piece written before voices existed gets.
+ *
  * Per-instrument tone lives here rather than in the shared lo-fi chain in
  * `graph.ts`: distortion belongs to the guitar, not to the drums that would be
  * ruined by it.
  */
-export function createVoice(name: InstrumentName): Voice {
-  const play = createInstrument(name);
-  if (name === "pluck" || name === "lead") {
-    return { play, output: guitarAmp(play as Tone.PolySynth, name) };
+export function createVoice(name: InstrumentName, slug?: string): Voice {
+  const preset = voiceFor(name, slug);
+  const play = createInstrument(preset);
+  if (preset.amp) {
+    return { play, output: guitarAmp(play as Tone.PolySynth, preset.amp) };
   }
   return { play, output: play };
 }
-
-/**
- * The two guitar rigs, as differences from each other. A lead is not a rhythm
- * part turned up — turning the rhythm tone up is exactly what makes a solo sound
- * puny and loud at the same time. Four things actually separate them:
- *
- * 1. **Compression, which is what "sustain" means on a guitar.** The lead hits a
- *    harder ratio at a lower threshold, so a held note stops decaying and starts
- *    singing. The rhythm part wants the opposite — a chug that compresses is a
- *    chug that has lost its attack.
- * 2. **Space in the spectrum.** The rhythm guitar is doubled at the fifth and
- *    reinforced by the bass, so it owns the low-mids; the lead climbs out above
- *    it (higher high-pass, presence up where the chug is quiet) instead of
- *    fighting it there. Two mid-forward parts in the same band cancel to mud.
- * 3. **Width.** The rhythm is a wide Haas pair; the lead stays near the centre.
- *    Everything wide at once reads as *nothing* wide, and the centre is the
- *    loudest place in a stereo mix — which is where the top line belongs.
- * 4. **Level.** The lead's output sum is roughly twice the rhythm's, before the
- *    per-track gain in `graph.ts` says anything.
- */
-interface AmpVoicing {
-  /** Gain into the preamp — more here is more saturation, not more volume. */
-  input: number;
-  /** High-pass before the drive, so low strings don't intermodulate into mud. */
-  tighten: number;
-  sag: { threshold: number; ratio: number };
-  preamp: number;
-  toneStack: { low: number; mid: number; high: number };
-  /** Speaker roll-off. The lead gets a little more top than the chug. */
-  cab: number;
-  presence: { frequency: number; gain: number };
-  /** Haas spread, 0..1. Rhythm goes wide; lead stays near the middle. */
-  width: number;
-  slap: { delayTime: number; wet: number };
-  sum: number;
-}
-
-const AMP_VOICINGS: Record<"pluck" | "lead", AmpVoicing> = {
-  pluck: {
-    input: 1.7,
-    tighten: 170,
-    sag: { threshold: -16, ratio: 2.5 },
-    preamp: 0.5,
-    toneStack: { low: -5, mid: 3.5, high: -6 },
-    cab: 4400,
-    presence: { frequency: 2300, gain: 3.5 },
-    width: 0.6,
-    slap: { delayTime: 0.075, wet: 0.09 },
-    sum: 0.42,
-  },
-  lead: {
-    input: 2.6,
-    tighten: 260,
-    sag: { threshold: -26, ratio: 6 },
-    preamp: 0.62,
-    toneStack: { low: -9, mid: 5, high: -3 },
-    cab: 5400,
-    presence: { frequency: 3100, gain: 5.5 },
-    width: 0.22,
-    slap: { delayTime: 0.11, wet: 0.16 },
-    sum: 0.8,
-  },
-};
 
 /**
  * The guitar rig — the `brown-sound` timbre palette's chain, in order:
@@ -119,25 +69,30 @@ const AMP_VOICINGS: Record<"pluck" | "lead", AmpVoicing> = {
  *    wall (-48 dB) a bit above 4 kHz with a presence bump under it. Fizz above
  *    that range is the biggest tell of a fake guitar.
  *
- * **This runs in realtime, so it is built to a CPU budget.** Two full amps —
- * genuine double-tracking — is the better sound and it glitched: the graph
- * builds one rig per *track*, and this project's plans give the guitar two
- * (rhythm + lead). The width instead comes from splitting after the cab, one
- * side delayed 13 ms, which is a Haas pair rather than two performances but
- * costs two nodes instead of a second amplifier. Oversampling is likewise spent
- * only where it shows: on the preamp, which is doing the actual clipping.
+ * Which numbers go in each block is the preset's business — that is exactly what
+ * separates the rhythm rig from the lead rig, and `voices/lead/brown-lead.json`
+ * explains its four differences. The blocks and their order are not negotiable
+ * from JSON, because they are the amp.
+ *
+ * The width here is a Haas pair — split after the cab, one side delayed 13 ms —
+ * rather than two full amps rendering two performances. That started as a CPU
+ * concession from when this graph ran in realtime; it is now a taste call, and
+ * genuine double-tracking is open again if it sounds better, because rendering
+ * is offline and has no deadline to miss.
  */
-function guitarAmp(source: Tone.PolySynth, role: "pluck" | "lead"): Tone.ToneAudioNode {
-  const voicing = AMP_VOICINGS[role];
+function guitarAmp(source: Tone.PolySynth, voicing: AmpSpec): Tone.ToneAudioNode {
   const input = new Tone.Gain(voicing.input);
   const tighten = new Tone.Filter(voicing.tighten, "highpass");
   // Variac sag: supply voltage dips on a hard hit, so the attack compresses and
-  // blooms back instead of spiking. Gentle for the rhythm part on purpose — a
+  // blooms back instead of spiking. Gentle for a rhythm part on purpose — a
   // hard ratio there rides the level down through the dense sections and reads
-  // as the music decaying. The lead wants exactly that hard ratio: a note that
+  // as the music decaying. A lead wants exactly that hard ratio: a note that
   // stops decaying is a note that sustains.
   const sag = new Tone.Compressor({ ...voicing.sag, attack: 0.004, release: 0.25 });
-  const preamp = new Tone.Distortion({ distortion: voicing.preamp, oversample: "2x" });
+  const preamp = new Tone.Distortion({
+    distortion: voicing.preamp,
+    oversample: getQuality().oversample,
+  });
   // Mid-forward, not scooped — scooped metal guitar disappears under the bass.
   const toneStack = new Tone.EQ3({
     ...voicing.toneStack,
@@ -167,72 +122,80 @@ function guitarAmp(source: Tone.PolySynth, role: "pluck" | "lead"): Tone.ToneAud
   return slap;
 }
 
-function createInstrument(name: InstrumentName): Playable {
-  switch (name) {
-    case "drums":
-      return new DrumKit();
-    case "piano":
-      return new Tone.PolySynth(Tone.Synth, {
-        oscillator: { type: "triangle" },
-        envelope: { attack: 0.005, decay: 0.4, sustain: 0.15, release: 1.6 },
-      });
-    case "epiano":
-      return new Tone.PolySynth(Tone.FMSynth, {
-        harmonicity: 2,
-        modulationIndex: 6,
-        envelope: { attack: 0.01, decay: 0.6, sustain: 0.1, release: 1.2 },
-      });
-    case "pad":
-      return new Tone.PolySynth(Tone.Synth, {
-        oscillator: { type: "sine" },
-        envelope: { attack: 0.8, decay: 1.5, sustain: 0.7, release: 3 },
-      });
-    case "bass":
-      return new Tone.PolySynth(Tone.Synth, {
-        oscillator: { type: "sawtooth" },
-        envelope: { attack: 0.02, decay: 0.3, sustain: 0.4, release: 0.6 },
-      });
-    case "pluck":
-      return guitarSynth("pluck");
-    case "lead":
-      return guitarSynth("lead");
+function createInstrument(preset: VoicePreset): Playable {
+  if (preset.instrument === "drums") {
+    if (!preset.kit) throw new Error(`Voice "${preset.slug}" has no kit`);
+    return new DrumKit(preset.kit);
   }
+  if (!preset.synth) throw new Error(`Voice "${preset.slug}" has no synth`);
+  return polySynth(preset.synth);
 }
 
 /**
- * The guitar oscillator, played through `guitarAmp`. A `MonoSynth` rather than a
- * plain `Synth` for one reason: the filter envelope. A struck string is
- * brightest at the pick and darkens as it rings, and a tone that never changes
- * across its own length is what reads as toy-like — no amount of distortion
- * downstream fixes a static waveform.
+ * Build the preset's `PolySynth`.
  *
- * Two saws detuned only slightly: wide detune is a synth-chorus effect, while a
- * real guitar's thickness comes from saturation and from the cab.
+ * A `mono` voice is a `MonoSynth` for one reason — the filter envelope. A struck
+ * string is brightest at the pick and darkens as it rings, and a tone that never
+ * changes across its own length is what reads as toy-like; no amount of
+ * distortion downstream fixes a static waveform. `synth` and `fm` have no filter
+ * envelope, which is why they are the ones used for keys and pads.
  *
- * The lead's envelope is the amplitude half of the same argument the amp voicing
- * makes: it holds near full level for as long as the note is held and releases
- * slowly, so a quarter note is still ringing when the next one arrives. The
- * rhythm part decays instead, because overlapping chugs are mud. Its filter also
- * opens higher and stays open — a lead that darkens as fast as a palm mute reads
- * as far away.
+ * Oscillator counts and polyphony are *negotiated* with the render quality
+ * profile rather than taken from the preset outright: an audition render
+ * collapses fat stacks to a single saw and the preset does not get a vote, since
+ * the point of an audition is to be fast. See `quality.ts` for the measurements.
  */
-function guitarSynth(role: "pluck" | "lead"): Tone.PolySynth {
-  const lead = role === "lead";
-  const guitar = new Tone.PolySynth(Tone.MonoSynth, {
-    oscillator: { type: "fatsawtooth", count: lead ? 3 : 2, spread: lead ? 16 : 10 },
-    envelope: lead
-      ? { attack: 0.004, decay: 0.5, sustain: 0.9, release: 0.7 }
-      : { attack: 0.003, decay: 0.3, sustain: 0.55, release: 0.28 },
-    filter: { type: "lowpass", rolloff: -12, Q: 1.4 },
-    filterEnvelope: lead
-      ? { attack: 0.004, decay: 0.3, sustain: 0.75, release: 0.8, baseFrequency: 700, octaves: 3, exponent: 2 }
-      : { attack: 0.002, decay: 0.16, sustain: 0.32, release: 0.4, baseFrequency: 380, octaves: 3.6, exponent: 2 },
-  });
-  // A MonoSynth voice is expensive (oscillator pair + filter + two envelopes),
-  // and PolySynth will happily allocate 32 of them per track. Sixteenth-note
-  // riffs never need that: the densest bar of a plan like `six-gun-shredout`
-  // peaks around seven voices including release tails. The lead is one line, but
-  // its long release means several notes overlap, so it keeps some headroom.
-  guitar.maxPolyphony = 16;
-  return guitar;
+function polySynth(spec: SynthSpec): Tone.PolySynth {
+  const quality = getQuality();
+  // A fat oscillator runs `count` oscillators per allocated voice, continuously,
+  // whether or not the voice is currently sounding — the dominant cost in a
+  // dense guitar part. The amp's saturation generates most of the thickness
+  // anyway, so an audition hears nearly the same instrument. `count` means
+  // nothing to the other oscillator types, so it is not passed to them at all.
+  const fat = spec.oscillator.type.startsWith("fat");
+  const oscillator = fat
+    ? { ...spec.oscillator, count: quality.singleOscillator ? 1 : (spec.oscillator.count ?? 3) }
+    : { ...spec.oscillator };
+  // The preset's oscillator type is a free string on purpose — every Tone
+  // waveform name is fair game while designing a sound — so this cast is where
+  // untyped JSON meets Tone's unions. A name Tone doesn't know fails loudly at
+  // render time, which is the moment you are listening anyway.
+  const options: Record<string, unknown> = { oscillator, envelope: spec.envelope };
+  if (spec.filter) options.filter = spec.filter;
+  if (spec.filterEnvelope) options.filterEnvelope = spec.filterEnvelope;
+  if (spec.harmonicity !== undefined) options.harmonicity = spec.harmonicity;
+  if (spec.modulationIndex !== undefined) options.modulationIndex = spec.modulationIndex;
+
+  const synth = build(spec.kind, options);
+  // PolySynth allocates up to `maxPolyphony` voices per track and each one runs
+  // continuously once allocated, sounding or not — so a cap is both musical (a
+  // guitar has six strings; a dozen ringing notes stopped sounding like one) and,
+  // per the bench, the dominant cost in a guitar track. Only voices that ask for
+  // a cap get one: a pad with a three-second release wants Tone's roomier default
+  // rather than voice-stealing mid-chord. The quality profile is a ceiling the
+  // preset cannot raise.
+  if (spec.maxPolyphony !== undefined) {
+    synth.maxPolyphony = Math.min(spec.maxPolyphony, quality.maxPolyphony);
+  }
+  return synth;
+}
+
+/**
+ * The Tone voice classes a preset may be built on. A short list on purpose: each
+ * is a different *kind* of generator, and adding one is a decision about the
+ * instrument palette, not a knob.
+ *
+ * Spelled out per branch rather than looked up in a map because `PolySynth` is
+ * generic in its voice class: the constructor has to see which one it is getting
+ * for the options to be checked against the right shape at all.
+ */
+function build(kind: SynthSpec["kind"], options: Record<string, unknown>): Tone.PolySynth {
+  switch (kind) {
+    case "fm":
+      return new Tone.PolySynth(Tone.FMSynth, options as unknown as Partial<Tone.FMSynthOptions>);
+    case "mono":
+      return new Tone.PolySynth(Tone.MonoSynth, options as unknown as Partial<Tone.MonoSynthOptions>);
+    case "synth":
+      return new Tone.PolySynth(Tone.Synth, options as unknown as Partial<Tone.SynthOptions>);
+  }
 }

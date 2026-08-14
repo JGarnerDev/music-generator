@@ -2,17 +2,17 @@
 title: music-generator
 purpose: Router and first-principles for the project. Read this before diving into code.
 audience: [claude, human]
-updated: 2026-08-12
+updated: 2026-08-14
 read_order: 1
-see_also: [claude.md, docs/vision.md, docs/palette-authoring.md, palettes/emotion/sad.md]
+see_also: [claude.md, docs/vision.md, docs/rendering.md, docs/palette-authoring.md]
 ---
 
 # music-generator
 
 Conversational, code-driven **lo-fi music**. Describe a mood, a scene, a poem —
-Claude composes a short, moving sample; you play it in the browser and export a
-**WAV**. Built for two jobs: scoring a D&D scene on the fly, and turning loose
-musical ideas into something you're pumped about.
+Claude composes a short, moving sample, renders it to a file, and you play it in
+the browser. Built for two jobs: scoring a D&D scene on the fly, and turning
+loose musical ideas into something you're pumped about.
 
 > **How to read this repo:** every markdown file starts with frontmatter. Read
 > the frontmatter first to decide if you need the body. This README is the
@@ -39,20 +39,22 @@ musical ideas into something you're pumped about.
 |---|---|---|
 | `palettes/<kind>/*.md` | Intent → music: `emotion`, `genre`, `timbre` | Per-kind schema; see [palette-authoring](docs/palette-authoring.md) |
 | `src/engine/` | Pure music brains | tonal, theory, arrange, validation — **tested** |
-| `src/utils/` | Promoted general helpers | rng, timing, wav — **tested** |
-| `src/app/` | Browser player + WAV export | Tone.js glue, thin, not unit-tested |
+| `src/utils/` | Promoted general helpers | rng, timing, wav, mp3, loop seams — **tested** |
+| `src/app/` | Browser player + the audio graph | Tone.js glue, thin, not unit-tested. The graph runs only under `npm run render`; the app itself just plays files |
 | `compositions/<kind>/*.json` | Song specs (the Claude↔app contract) | Kind = folder = tab: `leitmotifs`, `segments`, `loops`, `songs`. See [library](docs/library.md); shape in `src/engine/composition.ts` |
+| `voices/<instrument>/*.json` | Instrument sounds, several per instrument | Folder = instrument. Approved ones are indexed in [`voices/archive.md`](voices/archive.md); process in [voices](docs/voices.md) |
 | `plans/*.json` | Section plans for long/looping pieces | Expanded by `npm run song:build`; see [looping](docs/looping.md) |
-| `scripts/*.ts` | Deterministic CLI chores | commander, named flags |
-| `src/dev/` | Dev-server middleware (delete → `_trash`) | Never in the built bundle |
-| `exports/` | Rendered WAVs | Gitignored (ephemeral) |
+| `scripts/*.ts` | Deterministic CLI chores | commander, named flags. `render.ts` is the big one: see [rendering](docs/rendering.md) |
+| `src/dev/` | Dev-server middleware, render harness, render profiler | Never in the built bundle |
+| `public/audio/` | Rendered MP3s + `manifest.json` — what the bench plays | Committed; written by `npm run render` |
 | `assets/samples/` | SoundFont/sample packs | Gitignored (large binaries) |
 
 ## Workflow
 
 ```bash
 npm install
-npm run dev        # local workshop bench → Play / Stop / Export WAV
+npm run dev        # local workshop bench → Play / Stop / Download
+npm run render -- --all   # render every composition to public/audio/
 npm test           # vitest (engine + utils)
 npm run typecheck  # tsc --noEmit
 ```
@@ -67,11 +69,25 @@ npm run typecheck  # tsc --noEmit
 - **File it:** kind is the folder, and the bench tabs mirror it. Sweep or
   promote with `npm run compositions:organize` — see [library](docs/library.md),
   which also covers **leitmotifs** (themes other pieces quote via `motifs`).
-- **Audition & export:** `npm run dev`, hit Play, then Export WAV.
-- **Loop it (game music):** give the piece a `loop: {startBar, endBar}` and hit
-  Export Loop for a seamless, tail-wrapped body. Long loops are built from a
-  section plan: `npm run song:build -- --plan plans/<name>.json`. Rules for the
-  seam and for fighting fatigue: [looping](docs/looping.md).
+- **Render, then audition:** `npm run render -- --all` writes an MP3 per piece
+  into `public/audio/` (plus a `.loop` file for anything with a loop window).
+  Then `npm run dev` and hit Play — the app only ever *plays files*, so playback
+  can't stutter however dense the arrangement, and everything is ready the
+  moment the page loads. **Changed the notes? `npm run render -- --file <path>
+  --force`** — the audio has no idea the composition moved. Full flags, speed
+  numbers, and the designs that failed first: [rendering](docs/rendering.md).
+- **Loop it (game music):** give the piece a `loop: {startBar, endBar}` and the
+  render writes a seamless, tail-wrapped `<name>.loop.mp3` beside the full take.
+  Long loops are built from a section plan:
+  `npm run song:build -- --plan plans/<name>.json`. Rules for the seam and for
+  fighting fatigue: [looping](docs/looping.md).
+- **Design a sound:** instrument tone lives in `voices/<instrument>/<slug>.json`,
+  not in the code, so it can be settled once instead of re-argued inside every
+  song. Fork one (`npm run voice:new -- --instrument bass --slug sub-drone`),
+  render its probe (`npm run voice:render -- --voice bass/sub-drone`), audition
+  it at `/voices.html` with Play/Pause, then `npm run voice:approve`. A track
+  picks one with `"voice": "<slug>"`; approved sounds are indexed in
+  [`voices/archive.md`](voices/archive.md). Full loop: [voices](docs/voices.md).
 - **New palette:** `npm run palette:new -- --kind emotion|genre|timbre --slug <slug> --title "<t>" --tags a,b,c`
   (writes `palettes/<kind>/<slug>.md`). Add `--parent <slug>` for a **subtype**
   (`desert-rock` → `rock`): it states only its deltas and inherits the rest.
@@ -84,14 +100,21 @@ npm run typecheck  # tsc --noEmit
   proves reusable, move it to `src/utils` (general) or `src/engine`
   (music-specific) and add a `*.test.ts` next to it.
 - **Pure functions are the tested surface.** Anything that can be pure, is —
-  that's why timing, arrangement, theory, validation, rng and wav encoding live
-  outside the audio graph. Audio (`src/app`) stays thin so little is untested.
+  that's why timing, arrangement, theory, validation, rng, seam-wrapping and
+  audio encoding live outside the audio graph. Audio (`src/app`) stays thin so
+  little is untested.
 - Tests live beside source (`foo.ts` + `foo.test.ts`) and run in Node.
 
 ## Deeper docs
 
 - [`docs/vision.md`](docs/vision.md) — why the project exists: use cases,
   desired outcomes, design philosophy behind these principles.
+- [`docs/rendering.md`](docs/rendering.md) — how compositions become audio
+  files, why rendering is a CLI chore and not a button, and what not to try
+  again.
+- [`docs/voices.md`](docs/voices.md) — designing instrument sounds: the
+  fork → render → audition → approve loop, the probe études, and how a song
+  names a voice.
 - [`docs/looping.md`](docs/looping.md) — writing music that repeats for minutes:
   seam rules, tail-wrapped exports, section plans.
 - [`docs/library.md`](docs/library.md) — how `compositions/` is filed by kind,

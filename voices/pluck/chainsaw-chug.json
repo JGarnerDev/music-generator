@@ -1,0 +1,70 @@
+{
+  "instrument": "pluck",
+  "slug": "chainsaw-chug",
+  "title": "Chainsaw chug",
+  "status": "approved",
+  "tags": [
+    "guitar",
+    "rhythm",
+    "chug",
+    "fuzz",
+    "chainsaw"
+  ],
+  "notes": "The rhythm half of the chainsaw rig — what a track plays under `lead/doom-fuzz`, sharing its identity rather than its settings. What carries over is the identity: fat square oscillators instead of saws, the low end allowed into the drive (160 Hz rather than the brown rig's 170), and the same +6.5 dB HM-2 bump at 2.8 kHz under a 4.3 kHz cab, so the two guitars rasp in the same band and read as one rig. What does not carry over is length. Doom sustain belongs to the lead; a 1.4 s release on a palm mute is one long chord, so the envelope stays short (0.3 decay, 0.6 sustain) and the filter shuts in 140 ms — each chug has to be a separate event or the gallop turns to porridge. Four oscillators at 34 cents, not the lead's five at 44: beating that reads as serration on a held note reads as a wobble when it repeats sixteen times a bar. Sag stays gentle at 3:1 for the usual rhythm reason — a chug that compresses is a chug that lost its attack — but its threshold sits low (-14 dB) so a quiet chug is saturated too: a fixed input gain is what makes soft notes come out clean and keyboard-like. Everything that could read as a synth is deliberately removed rather than covered up. The filter barely sweeps — 900 Hz, two octaves, linear — because an audible sweep from a dark base *is* the synth-zap gesture, and a guitar is already bright at the pick rather than arriving there. Q is 0.5, since audible resonance is the loudest tell that a filter is in the signal at all. The envelope is decay-dominant (0.22 decay to a 0.35 sustain): a square wave holding a flat level is an organ, while a plucked string spends its energy and dies. Wide (0.62) and quiet (0.3 sum), because the centre belongs to the lead.",
+  "synth": {
+    "kind": "mono",
+    "oscillator": {
+      "type": "fatsquare",
+      "count": 5,
+      "spread": 38
+    },
+    "envelope": {
+      "attack": 0.001,
+      "decay": 0.22,
+      "sustain": 0.35,
+      "release": 0.26
+    },
+    "filter": {
+      "type": "lowpass",
+      "rolloff": -12,
+      "Q": 0.5
+    },
+    "filterEnvelope": {
+      "attack": 0.001,
+      "decay": 0.1,
+      "sustain": 0.22,
+      "release": 0.35,
+      "baseFrequency": 900,
+      "octaves": 2,
+      "exponent": 1
+    },
+    "maxPolyphony": 16
+  },
+  "amp": {
+    "input": 7.2,
+    "tighten": 160,
+    "sag": {
+      "threshold": -14,
+      "ratio": 3
+    },
+    "preamp": 0.97,
+    "toneStack": {
+      "low": 3,
+      "mid": 5,
+      "high": -2
+    },
+    "cab": 4300,
+    "presence": {
+      "frequency": 2800,
+      "gain": 6.5
+    },
+    "width": 0.62,
+    "slap": {
+      "delayTime": 0.08,
+      "wet": 0.1
+    },
+    "sum": 0.3
+  },
+  "forkedFrom": "pluck/brown-rhythm",
+  "approvedAt": "2026-08-14"
+}
