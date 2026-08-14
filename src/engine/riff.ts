@@ -8,69 +8,42 @@
  * whole section is one call and the *musical* choices (which roots, which
  * sections, where the seam goes) stay where a human can read them.
  *
+ * The *rhythm* those builders play is not theirs: it is a named figure from
+ * `figure.ts`, so a section can ask for a 3+3+2 or a triplet canter instead of
+ * the gallop and the rest of the arrangement is unchanged. What is left here is
+ * the layers that are not one repeating cell — sustains, tremolo, the shifter.
+ *
  * Pure and deterministic → unit tested. Voicing/naming math lives in `theory`.
  */
 import type { Note } from "./composition";
-import { transpose } from "./theory";
+import { figureLine, powerChordFigure, type FigureOptions, type FigureName } from "./figure";
 
-/** Sixteenth-note offsets of a gallop: an eighth on the beat, then two sixteenths. */
-const GALLOP_OFFSETS = [0, 2, 3] as const;
-const GALLOP_DURATIONS = ["8n", "16n", "16n"] as const;
 const BEATS_PER_BAR = 4;
 
 /** Note value each tremolo subdivision produces. Keys double as the allowed set. */
 const TREMOLO_DURATIONS: Record<number, string | undefined> = { 1: "4n", 2: "8n", 4: "16n" };
 
-/** Note value each motor subdivision produces. Keys double as the allowed set. */
-const MOTOR_DURATIONS: Record<number, string | undefined> = { 2: "8n", 4: "16n" };
+/** Figure each motor subdivision plays. Keys double as the allowed set. */
+const MOTOR_FIGURES: Record<number, FigureName | undefined> = {
+  2: "straight-eighths",
+  4: "sixteenth-chug",
+};
 
-export interface RiffOptions {
-  /** Bar the pattern starts on; roots advance one bar each. */
-  startBar: number;
-  /** Root pitch per bar, e.g. ["D2", "C2", "Bb1", "A1"]. */
-  roots: string[];
-  /**
-   * Pitch played on the very last sixteenth of a bar, per bar index. A chromatic
-   * step into the next root is what makes a repeated riff feel like it is going
-   * somewhere. `null`/absent = keep the root.
-   */
-  approaches?: (string | null)[];
-  /** Velocity of the on-beat eighth. Off-beat sixteenths sit below it. */
-  accent?: number;
-  /** Velocity of the two sixteenths. */
-  ghost?: number;
-}
+/** What a figure needs to become notes. The rhythm itself lives in `figure.ts`. */
+export type RiffOptions = FigureOptions;
 
 /**
  * Single-line gallop — the engine of a driving track, usually the bass.
  *
  * Odd beats are pushed slightly harder than even ones so a bar of identical
  * pitches still has a pulse; without that the pattern reads as a machine.
+ *
+ * This is `figureLine("gallop", …)` under a name, kept because the gallop is the
+ * one figure enough of the repo reaches for directly. Anything choosing its
+ * rhythm should call `figureLine` and pick.
  */
 export function gallopLine(opts: RiffOptions): Note[] {
-  const { startBar, roots, approaches = [], accent = 0.95, ghost = 0.8 } = opts;
-  const notes: Note[] = [];
-
-  roots.forEach((root, i) => {
-    const bar = startBar + i;
-    const approach = approaches[i] ?? null;
-    for (let beat = 0; beat < BEATS_PER_BAR; beat++) {
-      GALLOP_OFFSETS.forEach((offset, slot) => {
-        const isLastSixteenth = beat === BEATS_PER_BAR - 1 && slot === GALLOP_OFFSETS.length - 1;
-        const pitch = isLastSixteenth && approach ? approach : root;
-        const onBeat = slot === 0;
-        notes.push({
-          time: `${bar}:${beat}:${offset}`,
-          pitch,
-          duration: GALLOP_DURATIONS[slot]!,
-          // downbeat and beat 3 carry the bar; the between-beats sit back
-          velocity: onBeat ? (beat % 2 === 0 ? accent : accent - 0.07) : ghost,
-        });
-      });
-    }
-  });
-
-  return notes;
+  return figureLine("gallop", opts);
 }
 
 /**
@@ -83,8 +56,7 @@ export function gallopLine(opts: RiffOptions): Note[] {
  * palette).
  */
 export function powerChordGallop(opts: RiffOptions): Note[] {
-  // the long notes are the strummed ones; the fast sixteenths stay bare
-  return withFifths(gallopLine(opts), (note) => note.duration === "8n");
+  return powerChordFigure("gallop", opts);
 }
 
 export interface MotorOptions extends RiffOptions {
@@ -107,32 +79,7 @@ export interface MotorOptions extends RiffOptions {
  * bar is ending.
  */
 export function motorLine(opts: MotorOptions): Note[] {
-  const { startBar, roots, approaches = [], accent = 0.95, ghost = 0.82, subdivision = 2 } = opts;
-  const duration = MOTOR_DURATIONS[subdivision];
-  if (duration === undefined) {
-    throw new Error(`subdivision must be 2 or 4, got ${subdivision}`);
-  }
-  const step = 4 / subdivision;
-  const notes: Note[] = [];
-
-  roots.forEach((root, i) => {
-    const bar = startBar + i;
-    const approach = approaches[i] ?? null;
-    for (let beat = 0; beat < BEATS_PER_BAR; beat++) {
-      for (let hit = 0; hit < subdivision; hit++) {
-        const isLastHit = beat === BEATS_PER_BAR - 1 && hit === subdivision - 1;
-        notes.push({
-          time: `${bar}:${beat}:${hit * step}`,
-          pitch: isLastHit && approach ? approach : root,
-          duration,
-          // downbeat and beat 3 carry the bar; off-beats sit back a hair
-          velocity: hit === 0 ? (beat % 2 === 0 ? accent : accent - 0.05) : ghost,
-        });
-      }
-    }
-  });
-
-  return notes;
+  return figureLine(motorFigure(opts.subdivision), motorOptions(opts));
 }
 
 /**
@@ -141,28 +88,20 @@ export function motorLine(opts: MotorOptions): Note[] {
  * subdivision turn to mud, and the bare root reads as palm-muting.
  */
 export function powerChordMotor(opts: MotorOptions): Note[] {
-  return withFifths(motorLine(opts), (note) => note.time.endsWith(":0"));
+  return powerChordFigure(motorFigure(opts.subdivision), motorOptions(opts));
 }
 
-/** Stack a fifth over the notes `voiced` picks, memoising the interval math. */
-function withFifths(notes: Note[], voiced: (note: Note) => boolean): Note[] {
-  const fifths = new Map<string, string>();
-  const fifthOf = (root: string): string => {
-    let f = fifths.get(root);
-    if (f === undefined) {
-      f = transpose(root, 7);
-      fifths.set(root, f);
-    }
-    return f;
-  };
+function motorFigure(subdivision: 2 | 4 = 2): FigureName {
+  const figure = MOTOR_FIGURES[subdivision];
+  if (figure === undefined) {
+    throw new Error(`subdivision must be 2 or 4, got ${subdivision}`);
+  }
+  return figure;
+}
 
-  return notes.flatMap((note) => {
-    if (!voiced(note)) return [note];
-    return [
-      note,
-      { ...note, pitch: fifthOf(note.pitch), velocity: (note.velocity ?? 0.9) - 0.05 },
-    ];
-  });
+/** The motor's ghosts sit a touch above a gallop's — there are fewer of them. */
+function motorOptions(opts: MotorOptions): FigureOptions {
+  return { ...opts, ghost: opts.ghost ?? 0.82 };
 }
 
 export interface SustainOptions {

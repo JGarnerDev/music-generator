@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { Note as TonalNote } from "tonal";
-import { arpLine, bassLine, bassPatternFromKick, compLine, BASS_BAND } from "./parts";
+import { approachNotes, arpLine, bassLine, bassPatternFromKick, compLine, BASS_BAND } from "./parts";
 import { voiceLead } from "./theory";
 
 const midi = (pitch: string): number => TonalNote.midi(pitch)!;
@@ -173,5 +173,31 @@ describe("bassPatternFromKick", () => {
 
   it("is empty for an empty lane", () => {
     expect(bassPatternFromKick("")).toBe("");
+  });
+});
+
+describe("approachNotes", () => {
+  it("steps chromatically toward the next root, from below or above", () => {
+    // the approach sits a semitone from the *target*: below it going up, above going down
+    expect(approachNotes(["A2", "C3", "A2"])).toEqual(["B2", "Bb2", null]);
+  });
+
+  it("leaves a repeated root unapproached — there is nothing to lead into", () => {
+    expect(approachNotes(["A2", "A2", "C3"])).toEqual([null, "B2", null]);
+  });
+
+  it("aims the last bar at the loop start, which is what follows it every lap", () => {
+    expect(approachNotes(["A2", "C3"], 0).at(-1)).toBe("Bb2");
+  });
+
+  it("steps out of the bar's second chord when the bar changed half way", () => {
+    // bar 0 runs A2 → C3; the step into bar 1's B2 leaves C3, so it comes down onto it
+    expect(approachNotes(["A2", "B2"], null, ["C3", "B2"])).toEqual(["C3", null]);
+    // same bars read as A2 throughout would climb into the B2 from below instead
+    expect(approachNotes(["A2", "B2"])).toEqual(["Bb2", null]);
+  });
+
+  it("says nothing when the bar's own second chord is already the target", () => {
+    expect(approachNotes(["A2", "C3"], null, ["C3", "C3"])).toEqual([null, null]);
   });
 });

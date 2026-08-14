@@ -90,6 +90,14 @@ loop, not a song: write a `plans/<name>.json` and
 and read [`docs/looping.md`](./docs/looping.md) first — the seam rules are not
 guessable.
 
+**A plan that names no knobs is the last plan again.** Three loops here became
+one song by taking every default. Choose, per piece, before writing bars: a
+rhythm **figure** per section (`npm run figures` — the default gallops), a
+**register** (the default folds every key into 8 semitones), a **kit voice** and
+**gains**, and at least one phrase that isn't 8 bars. The builder prints which
+ones you left alone; it is a nudge, not an error, but "I meant it" is the only
+good reason to ignore it.
+
 ## Before you finish
 
 - `npm test` and `npm run typecheck` pass.

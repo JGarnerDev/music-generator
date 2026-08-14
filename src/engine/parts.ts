@@ -182,8 +182,18 @@ export function bassPatternFromKick(kick: string): string {
  * `null` (the default) leaves the last bar unapproached — right for a piece that
  * ends rather than wraps.
  */
-export function approachNotes(roots: string[], wrapTo: number | null = null): (string | null)[] {
-  return roots.map((root, i) => {
+export function approachNotes(
+  roots: string[],
+  wrapTo: number | null = null,
+  /**
+   * Pitch each approach steps *away from*, when that isn't the same array — a bar
+   * whose chord changes half way through is approached out of its second chord,
+   * not the one it started on. Defaults to `roots`.
+   */
+  from: string[] = roots,
+): (string | null)[] {
+  return roots.map((_, i) => {
+    const root = from[i] ?? roots[i]!;
     const isLastBar = i === roots.length - 1;
     const nextIndex = isLastBar ? wrapTo : i + 1;
     if (nextIndex === null) return null;

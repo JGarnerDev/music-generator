@@ -23,42 +23,39 @@ shipped; keep this list short and forward-looking.
 **The problem, stated once.** Three of the four loop plans are the same song:
 `high-noon-warpath`, `six-gun-shredout` and `black-hat-arrives` share one section
 arc (intro → riff-a → variation → halved harmonic rhythm → breakdown → rebuild →
-riff → climb → turnaround), all-8-bar sections, 146–158 BPM, and a minor
-i–VII–VI–V. `vulture-mile` is the only outlier, and the only one that reads as a
-different piece. Variety has to come from the *engine offering choices* and from
+riff → climb → turnaround), all-8-bar sections, 146–158 BPM, a minor i–VII–VI–V —
+and, until the figure shelf landed, one hard-coded gallop under all of it.
+`vulture-mile` is the only outlier, and the only one that reads as a different
+piece. Variety has to come from the *engine offering choices* and from
 **the user's prompt selecting them** — not from Claude remembering to be
 different. Experiment freely inside these knobs; they are the reasonable bounds.
 
-- [ ] **Riff rhythm figures — the single biggest cause.** `gallopLine` and
-      `powerChordGallop` walk `GALLOP_OFFSETS`, a module constant
-      (`src/engine/riff.ts`), so *every* `riff` bar in *every* piece is the same
-      sixteenth figure with a different root. Parameterise it: a named figure set
-      (`gallop`, `3+3+2`, `pushed-eighths`, `half-time-chug`, `triplet-canter`,
-      `four-on-floor-stab`), pure and testable, selectable per section from the
-      plan. Until this lands, no amount of new harmony makes two pieces sound
-      unalike.
-- [ ] **Get off the 8-bar grid.** Every section in every plan is 8 bars and every
-      chord change lands on a barline, so the meter is fully predicted two bars
-      in. Want phrase lengths of 6/10/12, 2-bar tags, and chord changes on the
-      half-bar. Mostly a plan-authoring habit, but `build-song` should stop making
-      8 the path of least resistance (e.g. allow `"chords"` entries to carry a
-      duration).
+- [ ] **Spend the knobs — the only P0 item that changes what anyone hears.** The
+      engine now offers figures (`npm run figures`), `register`, per-track `gains`,
+      a per-piece kit voice, phrase lengths off the 8-bar grid and chord changes
+      inside the bar (`["Bb", "C"]`). **Every plan still declares none of them**,
+      so all four pieces sound exactly as they did. Rewrite `high-noon-warpath`,
+      `six-gun-shredout` and `black-hat-arrives` — a different figure per section,
+      a register that isn't G1–D2, one odd-length phrase each — then rebuild and
+      re-render. A knob nobody turns is the same as no knob.
+- [ ] **The `compose` path can't reach any of it.** Figures, register and the
+      split-bar harmony live in `figure.ts`/`build-song.ts`, so they exist for
+      plan-built **loops** only. `npm run compose` builds segments through
+      `composer.ts` + `parts.ts`, which never import `figure.ts` — so the fast
+      path, the one used for a D&D scene on the fly, still has exactly one rhythm
+      vocabulary. Either `parts.ts`'s pattern strings become figures, or the
+      composer picks a figure per section the way a plan does. Do it after the
+      plans prove the knobs are worth reaching for.
 - [ ] **Harmony beyond the Andalusian minor.** i–VII–VI–V with a harmonic-minor V
       is the only progression these loops use. Want: Dorian (natural VI), a
       Phrygian bII drone, pedal-point harmony that refuses to move, and major-key
       westerns. Overlaps the P1 mode work — phrygian-dominant is still
       unsupported (`MODE_FAMILY` is the seven church modes only), and it is the
       mode this genre most wants.
-- [ ] **Register: the key is currently inaudible.** `BASS_BAND` is hard-coded to
-      G1–D2 (`scripts/build-song.ts`), 8 semitones, so every root folds into the
-      same octave and C minor sits where D minor sat. Make the band plan-settable
-      (and let a piece sit low and heavy or high and frantic), then the key is a
-      real choice.
-- [ ] **Kit and mix are one preset.** Near-identical kick/snare/ride across
-      pieces, `house-kit` on all of them, and gains fixed in the builder
-      (`drums 0.85 / pad 0.35 / bass 0.95 / pluck 0.62 / lead 0.85 / piano 0.8`).
-      Let a plan override per-track gain, and pick kit voices per piece the way
-      `voices:` now picks the others.
+- [ ] **Kits still sound alike.** `house-kit` is on every piece and the grooves
+      are near-identical kick/snare/ride. Per-piece kit voices and per-track gains
+      are both plan fields now, so what is left here is *authoring*: a kit voice
+      per piece, and grooves that aren't the same backbeat with a different hat.
 - [ ] **The prompt should drive the knobs.** Once the above exist, the composing
       loop reads the user's scene words and *chooses*: figure, tempo band,
       register, mode, section arc. Write the mapping down (a `docs/` note or a
