@@ -1,4 +1,12 @@
 {
   "entries": [
+    {
+      "name": "dune-hammer",
+      "file": "dune-hammer.mp3",
+      "seconds": 26.5,
+      "bytes": 530880,
+      "isLoop": false,
+      "renderedAt": "2026-08-15T13:17:46.373Z"
+    }
   ]
 }
