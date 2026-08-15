@@ -1,0 +1,119 @@
+{
+  "instrument": "drums",
+  "slug": "brush-kit",
+  "title": "Brush kit",
+  "status": "approved",
+  "tags": [
+    "kit",
+    "brushes",
+    "jazz",
+    "blues",
+    "lofi",
+    "quiet",
+    "ride",
+    "cross-stick"
+  ],
+  "notes": "The kit for the half of the campaign that isn't a fight. Every kit on the shelf so far is a hitting kit — `house-kit` thumps, `slab-kit` cracks, `frontier-kit` fires a pistol — and progress.md's \"low-arousal hole\" is as much a percussion problem as a palette one: a tavern, a long ride, a funeral read as combat the moment a stick hits a snare.\n\n**The one idea worth stating first: the ride is louder than the kick.** Ride 0.5 against kick 0.55, where `house-kit` has 0.3 against 1.0. That inversion is the entire genre. A jazz or blues kit is a ride cymbal keeping time with a bass drum *feathered* underneath it — the kick is felt, not heard — and no amount of pattern-writing produces that feel while the kick is the loudest piece in the kit. It is a levels decision, so it belongs here and not in a groove, per the usual rule.\n\nThe rest follows from \"played with wire, not wood\":\n\n- **The snare is a swish, not a hit.** Pink noise (house: white), centre down to 3.0 kHz, Q opened right out to 0.5 and the decay stretched to 0.32 s — four times the parent's 0.18. A brush dragged across a coated head is broadband and *sustained*; the sound is the travel, not the impact. `snareBody` drops to 0.15 of the snare level (house: 0.45) because a brush barely excites the shell at all, and leaving the body up is what makes a brush patch sound like a quiet rock snare.\n- **`rim` is a cross-stick, and it is the backbeat.** Level 0.6 — above the snare — at 1.8 kHz with Q 2.2 and a 50 ms decay. Narrow and low is a *woody* click rather than the parent's thin tick at 2.6 kHz, and on a ballad the cross-stick is what states beats 2 and 4 while the brush keeps the surface moving. This is the one piece a plan must deliberately write for; a groove that leaves `rim` empty here has no backbeat at all.\n- **The kick is felt.** F1, 0.32 s, and crucially `octaves` down to 3 (house: 6) with `pitchDecay` up to 0.05 — a slow, narrow sweep is a soft beater on a loose head, and it removes the click entirely. Every bit of attack you leave in is a kick that announces itself, which is the thing being designed out.\n- **The ride is a proper ping**: Q 4.5, 1.5 s, 5.6 kHz. The narrowest cymbal on the shelf, because a ride pattern has to stay countable at low volume where a wash would just be air. `crash` goes the other way and gets *smaller* than the parent (1.8 s, level 0.35) — in this music a crash is a colour, not an arrival.\n- **Hats are foot hats.** 5.8 kHz and Q 0.8, duller and wider than the parent's 7 kHz tick: a hat closed by a pedal is a fat \"chick\", not a stick on the edge.\n- **The toms are tuned up and short** (G1/C2/F2, 0.45–0.55 s). Small drums, tensioned heads — the opposite of `slab-kit`'s F1 rolling toms, and the reason a fill here reads as decoration rather than as a build.\n\nEverything in this kit is quieter than its parent except the ride and the cross-stick. That is not timidity, it is the balance: the loudest thing in the room is a cymbal being tapped.",
+  "kit": {
+    "levels": {
+      "kick": 0.55,
+      "snare": 0.5,
+      "rim": 0.6,
+      "clap": 0.4,
+      "hat": 0.3,
+      "open-hat": 0.28,
+      "ride": 0.5,
+      "crash": 0.35,
+      "tom-lo": 0.6,
+      "tom-mid": 0.6,
+      "tom-hi": 0.55,
+      "shaker": 0.28
+    },
+    "membrane": {
+      "kick": {
+        "pitch": "F1",
+        "decay": 0.32,
+        "pitchDecay": 0.05,
+        "octaves": 3
+      },
+      "tom-lo": {
+        "pitch": "G1",
+        "decay": 0.55,
+        "pitchDecay": 0.03,
+        "octaves": 4
+      },
+      "tom-mid": {
+        "pitch": "C2",
+        "decay": 0.5,
+        "pitchDecay": 0.03,
+        "octaves": 4
+      },
+      "tom-hi": {
+        "pitch": "F2",
+        "decay": 0.45,
+        "pitchDecay": 0.03,
+        "octaves": 4
+      }
+    },
+    "noise": {
+      "snare": {
+        "hz": 3000,
+        "decay": 0.32,
+        "type": "pink",
+        "q": 0.5
+      },
+      "rim": {
+        "hz": 1800,
+        "decay": 0.05,
+        "type": "white",
+        "q": 2.2
+      },
+      "clap": {
+        "hz": 1100,
+        "decay": 0.14,
+        "type": "pink",
+        "q": 0.8
+      },
+      "hat": {
+        "hz": 5800,
+        "decay": 0.06,
+        "type": "white",
+        "q": 0.8
+      },
+      "open-hat": {
+        "hz": 5200,
+        "decay": 0.3,
+        "type": "white",
+        "q": 0.8
+      },
+      "ride": {
+        "hz": 5600,
+        "decay": 1.5,
+        "type": "white",
+        "q": 4.5
+      },
+      "crash": {
+        "hz": 4400,
+        "decay": 1.8,
+        "type": "white",
+        "q": 0.8
+      },
+      "shaker": {
+        "hz": 7000,
+        "decay": 0.08,
+        "type": "pink",
+        "q": 1.2
+      }
+    },
+    "snareBody": {
+      "pitch": "D2",
+      "decay": 0.07,
+      "pitchDecay": 0.02,
+      "octaves": 3,
+      "level": 0.15
+    }
+  },
+  "forkedFrom": "drums/house-kit",
+  "approvedAt": "2026-08-15",
+  "summary": "Brushes and cross-stick, ride louder than the kick. The quiet kit for jazz, blues and downtime — where a struck snare would read as combat."
+}

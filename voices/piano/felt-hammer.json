@@ -1,0 +1,78 @@
+{
+  "instrument": "piano",
+  "slug": "felt-hammer",
+  "title": "Felt hammer",
+  "status": "approved",
+  "tags": [
+    "piano",
+    "felt",
+    "soft",
+    "intimate",
+    "close",
+    "ballad",
+    "lonely"
+  ],
+  "notes": "A felt piano: a strip of cloth laid between the hammers and the strings, which is a real preparation and not an effect. It is the sound of a piano being played quietly in a room with someone else asleep, and it is the first `piano/` voice built as an *instrument* rather than as a waveform.\n\n**The parent is a waveform.** `piano/soft-triangle` is a triangle and an envelope, honest about it — \"not a real piano and not trying to be one\". It predates `body`, `breath` and `vibrato` existing at all, so every hand-written melody in the first library came out of an oscillator with no box around it. Almost nothing survives the fork except the intent to sit under a line rather than in front of it.\n\n**The felt is the design.** What a felt strip does, physically, is absorb the hammer's high-frequency contact noise before it reaches the string, so:\n\n- **The attack is 12 ms, not 5.** Cloth compresses. This is the single most identifying number here; drop it to a piano's usual 2–3 ms and the felt is gone no matter what the filter does.\n- **`body` has a −5 dB notch at 3.2 kHz.** That is the *absence* of the hammer hill a bare piano has, and per docs/voices.md a deep notch is more reliable contrast than a boost — a hole costs no headroom and survives the lo-fi lowpass, which is where two voices separated only by boosts converge. The three peaks (120 Hz case air, 260 Hz soundboard, 700 Hz next plate mode) are what make a scale climb unevenly instead of transposing one timbre.\n- **`breath` is the mechanism, not the note.** 900 Hz, level 0.06, 4 ms follower: key bed, damper lift, the felt itself thudding. On a real felt piano this is *audible above the string* on soft passages, and it is most of why the sound reads as a physical object in a room. It is the lowest-centred breath on the shelf; every other one is a nail or a bow at 2 kHz and up.\n\n**The envelope is decay-dominant, like a struck string and unlike the parent.** 1.4 s decay to a 0.06 sustain, where `soft-triangle` decays in 0.4 s to 0.15 and then *holds*. A held level is the synth tell; a piano note is a decay with a tail. Release 1.8 s so pedalled chords overlap.\n\n**`vibrato` is not vibrato.** Rate 0.7 Hz, depth 0.003, drift 0.9 — far too slow and shallow to hear as modulation. It exists because perfectly stationary pitch is the loudest synth tell there is, and on a real piano the three strings per note are never quite in tune with each other, so a held note beats slowly. This is that beating, not a player's hand.\n\nKind is `mono` (a MonoSynth per voice) rather than the parent's `synth` purely to get a filter envelope: the tone has to darken as the note decays, because a struck string loses its top partials first. Polyphony 8 — enough for a two-hand chord with the pedal down.",
+  "synth": {
+    "kind": "mono",
+    "oscillator": {
+      "type": "triangle"
+    },
+    "envelope": {
+      "attack": 0.012,
+      "decay": 1.4,
+      "sustain": 0.06,
+      "release": 1.8
+    },
+    "filter": {
+      "type": "lowpass",
+      "rolloff": -12,
+      "Q": 0.6
+    },
+    "filterEnvelope": {
+      "attack": 0.01,
+      "decay": 0.5,
+      "sustain": 0.18,
+      "release": 1.2,
+      "baseFrequency": 220,
+      "octaves": 2.2,
+      "exponent": 1.5
+    },
+    "maxPolyphony": 8
+  },
+  "vibrato": {
+    "rate": 0.7,
+    "depth": 0.003,
+    "drift": 0.9
+  },
+  "body": [
+    {
+      "frequency": 120,
+      "q": 3.5,
+      "gain": 5
+    },
+    {
+      "frequency": 260,
+      "q": 3,
+      "gain": 3
+    },
+    {
+      "frequency": 700,
+      "q": 2,
+      "gain": 2
+    },
+    {
+      "frequency": 3200,
+      "q": 1,
+      "gain": -5
+    }
+  ],
+  "breath": {
+    "level": 0.06,
+    "hz": 900,
+    "q": 1.2,
+    "attack": 0.004
+  },
+  "forkedFrom": "piano/soft-triangle",
+  "approvedAt": "2026-08-15"
+}

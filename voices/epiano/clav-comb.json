@@ -1,0 +1,73 @@
+{
+  "instrument": "epiano",
+  "slug": "clav-comb",
+  "title": "Clav comb",
+  "status": "approved",
+  "tags": [
+    "clavinet",
+    "funk",
+    "percussive",
+    "bite",
+    "short",
+    "groove",
+    "rhythm"
+  ],
+  "notes": "A clavinet: a rubber tangent slams a string against a fret, a magnetic pickup hears it, and a damper kills it the instant the key comes up. It is filed as `epiano` because it is an electric keyboard, but it is really a **rhythm instrument that happens to have pitch** — the only keys voice on the shelf whose job is the groove rather than the harmony.\n\nThat is the gap it fills. `fm-rhodes` blooms, `wurlitzer-reed` sits, `felt-hammer` whispers and `music-box` rings forever: every keys voice we have sustains, so a keyboard part written for any of them is a bed. Funk, and most of what a busy sixteenth-note keyboard part is for, needs the opposite.\n\n**The envelope is the instrument.** Attack 0.002, decay 0.18, sustain 0.05, **release 0.25** — by a wide margin the shortest release in `voices/`, where the next shortest is `nylon-arpeggio` at 1 s. That is not a stylistic preference, it is the damper: a clavinet has one per string and it is mechanically impossible for a note to ring past the key. The practical consequence is that this voice *requires* rhythm to be written for it. Hand it whole notes and it plays sixteen silences.\n\n**Subtractive, not FM, and that is the fork's whole point.** Both parents are two-operator FM; this abandons the generator entirely for a sawtooth into a fast filter envelope, because a struck-and-fretted steel string is a bright harmonic stack being *shut off*, not a bell being excited. The filter opens to 3.2 octaves over 800 Hz and slams to a 0.15 sustain in 80 ms — the wah-like snap at the front of every note, which on a real clav comes from the string's contact with the fret rather than from any filter, and is the closest a subtractive envelope ever gets to being physically accurate.\n\n**`body` is a pickup, not a box.** −6 dB at 200 Hz first: a magnetic pickup on a short string has no low end to speak of, and cutting it is what separates this from every other keyboard here. The peaks at 480 / 1500 / 3000 Hz are narrow and stacked in the midrange, which is where a clav lives and why it cuts through a full band at a low level — it occupies a band nothing else in this repo is using.\n\n**`breath` is the tangent** — 3.2 kHz, level 0.07, 2 ms follower. The loudest breath on the shelf, because the *click* of rubber driving steel onto a fret is not incidental noise on this instrument, it is half the sound. A clav with a clean onset is a synth bass.\n\nNo `vibrato`: the note is over in a fifth of a second, so there is nothing for pitch movement to happen to, and the usual argument about stationary pitch being a synth tell does not apply to a sound this short. The irregularity budget is spent entirely on the tangent instead.",
+  "synth": {
+    "kind": "mono",
+    "oscillator": {
+      "type": "sawtooth"
+    },
+    "envelope": {
+      "attack": 0.002,
+      "decay": 0.18,
+      "sustain": 0.05,
+      "release": 0.25
+    },
+    "filter": {
+      "type": "lowpass",
+      "rolloff": -12,
+      "Q": 1.6
+    },
+    "filterEnvelope": {
+      "attack": 0.002,
+      "decay": 0.08,
+      "sustain": 0.15,
+      "release": 0.2,
+      "baseFrequency": 800,
+      "octaves": 3.2,
+      "exponent": 1.5
+    },
+    "maxPolyphony": 8
+  },
+  "body": [
+    {
+      "frequency": 200,
+      "q": 1.2,
+      "gain": -6
+    },
+    {
+      "frequency": 480,
+      "q": 3,
+      "gain": 4
+    },
+    {
+      "frequency": 1500,
+      "q": 2.5,
+      "gain": 5
+    },
+    {
+      "frequency": 3000,
+      "q": 2,
+      "gain": 4
+    }
+  ],
+  "breath": {
+    "level": 0.07,
+    "hz": 3200,
+    "q": 1.6,
+    "attack": 0.002
+  },
+  "forkedFrom": "epiano/fm-rhodes",
+  "approvedAt": "2026-08-15"
+}

@@ -33,6 +33,14 @@
       "renderedAt": "2026-08-14T17:23:35.363Z"
     },
     {
+      "name": "drums.brush-kit",
+      "file": "drums.brush-kit.mp3",
+      "seconds": 24.8695625,
+      "bytes": 498240,
+      "isLoop": false,
+      "renderedAt": "2026-08-15T03:06:26.083Z"
+    },
+    {
       "name": "drums.frontier-kit",
       "file": "drums.frontier-kit.mp3",
       "seconds": 24.8695625,
@@ -49,12 +57,36 @@
       "renderedAt": "2026-08-14T15:44:49.316Z"
     },
     {
+      "name": "drums.slab-kit",
+      "file": "drums.slab-kit.mp3",
+      "seconds": 24.8695625,
+      "bytes": 498240,
+      "isLoop": false,
+      "renderedAt": "2026-08-15T03:06:17.128Z"
+    },
+    {
+      "name": "epiano.clav-comb",
+      "file": "epiano.clav-comb.mp3",
+      "seconds": 26.857125,
+      "bytes": 538080,
+      "isLoop": false,
+      "renderedAt": "2026-08-15T03:18:29.209Z"
+    },
+    {
       "name": "epiano.fm-rhodes",
       "file": "epiano.fm-rhodes.mp3",
       "seconds": 26.857125,
       "bytes": 538080,
       "isLoop": false,
-      "renderedAt": "2026-08-14T15:44:42.972Z"
+      "renderedAt": "2026-08-15T03:18:34.049Z"
+    },
+    {
+      "name": "epiano.wurlitzer-reed",
+      "file": "epiano.wurlitzer-reed.mp3",
+      "seconds": 26.857125,
+      "bytes": 538080,
+      "isLoop": false,
+      "renderedAt": "2026-08-15T03:18:31.986Z"
     },
     {
       "name": "lead.brown-lead",
@@ -161,12 +193,28 @@
       "renderedAt": "2026-08-14T17:48:23.403Z"
     },
     {
+      "name": "piano.felt-hammer",
+      "file": "piano.felt-hammer.mp3",
+      "seconds": 26.857125,
+      "bytes": 538080,
+      "isLoop": false,
+      "renderedAt": "2026-08-15T03:18:18.503Z"
+    },
+    {
+      "name": "piano.music-box",
+      "file": "piano.music-box.mp3",
+      "seconds": 26.857125,
+      "bytes": 538080,
+      "isLoop": false,
+      "renderedAt": "2026-08-15T03:18:16.189Z"
+    },
+    {
       "name": "piano.soft-triangle",
       "file": "piano.soft-triangle.mp3",
       "seconds": 26.857125,
       "bytes": 538080,
       "isLoop": false,
-      "renderedAt": "2026-08-14T15:44:37.731Z"
+      "renderedAt": "2026-08-15T03:18:13.683Z"
     },
     {
       "name": "pluck.brown-rhythm",

@@ -18,52 +18,82 @@ Legend: `[ ]` todo · `[~]` in progress. **Delete an item once it's done** — t
 doc is the *remaining* backlog, not a changelog. Git history is the record of what
 shipped; keep this list short and forward-looking.
 
-## P0 — Make the music better (variety first)
+## P0 — The voice shelf
 
-**The problem, stated once.** Three of the four loop plans are the same song:
-`high-noon-warpath`, `six-gun-shredout` and `black-hat-arrives` share one section
-arc (intro → riff-a → variation → halved harmonic rhythm → breakdown → rebuild →
-riff → climb → turnaround), all-8-bar sections, 146–158 BPM, a minor i–VII–VI–V —
-and, until the figure shelf landed, one hard-coded gallop under all of it.
-`vulture-mile` is the only outlier, and the only one that reads as a different
-piece. Variety has to come from the *engine offering choices* and from
-**the user's prompt selecting them** — not from Claude remembering to be
-different. Experiment freely inside these knobs; they are the reasonable bounds.
+**Decision, 2026-08-15: the shelf comes before the songs.** `compositions/` was
+emptied on 2026-08-14 — the first library was written to find out what the tools
+could do, and it found out. The materials are what decide whether the *next*
+piece is rich or is the last piece again, so they get built first, deliberately,
+while nothing is depending on them.
 
-- [ ] **Spend the knobs — the only P0 item that changes what anyone hears.** The
-      engine now offers figures (`npm run figures`), `register`, per-track `gains`,
-      a per-piece kit voice, phrase lengths off the 8-bar grid and chord changes
-      inside the bar (`["Bb", "C"]`). **Every plan still declares none of them**,
-      so all four pieces sound exactly as they did. Rewrite `high-noon-warpath`,
-      `six-gun-shredout` and `black-hat-arrives` — a different figure per section,
-      a register that isn't G1–D2, one odd-length phrase each — then rebuild and
-      re-render. A knob nobody turns is the same as no knob.
-- [ ] **The `compose` path can't reach any of it.** Figures, register and the
+What we learned about composing is not lost, it is parked: it lives in
+[`docs/variety.md`](./docs/variety.md) — the knobs, the rules for choosing them,
+and the engine gaps found the hard way. Read it before writing a plan. The
+composition *work* is P1 and below until the shelf can carry it.
+
+The shelf today: `lead/` 9, `pad/` `pluck/` `bass/` `drums/` 4 each, and
+**`piano/` and `epiano/` one apiece**. The loop for all of it is fork → edit →
+render probe → audition at `/voices.html` → approve with a `--summary`; approved
+voices are **forked, never edited**. See [`docs/voices.md`](./docs/voices.md).
+
+- [~] **The keys family — awaiting audition.** `piano/` and `epiano/` had one
+      voice each, and both **predated `body`/`breath`/`vibrato` existing**: they
+      are an oscillator and an envelope with no box around them, which is why
+      every hand-written melody in the first library sounded synthetic. Four
+      drafts are written and their probes rendered — audition at `/voices.html`
+      (drafts only) and approve each with a `--summary`:
+  - `piano/felt-hammer` — felt strip over the strings; 12 ms attack, a −5 dB
+    notch where the hammer hill would be, mechanism noise at 900 Hz.
+  - `piano/music-box` — FM at a 3.5:1 *inharmonic* ratio, sustain 0, no low end
+    at all. The lullaby/doll's-house/villain voice.
+  - `epiano/wurlitzer-reed` — the reed against `fm-rhodes`'s tine: harmonicity 1
+    instead of 2, index 11, scooped middle. Soul and blues.
+  - `epiano/clav-comb` — subtractive, not FM; 0.25 s release, the shortest on the
+    shelf. The only keys voice that is a *rhythm* instrument.
+- [ ] **`melody` is still hard-routed to the piano track** (`build-song.ts`), so
+      the keys voices above are the only thing a written top line can ever be.
+      Open question, not yet decided: let a plan route `melody` to another
+      instrument the way `voices` already routes tone — the shelf has
+      `lead/lone-whistle`, `lead/harmonica-reed` and `lead/soprano-wordless`
+      doing nothing for melodies. Engine change, so it sits behind the shelf work.
+- [ ] **Non-metal `bass/` and `pluck/`.** Four each, but the character is
+      electric-and-distorted throughout: the acoustic and clean end is one voice
+      wide (`upright-pizz`, `nylon-arpeggio`). Anything folk, jazz, lo-fi or
+      chamber has nothing to be played on.
+- [ ] **Kits, continued.** Four now — `house-kit` (neutral), `frontier-kit`
+      (western punctuation), `slab-kit` (rock backbeat), `brush-kit` (quiet,
+      ride-led). Still missing the electronic end (`house`, `techno`, `dnb`,
+      `trap` all want a machine, not a room) and orchestral percussion
+      (taiko/timpani/gran cassa) for the cinematic palettes.
+- [ ] **Two voices separated only by EQ will converge.** `docs/voices.md` says
+      this and `pad/string-bed` vs `pad/mens-choir` proved it. Every voice added
+      from here has to differ in `breath`, `tremolo`, `section` or time — not in
+      a few dB of `body`. Worth a pass over the existing shelf to find the pairs
+      that are already too close to be worth choosing between.
+
+## P1 — Make the core loop *good*
+
+Composition work. The knowledge behind these items is in
+[`docs/variety.md`](./docs/variety.md).
+
+- [ ] **The prompt should drive the knobs.** The end state is that the user's
+      scene words *choose*: figure, tempo band, register, mode, section arc, kit.
+      Today Claude picks by feel, which is why variety.md is a checklist rather
+      than code. Write the mapping down (a `docs/` note or a palette field) so it
+      is repeatable, and check a new piece against the shelf before writing it.
+- [ ] **The `compose` path can't reach the knobs.** Figures, register and the
       split-bar harmony live in `figure.ts`/`build-song.ts`, so they exist for
       plan-built **loops** only. `npm run compose` builds segments through
       `composer.ts` + `parts.ts`, which never import `figure.ts` — so the fast
       path, the one used for a D&D scene on the fly, still has exactly one rhythm
       vocabulary. Either `parts.ts`'s pattern strings become figures, or the
-      composer picks a figure per section the way a plan does. Do it after the
-      plans prove the knobs are worth reaching for.
+      composer picks a figure per section the way a plan does.
 - [ ] **Harmony beyond the Andalusian minor.** i–VII–VI–V with a harmonic-minor V
-      is the only progression these loops use. Want: Dorian (natural VI), a
-      Phrygian bII drone, pedal-point harmony that refuses to move, and major-key
-      westerns. Overlaps the P1 mode work — phrygian-dominant is still
-      unsupported (`MODE_FAMILY` is the seven church modes only), and it is the
-      mode this genre most wants.
-- [ ] **Kits still sound alike.** `house-kit` is on every piece and the grooves
-      are near-identical kick/snare/ride. Per-piece kit voices and per-track gains
-      are both plan fields now, so what is left here is *authoring*: a kit voice
-      per piece, and grooves that aren't the same backbeat with a different hat.
-- [ ] **The prompt should drive the knobs.** Once the above exist, the composing
-      loop reads the user's scene words and *chooses*: figure, tempo band,
-      register, mode, section arc. Write the mapping down (a `docs/` note or a
-      palette field) so it is repeatable rather than vibes, and check a new plan
-      against the existing ones before writing it — same arc + same tempo band +
-      same mode as a piece we already have is the signal to change something.
-
-## P1 — Make the core loop *good*
+      is the only progression the first library ever reached for. Want: Dorian
+      (natural VI), a Phrygian bII drone, pedal-point harmony that refuses to
+      move, and major-key westerns. Overlaps the mode work below —
+      phrygian-dominant is still unsupported (`MODE_FAMILY` is the seven church
+      modes only), and it is the mode this genre most wants.
 
 - [ ] **New palette kinds (structure).** Both validate against the permissive
       generic schema — a folder + prose, no code change.

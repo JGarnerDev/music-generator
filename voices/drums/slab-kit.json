@@ -1,0 +1,117 @@
+{
+  "instrument": "drums",
+  "slug": "slab-kit",
+  "title": "Slab kit",
+  "status": "approved",
+  "tags": [
+    "kit",
+    "rock",
+    "metal",
+    "backbeat",
+    "room",
+    "ride"
+  ],
+  "notes": "The kit the loop plans always needed and never had. `house-kit` is deliberately neutral and `frontier-kit` is punctuation — a gunshot and an anvil, explicitly \"picked for the setting, not the groove\" — so a metal plan asking for kick/snare/ride got either a lo-fi thump or a western sound effect. This one is built to *hold a backbeat under a gallop*, which is a different job from both.\n\nThe design is a study in the parent's own terms: every piece here is the same membrane-or-noise generator, moved.\n\n- **The kick is a beater, not a boom.** Decay drops to 0.13 (house: 0.4) and `pitchDecay` to 0.006 (house: 0.03) while `octaves` goes up to 9 (house: 6). That combination is the whole trick: a very wide sweep collapsing in six milliseconds *is* the click of a hard beater on a coated head, and the short decay stops the fundamental ringing into the next sixteenth. A gallop at 150 BPM puts kicks 100 ms apart, so anything with the house kick's 0.4 s tail is a continuous drone by the second bar.\n- **The snare cracks at 2.1 kHz** (house: 1.4 kHz) with Q raised to 1.3, so the rattle is narrower and higher — a tuned-up wire snare rather than a soft backbeat. `snareBody` goes to 0.55 of the snare's level (house: 0.45) and shortens to 0.09 s: more chest, less ring, because at this tempo the body is what you feel and the rattle is what you hear.\n- **The ride is the second most important piece in the kit** and the parent treats it as an afterthought at level 0.3. Here it is 0.42, Q 2.6 and 1.0 s — narrow enough to read as a *pitched* ping rather than a wash, which is what lets eighth-notes on a ride stay countable underneath a distorted guitar. Wide-Q cymbals are the first thing the lo-fi lowpass turns to mush.\n- **The crash is the opposite choice** — Q 0.7, 3.0 s, level 0.55. A section-opening crash is supposed to be a wash and is allowed to smear; it happens once every eight bars, not every eighth.\n- **The toms are tuned down and left to ring** (F1/A1/D2, 0.65–0.85 s, `octaves` 5). Fills here are the tom rolls a rebuild section wants, and a tom that decays in 0.5 s cannot roll.\n- **Levels put the backbeat on top.** Snare 0.95 against the parent's 0.8, toms 0.8–0.85 against 0.65–0.7. This kit is meant to be the loudest thing after the bass, which is the balance of a rock record and the reverse of `frontier-kit`, where the percussion is punctuation over a score.\n\nHats stay close to the parent, tightened (0.028 s, Q 1.1): under a busy ride they are texture, and a long hat at this tempo just fills the gaps the kick needs.",
+  "kit": {
+    "levels": {
+      "kick": 1,
+      "snare": 0.95,
+      "rim": 0.45,
+      "clap": 0.5,
+      "hat": 0.34,
+      "open-hat": 0.34,
+      "ride": 0.42,
+      "crash": 0.55,
+      "tom-lo": 0.85,
+      "tom-mid": 0.85,
+      "tom-hi": 0.8,
+      "shaker": 0.2
+    },
+    "membrane": {
+      "kick": {
+        "pitch": "C1",
+        "decay": 0.13,
+        "pitchDecay": 0.006,
+        "octaves": 9
+      },
+      "tom-lo": {
+        "pitch": "F1",
+        "decay": 0.85,
+        "pitchDecay": 0.04,
+        "octaves": 5
+      },
+      "tom-mid": {
+        "pitch": "A1",
+        "decay": 0.75,
+        "pitchDecay": 0.04,
+        "octaves": 5
+      },
+      "tom-hi": {
+        "pitch": "D2",
+        "decay": 0.65,
+        "pitchDecay": 0.04,
+        "octaves": 5
+      }
+    },
+    "noise": {
+      "snare": {
+        "hz": 2100,
+        "decay": 0.15,
+        "type": "white",
+        "q": 1.3
+      },
+      "rim": {
+        "hz": 3000,
+        "decay": 0.035,
+        "type": "white",
+        "q": 1.2
+      },
+      "clap": {
+        "hz": 1200,
+        "decay": 0.1,
+        "type": "white",
+        "q": 0.9
+      },
+      "hat": {
+        "hz": 6800,
+        "decay": 0.028,
+        "type": "white",
+        "q": 1.1
+      },
+      "open-hat": {
+        "hz": 6200,
+        "decay": 0.28,
+        "type": "white",
+        "q": 1
+      },
+      "ride": {
+        "hz": 6400,
+        "decay": 1,
+        "type": "white",
+        "q": 2.6
+      },
+      "crash": {
+        "hz": 4000,
+        "decay": 3,
+        "type": "white",
+        "q": 0.7
+      },
+      "shaker": {
+        "hz": 8000,
+        "decay": 0.06,
+        "type": "pink",
+        "q": 0.9
+      }
+    },
+    "snareBody": {
+      "pitch": "D2",
+      "decay": 0.09,
+      "pitchDecay": 0.02,
+      "octaves": 3,
+      "level": 0.55
+    }
+  },
+  "forkedFrom": "drums/house-kit",
+  "approvedAt": "2026-08-15",
+  "summary": "Rock backbeat kit — short clicky kick, cracking snare, a ride that stays countable under distortion. When the drums carry the groove."
+}

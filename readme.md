@@ -129,6 +129,9 @@ npm run typecheck  # tsc --noEmit
   and how leitmotifs are written once and quoted by other pieces.
 - [`docs/grooves.md`](docs/grooves.md) — the drum step notation a genre palette
   carries, the kit pieces, and the swing rule that fails silently.
+- [`docs/variety.md`](docs/variety.md) — why the first four loops came out as one
+  song, the knobs that prevent it, and the rules for choosing them. Read before
+  writing a plan or a segment.
 
 Progressive disclosure — split a section into its own frontmatter'd doc once it
 outgrows a screen here. Planned: `docs/composition-spec.md`,

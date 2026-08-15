@@ -24,8 +24,31 @@ import {
   withQuality,
   type RenderQuality,
 } from "@app/quality";
-import shredout from "../../compositions/loops/six-gun-shredout.json";
-import vulture from "../../compositions/loops/vulture-mile.json";
+// The subjects are whatever loops exist, not two named files. Naming them was a
+// static import, so clearing `compositions/` broke `npm run typecheck` — a
+// profiler is a tool, and a tool that stops compiling when the library it
+// measures is emptied is one more thing to fix before you can measure anything.
+// Same eager glob the two benches use (see src/dev/live-library.ts), so a newly
+// built loop shows up on reload.
+const SUBJECTS = Object.entries(
+  import.meta.glob<Composition>(
+    ["../../compositions/loops/*.json", "!../../compositions/_trash/**"],
+    { eager: true, import: "default" },
+  ),
+)
+  .map(([path, piece]) => [path.split("/").pop()!.replace(/\.json$/, ""), piece] as const)
+  .sort(([a], [b]) => a.localeCompare(b));
+
+/** The piece the single-subject runs profile: the longest one there is. */
+const HEAVIEST = SUBJECTS.reduce<(typeof SUBJECTS)[number] | undefined>(
+  (worst, entry) =>
+    worst === undefined || noteCount(entry[1]) > noteCount(worst[1]) ? entry : worst,
+  undefined,
+);
+
+function noteCount(comp: Composition): number {
+  return comp.tracks.reduce((n, t) => n + t.notes.length, 0);
+}
 
 const SLICE_SECONDS = 10;
 
@@ -185,11 +208,9 @@ function paint(): Promise<void> {
 }
 
 async function runBench(): Promise<void> {
+  if (noSubjects()) return;
   setBusy(true);
-  for (const [label, piece] of [
-    ["shredout", shredout],
-    ["vulture", vulture],
-  ] as [string, Composition][]) {
+  for (const [label, piece] of SUBJECTS) {
     for (const variant of VARIANTS) {
       els.status.textContent = `Rendering ${label} — ${variant.name}…`;
       await paint();
@@ -203,12 +224,14 @@ async function runBench(): Promise<void> {
 }
 
 async function runProfiles(): Promise<void> {
+  if (noSubjects() || !HEAVIEST) return;
+  const [label, piece] = HEAVIEST;
   setBusy(true);
   for (const { quality, notes } of PROFILES) {
-    els.status.textContent = `Rendering shredout — ${quality.name}…`;
+    els.status.textContent = `Rendering ${label} — ${quality.name}…`;
     await paint();
-    const timing = await timeRender(shredout as Composition, SLICE_SECONDS, quality);
-    addRow(`shredout — ${quality.name}`, timing, notes);
+    const timing = await timeRender(piece, SLICE_SECONDS, quality);
+    addRow(`${label} — ${quality.name}`, timing, notes);
     await paint();
   }
   els.status.textContent = "Done.";
@@ -216,13 +239,27 @@ async function runProfiles(): Promise<void> {
 }
 
 async function runFull(): Promise<void> {
+  if (noSubjects() || !HEAVIEST) return;
+  const [label, piece] = HEAVIEST;
   setBusy(true);
-  els.status.textContent = "Rendering six-gun-shredout in full — the page will freeze…";
+  els.status.textContent = `Rendering ${label} in full — the page will freeze…`;
   await paint();
-  const timing = await timeRender(shredout as Composition, 120);
-  addRow("shredout — full length", timing, "what Play actually does");
+  const timing = await timeRender(piece, 120);
+  addRow(`${label} — full length`, timing, "what Play actually does");
   els.status.textContent = "Done.";
   setBusy(false);
+}
+
+/**
+ * Say so, once, when there is nothing to measure. An empty `compositions/loops/`
+ * is a normal state — it is where the library starts — and a profiler that
+ * silently does nothing reads as a broken button.
+ */
+function noSubjects(): boolean {
+  if (SUBJECTS.length > 0) return false;
+  els.status.textContent =
+    "No loops in compositions/loops/ to profile. Build one first: npm run song:build -- --plan plans/<name>.json";
+  return true;
 }
 
 function setBusy(busy: boolean): void {

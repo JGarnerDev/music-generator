@@ -1,0 +1,62 @@
+{
+  "instrument": "piano",
+  "slug": "music-box",
+  "title": "Music box",
+  "status": "approved",
+  "tags": [
+    "music-box",
+    "bell",
+    "metal",
+    "toy",
+    "childlike",
+    "eerie",
+    "lullaby",
+    "nostalgic"
+  ],
+  "notes": "A cylinder music box: pins on a drum plucking the tuned steel teeth of a comb. Filed under `piano` because it is a struck-and-ringing keyboard-shaped thing a `melody` can be handed to, and it is deliberately the most *specific* voice in the folder — `soft-triangle` is the neutral one, `felt-hammer` is the intimate one, this is the one you reach for on purpose.\n\nIt is also the shelf's answer to a scene the palettes keep asking for and the voices could not supply: a lullaby, a doll's house, a memory, a villain's calling card. Played slowly it is nostalgia; played slowly in a minor key it is the most unsettling sound available here, and both come from the same three decisions.\n\n**A comb tooth is a tuned metal bar, so the partials are inharmonic.** That is why this is `fm` and not a filtered saw: FM at a **3.5:1** harmonicity puts energy at ratios that are not whole numbers, which is what a struck bar does and what no subtractive patch can fake. It shares a generator with `epiano/fm-rhodes` and nothing else — the Rhodes sits at 2:1 with index 6, a *harmonic* ratio chosen to read as a bell in the attack over a warm body. Here index 3 is lower but the ratio is stranger, so the inharmonicity is present through the whole note instead of just the onset. Two FM voices, opposite ends of the same knob.\n\n**Nothing damps a comb tooth.** The envelope is attack 0.001, decay 2.2, **sustain 0**, release 2.2: the note is struck and then rings for as long as it rings, and a key release cannot stop it. There is no held level anywhere in this voice. Written into a dense passage the tails simply pile up, and that is correct — it is what a music box does and why they are usually written sparse.\n\n**`body` is where the size lives, and the notch does the work.** −8 dB at 300 Hz is the whole reason this reads as a *small metal object* rather than a bell: real bells and pianos have low-end, a 2 cm steel tooth has none, and removing it is more convincing than any amount of brightness added on top. The three peaks at 1.8 / 3.6 / 5.2 kHz are the comb's own resonances, narrow (Q 4–6) because tuned metal rings in narrow bands.\n\n**`breath` is the pin, not the tooth.** 4.5 kHz, level 0.04, 2 ms follower — the mechanical click of the drum pin catching and releasing, which arrives *before* the pitch does. Take it out and the voice becomes a generic bell pad; it is the cheapest single thing here and it does the most.\n\nNo `vibrato` block, and this one is deliberate against the usual rule: steel teeth are the one thing on the shelf whose pitch genuinely does not move. The mechanism supplies the irregularity instead.",
+  "synth": {
+    "kind": "fm",
+    "oscillator": {
+      "type": "sine"
+    },
+    "harmonicity": 3.5,
+    "modulationIndex": 3,
+    "envelope": {
+      "attack": 0.001,
+      "decay": 2.2,
+      "sustain": 0,
+      "release": 2.2
+    },
+    "maxPolyphony": 6
+  },
+  "body": [
+    {
+      "frequency": 300,
+      "q": 1,
+      "gain": -8
+    },
+    {
+      "frequency": 1800,
+      "q": 6,
+      "gain": 5
+    },
+    {
+      "frequency": 3600,
+      "q": 5,
+      "gain": 4
+    },
+    {
+      "frequency": 5200,
+      "q": 4,
+      "gain": 3
+    }
+  ],
+  "breath": {
+    "level": 0.04,
+    "hz": 4500,
+    "q": 2,
+    "attack": 0.002
+  },
+  "forkedFrom": "piano/soft-triangle",
+  "approvedAt": "2026-08-15"
+}

@@ -2,7 +2,7 @@
 title: Approved voices
 purpose: Index of the instrument sounds we kept — read this before choosing voices for a new piece.
 audience: [claude, human]
-updated: 2026-08-14
+updated: 2026-08-15
 generated_by: npm run voice:approve
 ---
 
@@ -23,6 +23,8 @@ Struck keys. Carries a melody or a chord bed without asking for attention.
 
 | voice | tags | when to pick it |
 | --- | --- | --- |
+| [`piano/felt-hammer`](./piano/felt-hammer.json) | piano felt soft intimate close ballad lonely | A felt piano: a strip of cloth laid between the hammers and the strings, which is a real preparation and not an effect. |
+| [`piano/music-box`](./piano/music-box.json) | music-box bell metal toy childlike eerie lullaby nostalgic | A cylinder music box: pins on a drum plucking the tuned steel teeth of a comb. |
 | [`piano/soft-triangle`](./piano/soft-triangle.json) **default** | warm neutral lo-fi | Triangle wave, quick attack, long release, so a chord bed blooms rather than clatters. The house piano, not a real one. |
 
 ## epiano
@@ -31,7 +33,9 @@ Electric piano — FM bell in the attack, warm body. The lo-fi default.
 
 | voice | tags | when to pick it |
 | --- | --- | --- |
+| [`epiano/clav-comb`](./epiano/clav-comb.json) | clavinet funk percussive bite short groove rhythm | A clavinet: a rubber tangent slams a string against a fret, a magnetic pickup hears it, and a damper kills it the instant the key comes up. |
 | [`epiano/fm-rhodes`](./epiano/fm-rhodes.json) **default** | warm bell lo-fi | Two-operator FM Rhodes — bell in the attack over a body that decays out of the way. The lo-fi electric piano. |
+| [`epiano/wurlitzer-reed`](./epiano/wurlitzer-reed.json) | wurlitzer reed bark hollow soul blues lofi | The other electric piano. |
 
 ## pad
 
@@ -88,14 +92,22 @@ The kit — levels, tuning and decay per piece.
 
 | voice | tags | when to pick it |
 | --- | --- | --- |
+| [`drums/brush-kit`](./drums/brush-kit.json) | kit brushes jazz blues lofi quiet ride cross-stick | Brushes and cross-stick, ride louder than the kick. The quiet kit for jazz, blues and downtime — where a struck snare would read as combat. |
 | [`drums/frontier-kit`](./drums/frontier-kit.json) | kit western spaghetti-western gunshot whipcrack anvil timpani | Spaghetti-western percussion, barely a kit: snare is a gunshot, hat a whipcrack, tom an anvil. Picked for the setting, not the groove. |
 | [`drums/house-kit`](./drums/house-kit.json) **default** | kit neutral lo-fi | Pitched membrane thumps plus filtered noise bursts, levels baked in. The neutral kit for anything not chasing a specific record. |
+| [`drums/slab-kit`](./drums/slab-kit.json) | kit rock metal backbeat room ride | Rock backbeat kit — short clicky kick, cracking snare, a ride that stays countable under distortion. When the drums carry the groove. |
 
 ## Lineage
 
 Who was forked from whom. Read the parent's `notes` before forking a child.
 
 ```
+piano/soft-triangle
+  piano/felt-hammer
+  piano/music-box
+epiano/fm-rhodes
+  epiano/clav-comb
+  epiano/wurlitzer-reed
 pad/sine-halo
   pad/mens-choir
     pad/string-bed
@@ -118,5 +130,7 @@ lead/brown-lead
     lead/soprano-wordless
     lead/string-section
 drums/house-kit
+  drums/brush-kit
   drums/frontier-kit
+  drums/slab-kit
 ```
