@@ -71,3 +71,27 @@ export function mergeManifest(
 export function audioName(compositionName: string, opts: { loop?: boolean } = {}): string {
   return opts.loop ? `${compositionName}.loop` : compositionName;
 }
+
+/**
+ * Smallest MP3 a real piece can encode to. A few seconds at 160 kbps is already
+ * tens of kilobytes, so anything under this is a truncated or empty write —
+ * which is what a render that was killed mid-encode leaves behind.
+ */
+export const MIN_AUDIO_BYTES = 4096;
+
+/**
+ * Which of the names a run set out to render have no usable file on disk.
+ *
+ * The render harness cannot report every way it fails: the process can be killed
+ * by the OS, a shell teardown or a timeout, and none of those get to run a
+ * `catch`. What *is* always true afterwards is the audio directory, so the run's
+ * success is checked against it rather than against how the run thinks it went.
+ * A too-small file counts as missing — a half-written MP3 plays as a click.
+ */
+export function missingOutputs(
+  expected: readonly string[],
+  onDisk: ReadonlyMap<string, number>,
+  minBytes: number = MIN_AUDIO_BYTES,
+): string[] {
+  return expected.filter((name) => (onDisk.get(`${name}.mp3`) ?? 0) < minBytes);
+}

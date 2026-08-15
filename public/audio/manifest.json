@@ -1,6 +1,14 @@
 {
   "entries": [
     {
+      "name": "brimstone-cavalry",
+      "file": "brimstone-cavalry.mp3",
+      "seconds": 115.4365,
+      "bytes": 2309280,
+      "isLoop": false,
+      "renderedAt": "2026-08-15T13:50:51.788Z"
+    },
+    {
       "name": "dune-hammer",
       "file": "dune-hammer.mp3",
       "seconds": 26.5,

@@ -16,7 +16,7 @@
  * `render-voices.ts` shares; this script is the composition-shaped half —
  * which files to render, and what to write out.
  */
-import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
 import { basename, resolve } from "node:path";
 import { Command } from "commander";
 import { glob } from "node:fs/promises";
@@ -27,6 +27,7 @@ import { defaultJobs, renderItems } from "../src/dev/render-harness";
 import {
   indexManifest,
   mergeManifest,
+  missingOutputs,
   renderManifest,
   type ManifestEntry,
 } from "../src/engine/manifest";
@@ -92,53 +93,105 @@ async function main(): Promise<void> {
 
   mkdirSync(OUT_DIR, { recursive: true });
   const previous = readPreviousManifest();
-  const queue = plan(files, previous);
-  if (queue.length === 0) {
+  const { queue, skipped } = plan(files, previous);
+  if (queue.length === 0 && skipped.length === 0) {
     console.log("Everything is already rendered. Pass --force to render it again.");
     return;
   }
-  console.log(`Rendering ${queue.length} file(s), ${jobs} at a time...`);
 
-  const fresh: ManifestEntry[] = [];
-  try {
-    await renderItems({
-      jobs,
-      items: queue,
-      run: async (job, session) => {
-        const started = Date.now();
-        const audio = await session.renderPcm(job.comp, {
-          loopOnly: job.loopOnly,
-          audition: opts.audition,
-        });
-        const entry = write(job.name, audio.channels, audio.sampleRate, job.loopOnly);
-        fresh.push(entry);
-        console.log(
-          `  ${job.name} - ${entry.seconds.toFixed(0)}s of audio in ` +
-            `${((Date.now() - started) / 1000).toFixed(0)}s`,
-        );
-      },
-    });
-  } finally {
-    // Written in `finally` so a crash keeps whatever finished: a full library is
-    // tens of minutes of rendering to lose.
-    writeManifest(previous, fresh);
+  let crash: Error | null = null;
+  if (queue.length > 0) {
+    console.log(`Rendering ${queue.length} file(s), ${jobs} at a time...`);
+    const fresh: ManifestEntry[] = [];
+    try {
+      await renderItems({
+        jobs,
+        items: queue,
+        run: async (job, session) => {
+          const started = Date.now();
+          const audio = await session.renderPcm(job.comp, {
+            loopOnly: job.loopOnly,
+            audition: opts.audition,
+          });
+          const entry = write(job.name, audio.channels, audio.sampleRate, job.loopOnly);
+          fresh.push(entry);
+          console.log(
+            `  ${job.name} - ${entry.seconds.toFixed(0)}s of audio in ` +
+              `${((Date.now() - started) / 1000).toFixed(0)}s`,
+          );
+        },
+      });
+    } catch (err) {
+      // Held rather than rethrown so the manifest still gets written and the
+      // summary below can name *everything* that went wrong, not just the first.
+      crash = err as Error;
+    } finally {
+      // Written in `finally` so a crash keeps whatever finished: a full library is
+      // tens of minutes of rendering to lose.
+      writeManifest(previous, fresh);
+    }
   }
+
+  report(queue, skipped, crash);
 }
 
-/** Which renders are needed - both flavours per piece, minus what already exists. */
-function plan(files: string[], previous: ManifestEntry[]): Job[] {
+/**
+ * Say whether the run did what it was asked, and exit non-zero when it didn't.
+ *
+ * The check is against the audio directory rather than against the run's own
+ * bookkeeping, because the ways a render fails are not all catchable: a piece
+ * that skipped validation never reached the renderer, and a process killed by a
+ * timeout or a shell teardown never reached a `catch` at all. What is on disk
+ * afterwards is the only account of the run that is always true.
+ */
+function report(queue: Job[], skipped: string[], crash: Error | null): void {
+  const missing = missingOutputs(queue.map((job) => job.name), audioSizes());
+  if (!crash && skipped.length === 0 && missing.length === 0) {
+    console.log(`Rendered ${queue.length} file(s) to public/audio/.`);
+    return;
+  }
+
+  console.error("\nRENDER FAILED:");
+  if (crash) console.error(`  · rendering threw: ${crash.message}`);
+  for (const file of skipped) console.error(`  · not a renderable composition: ${file}`);
+  for (const name of missing) {
+    console.error(`  · ${name}.mp3 was not written (or is truncated) — nothing to play`);
+  }
+  process.exit(1);
+}
+
+/** Size in bytes of every MP3 in the audio directory, by filename. */
+function audioSizes(): Map<string, number> {
+  const sizes = new Map<string, number>();
+  for (const file of readdirSync(OUT_DIR)) {
+    if (file.endsWith(".mp3")) sizes.set(file, statSync(resolve(OUT_DIR, file)).size);
+  }
+  return sizes;
+}
+
+/**
+ * Which renders are needed — both flavours per piece, minus what already exists —
+ * and which files could not be read at all. A skipped file is reported rather
+ * than dropped: `--file` naming something unparseable is a failed run, not an
+ * empty one.
+ */
+function plan(files: string[], previous: ManifestEntry[]): { queue: Job[]; skipped: string[] } {
   const done = new Set(previous.map((entry) => entry.name));
   const queue: Job[] = [];
+  const skipped: string[] = [];
   for (const file of files) {
     const comp = load(file);
-    if (!comp) continue;
+    if (!comp) {
+      skipped.push(file);
+      continue;
+    }
     for (const loopOnly of comp.loop ? [false, true] : [false]) {
       const name = loopOnly ? `${comp.name}.loop` : comp.name;
       if (!opts.force && done.has(name) && existsSync(resolve(OUT_DIR, `${name}.mp3`))) continue;
       queue.push({ comp, name, loopOnly });
     }
   }
-  return queue;
+  return { queue, skipped };
 }
 
 function readPreviousManifest(): ManifestEntry[] {

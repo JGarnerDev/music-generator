@@ -3,7 +3,9 @@ import {
   audioName,
   indexManifest,
   mergeManifest,
+  missingOutputs,
   renderManifest,
+  MIN_AUDIO_BYTES,
   type ManifestEntry,
 } from "./manifest";
 
@@ -74,6 +76,33 @@ describe("mergeManifest", () => {
   it("survives an empty previous manifest and an empty run", () => {
     expect(mergeManifest([], [], on())).toEqual([]);
     expect(mergeManifest([], [entry("a")], on("a.mp3"))).toHaveLength(1);
+  });
+});
+
+describe("missingOutputs", () => {
+  const disk = (files: Record<string, number>) => new Map(Object.entries(files));
+
+  it("says nothing is missing when every expected file is on disk", () => {
+    const missing = missingOutputs(["a", "b"], disk({ "a.mp3": 500_000, "b.mp3": 500_000 }));
+    expect(missing).toEqual([]);
+  });
+
+  it("reports a piece the run never wrote — the killed-render case", () => {
+    expect(missingOutputs(["a", "b"], disk({ "a.mp3": 500_000 }))).toEqual(["b"]);
+  });
+
+  it("counts a truncated write as missing, because it plays as a click", () => {
+    expect(missingOutputs(["a"], disk({ "a.mp3": MIN_AUDIO_BYTES - 1 }))).toEqual(["a"]);
+    expect(missingOutputs(["a"], disk({ "a.mp3": MIN_AUDIO_BYTES }))).toEqual([]);
+  });
+
+  it("checks the loop flavour under its own name", () => {
+    const onDisk = disk({ "x.mp3": 500_000 });
+    expect(missingOutputs(["x", "x.loop"], onDisk)).toEqual(["x.loop"]);
+  });
+
+  it("expects nothing when the queue was empty", () => {
+    expect(missingOutputs([], disk({}))).toEqual([]);
   });
 });
 
