@@ -1,0 +1,119 @@
+{
+  "instrument": "drums",
+  "slug": "club-kit",
+  "title": "Club kit",
+  "status": "approved",
+  "forkedFrom": "drums/house-kit",
+  "tags": [
+    "kit",
+    "house",
+    "techno",
+    "disco",
+    "garage",
+    "four-on-the-floor",
+    "electronic",
+    "offbeat"
+  ],
+  "notes": "The four-to-the-floor kit. Sibling to `drums/machine-808` and the opposite machine: where the 808 is a *pitched, sustaining* box whose kick carries the bass line, this one is a 909-shaped kit built to hit four times a bar for six minutes without fatiguing, which means every piece is short.\n\n**The kick is a click and a thump, and nothing else.** Decay 0.28 s against the 808's 1.2 — a quarter of the length — with `pitchDecay` 0.012, the fastest sweep on the shelf, through 4 octaves. That is the whole difference between the two electronic kits and it is entirely a *time* difference: at 128 BPM a quarter note is 469 ms, so an 808 kick would still be sounding when the next one lands and the floor would turn to mud. A short kick leaves a hole for the bass; a long kick *is* the bass. Pitch B0, low enough to be felt, high enough that the transient is audible on a phone.\n\n**The offbeat open hat is the groove and it is mixed like it.** Level 0.42, the loudest open hat on the shelf by some way, at 9 kHz with a 0.28 s decay — long enough to still be sounding at the next downbeat, which is the sound of the eighth-note pulse in every house record ever made. The closed hat is a tick underneath it: 10.5 kHz, 0.02 s, level 0.3.\n\n**Clap over snare, but tighter than the 808's.** 1.5 kHz, 0.16 s, Q 1.1 at level 0.7. Shorter and brighter than `machine-808`'s 1 kHz / 0.22 s, because this clap has to fire on 2 and 4 under a hat pattern rather than sit alone in a sparse trap bar.\n\n**The snare is a rimmy crack.** 1.8 kHz at 0.09 s, with `snareBody` almost switched off (level 0.2, 0.05 s decay). Kept alive rather than deleted so a fill has something other than the clap, but this kit does not want shell tone anywhere.\n\n**Toms are short synth drops** — 0.3–0.4 s, `pitchDecay` 0.02, 3 octaves. Halfway between `house-kit`'s drums and the 808's sine notes, and short for the same reason the kick is: a tom fill at 128 BPM has to clear out of its own way.\n\nRide at 6 kHz / 0.5 s and crash at 4.6 kHz / 1.2 s are both pulled in from the house kit's much longer values, because a long cymbal wash over a repeating four-bar loop is the fastest way to make a track sound like it is smearing. The shaker is pink at 9.5 kHz — the sixteenth-note layer that sits above the hats without adding another metallic tick.",
+  "kit": {
+    "levels": {
+      "kick": 1,
+      "snare": 0.5,
+      "rim": 0.45,
+      "clap": 0.7,
+      "hat": 0.3,
+      "open-hat": 0.42,
+      "ride": 0.26,
+      "crash": 0.38,
+      "tom-lo": 0.6,
+      "tom-mid": 0.58,
+      "tom-hi": 0.55,
+      "shaker": 0.3
+    },
+    "membrane": {
+      "kick": {
+        "pitch": "B0",
+        "decay": 0.28,
+        "pitchDecay": 0.012,
+        "octaves": 4
+      },
+      "tom-lo": {
+        "pitch": "A1",
+        "decay": 0.4,
+        "pitchDecay": 0.02,
+        "octaves": 3
+      },
+      "tom-mid": {
+        "pitch": "D2",
+        "decay": 0.35,
+        "pitchDecay": 0.02,
+        "octaves": 3
+      },
+      "tom-hi": {
+        "pitch": "G2",
+        "decay": 0.3,
+        "pitchDecay": 0.02,
+        "octaves": 3
+      }
+    },
+    "noise": {
+      "snare": {
+        "hz": 1800,
+        "decay": 0.09,
+        "type": "white",
+        "q": 1.2
+      },
+      "rim": {
+        "hz": 3000,
+        "decay": 0.02,
+        "type": "white",
+        "q": 1.8
+      },
+      "clap": {
+        "hz": 1500,
+        "decay": 0.16,
+        "type": "white",
+        "q": 1.1
+      },
+      "hat": {
+        "hz": 10500,
+        "decay": 0.02,
+        "type": "white",
+        "q": 1.4
+      },
+      "open-hat": {
+        "hz": 9000,
+        "decay": 0.28,
+        "type": "white",
+        "q": 1.2
+      },
+      "ride": {
+        "hz": 6000,
+        "decay": 0.5,
+        "type": "white",
+        "q": 1
+      },
+      "crash": {
+        "hz": 4600,
+        "decay": 1.2,
+        "type": "white",
+        "q": 0.7
+      },
+      "shaker": {
+        "hz": 9500,
+        "decay": 0.05,
+        "type": "pink",
+        "q": 0.9
+      }
+    },
+    "snareBody": {
+      "pitch": "E2",
+      "decay": 0.05,
+      "pitchDecay": 0.015,
+      "octaves": 2.5,
+      "level": 0.2
+    }
+  },
+  "approvedAt": "2026-08-15",
+  "summary": "Four-to-the-floor: short clicky kick, loud offbeat open hat, clap on 2 and 4. House, techno and disco, where 808 boom would be mud."
+}

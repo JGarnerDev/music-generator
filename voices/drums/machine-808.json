@@ -1,0 +1,119 @@
+{
+  "instrument": "drums",
+  "slug": "machine-808",
+  "title": "808 machine kit",
+  "status": "approved",
+  "forkedFrom": "drums/house-kit",
+  "tags": [
+    "kit",
+    "808",
+    "machine",
+    "trap",
+    "hiphop",
+    "electronic",
+    "boom",
+    "clap"
+  ],
+  "notes": "The drum machine, not a room. All four kits on the shelf are rooms — a neutral one, a western one, a rock one and a jazz one — and every genre whose identity *is* a machine (`trap`, `hiphop`, and the whole synth-pop end) had nothing but a quieter version of a drum kit.\n\nThe defining fact of an 808 is that **its kick is a pitched instrument with a one-second decay**, which is a category difference rather than a tuning one. Kick decay 1.2 s against `house-kit`'s 0.4, `pitchDecay` 0.06 against 0.03, and — the important one — **`octaves` down to 2 from 6**. A big sweep is a *thump*: the pitch falls through six octaves in 30 ms and what you hear is a transient. A small sweep over a long decay is a *note*: it lands almost immediately on G0 and then simply holds, which is why an 808 kick carries the bass line and why `bass/moog-sub` has to leave room for it rather than doubling it. Two of them at different pitches make a riff, and that riff will be the loudest thing in the mix.\n\n**The clap is the backbeat, not the snare.** Level 0.72 against the snare's 0.5, inverting `house-kit`'s ordering. A 1 kHz burst at Q 1.6 with a 0.22 s decay — narrower and much longer than the house clap's 0.12 s, because the 808 clap is really several bursts smeared into one and the tail is where that lives. Anything wanting a struck snare on 2 and 4 should be reaching for `slab-kit`; this kit's 2 and 4 is a clap.\n\n**The snare is thin on purpose.** 1.9 kHz, 0.1 s, Q 1.3 — up in frequency and cut in half in time against the house snare's 1.4 kHz / 0.18 s, and its `snareBody` drops to level 0.28 with a 0.06 s decay. A machine snare has almost no shell in it; adding body back is what makes a programmed beat sound like a badly-recorded real one.\n\n**Hats are metallic and tiny.** 9 kHz at 0.025 s closed — higher and shorter than anything else on the shelf — because an 808 hat is a bank of square oscillators through a high-pass, and what survives is a tick. The open hat runs 0.5 s, long enough to be an event rather than a longer tick.\n\n**Toms are pure sine drops**, sharing the kick's DNA: `pitchDecay` 0.08, `octaves` 1.5, decays around 0.7 s. On a real kit a tom is a drum; on an 808 it is the kick voice retuned, and modelling that honestly is what keeps the fills sounding like the same machine.\n\nThe rim is a 1.7 kHz spike at 0.02 s — the 808 rimshot, which is a click with a pitch and no body at all. Shaker sits low and pink, as the one piece here that is not synthetic in character.",
+  "kit": {
+    "levels": {
+      "kick": 1,
+      "snare": 0.5,
+      "rim": 0.45,
+      "clap": 0.72,
+      "hat": 0.3,
+      "open-hat": 0.34,
+      "ride": 0.2,
+      "crash": 0.4,
+      "tom-lo": 0.68,
+      "tom-mid": 0.66,
+      "tom-hi": 0.62,
+      "shaker": 0.28
+    },
+    "membrane": {
+      "kick": {
+        "pitch": "G0",
+        "decay": 1.2,
+        "pitchDecay": 0.06,
+        "octaves": 2
+      },
+      "tom-lo": {
+        "pitch": "G1",
+        "decay": 0.75,
+        "pitchDecay": 0.08,
+        "octaves": 1.5
+      },
+      "tom-mid": {
+        "pitch": "C2",
+        "decay": 0.7,
+        "pitchDecay": 0.08,
+        "octaves": 1.5
+      },
+      "tom-hi": {
+        "pitch": "F2",
+        "decay": 0.6,
+        "pitchDecay": 0.08,
+        "octaves": 1.5
+      }
+    },
+    "noise": {
+      "snare": {
+        "hz": 1900,
+        "decay": 0.1,
+        "type": "white",
+        "q": 1.3
+      },
+      "rim": {
+        "hz": 1700,
+        "decay": 0.02,
+        "type": "white",
+        "q": 2.2
+      },
+      "clap": {
+        "hz": 1000,
+        "decay": 0.22,
+        "type": "white",
+        "q": 1.6
+      },
+      "hat": {
+        "hz": 9000,
+        "decay": 0.025,
+        "type": "white",
+        "q": 1.6
+      },
+      "open-hat": {
+        "hz": 8500,
+        "decay": 0.5,
+        "type": "white",
+        "q": 1.4
+      },
+      "ride": {
+        "hz": 6800,
+        "decay": 0.45,
+        "type": "white",
+        "q": 1.2
+      },
+      "crash": {
+        "hz": 5000,
+        "decay": 1.1,
+        "type": "white",
+        "q": 0.8
+      },
+      "shaker": {
+        "hz": 7500,
+        "decay": 0.05,
+        "type": "pink",
+        "q": 0.9
+      }
+    },
+    "snareBody": {
+      "pitch": "E2",
+      "decay": 0.06,
+      "pitchDecay": 0.02,
+      "octaves": 2,
+      "level": 0.28
+    }
+  },
+  "approvedAt": "2026-08-15",
+  "summary": "Drum machine, not a room: a one-second pitched kick that carries the bass line, clap over snare. Trap and hiphop."
+}

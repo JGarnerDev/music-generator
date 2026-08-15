@@ -1,6 +1,14 @@
 {
   "entries": [
     {
+      "name": "bass.cello-arco",
+      "file": "bass.cello-arco.mp3",
+      "seconds": 24.8695625,
+      "bytes": 498240,
+      "isLoop": false,
+      "renderedAt": "2026-08-15T03:42:02.081Z"
+    },
+    {
       "name": "bass.jones-jazz",
       "file": "bass.jones-jazz.mp3",
       "seconds": 24.8695625,
@@ -17,12 +25,28 @@
       "renderedAt": "2026-08-14T16:23:55.687Z"
     },
     {
+      "name": "bass.moog-sub",
+      "file": "bass.moog-sub.mp3",
+      "seconds": 24.8695625,
+      "bytes": 498240,
+      "isLoop": false,
+      "renderedAt": "2026-08-15T03:42:22.407Z"
+    },
+    {
       "name": "bass.saw-round",
       "file": "bass.saw-round.mp3",
       "seconds": 24.8695625,
       "bytes": 498240,
       "isLoop": false,
       "renderedAt": "2026-08-14T15:44:34.901Z"
+    },
+    {
+      "name": "bass.tuba-oompah",
+      "file": "bass.tuba-oompah.mp3",
+      "seconds": 24.8695625,
+      "bytes": 498240,
+      "isLoop": false,
+      "renderedAt": "2026-08-15T03:42:13.145Z"
     },
     {
       "name": "bass.upright-pizz",
@@ -41,6 +65,14 @@
       "renderedAt": "2026-08-15T03:06:26.083Z"
     },
     {
+      "name": "drums.club-kit",
+      "file": "drums.club-kit.mp3",
+      "seconds": 24.8695625,
+      "bytes": 498240,
+      "isLoop": false,
+      "renderedAt": "2026-08-15T03:43:27.438Z"
+    },
+    {
       "name": "drums.frontier-kit",
       "file": "drums.frontier-kit.mp3",
       "seconds": 24.8695625,
@@ -57,12 +89,28 @@
       "renderedAt": "2026-08-14T15:44:49.316Z"
     },
     {
+      "name": "drums.machine-808",
+      "file": "drums.machine-808.mp3",
+      "seconds": 24.8695625,
+      "bytes": 498240,
+      "isLoop": false,
+      "renderedAt": "2026-08-15T03:43:17.220Z"
+    },
+    {
       "name": "drums.slab-kit",
       "file": "drums.slab-kit.mp3",
       "seconds": 24.8695625,
       "bytes": 498240,
       "isLoop": false,
       "renderedAt": "2026-08-15T03:06:17.128Z"
+    },
+    {
+      "name": "drums.taiko-kit",
+      "file": "drums.taiko-kit.mp3",
+      "seconds": 24.8695625,
+      "bytes": 498240,
+      "isLoop": false,
+      "renderedAt": "2026-08-15T03:43:37.435Z"
     },
     {
       "name": "epiano.clav-comb",
@@ -217,6 +265,14 @@
       "renderedAt": "2026-08-15T03:18:13.683Z"
     },
     {
+      "name": "pluck.archtop-comp",
+      "file": "pluck.archtop-comp.mp3",
+      "seconds": 26.857125,
+      "bytes": 538080,
+      "isLoop": false,
+      "renderedAt": "2026-08-15T03:42:52.089Z"
+    },
+    {
       "name": "pluck.brown-rhythm",
       "file": "pluck.brown-rhythm.mp3",
       "seconds": 22.461520833333335,
@@ -233,6 +289,14 @@
       "renderedAt": "2026-08-14T16:08:53.352Z"
     },
     {
+      "name": "pluck.mandolin-tremolo",
+      "file": "pluck.mandolin-tremolo.mp3",
+      "seconds": 26.857125,
+      "bytes": 538080,
+      "isLoop": false,
+      "renderedAt": "2026-08-15T03:43:06.581Z"
+    },
+    {
       "name": "pluck.nylon-arpeggio",
       "file": "pluck.nylon-arpeggio.mp3",
       "seconds": 26.857125,
@@ -247,6 +311,14 @@
       "bytes": 449760,
       "isLoop": false,
       "renderedAt": "2026-08-14T16:44:47.552Z"
+    },
+    {
+      "name": "pluck.steel-strum",
+      "file": "pluck.steel-strum.mp3",
+      "seconds": 26.857125,
+      "bytes": 538080,
+      "isLoop": false,
+      "renderedAt": "2026-08-15T03:42:38.407Z"
     }
   ]
 }

@@ -22,7 +22,8 @@
     "voice:new": "tsx scripts/new-voice.ts",
     "voice:find": "tsx scripts/find-voice.ts",
     "voice:render": "tsx scripts/render-voices.ts",
-    "voice:approve": "tsx scripts/approve-voice.ts"
+    "voice:approve": "tsx scripts/approve-voice.ts",
+    "voice:check": "tsx scripts/check-voices.ts"
   },
   "dependencies": {
     "commander": "^15.0.0",

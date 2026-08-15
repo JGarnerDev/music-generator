@@ -1,0 +1,49 @@
+{
+  "instrument": "bass",
+  "slug": "moog-sub",
+  "title": "Moog sub",
+  "status": "approved",
+  "forkedFrom": "bass/saw-round",
+  "tags": [
+    "bass",
+    "sub",
+    "synth",
+    "house",
+    "techno",
+    "trap",
+    "electronic",
+    "round"
+  ],
+  "notes": "The machine low end. The shelf's four basses are a neutral saw, a fuzz, a Jazz Bass and a double bass — every one of them a *player*, three of them explicitly acoustic. Nothing here can hold the bottom of a house or techno record, where the bass is not played at all: it is a filter, a very low oscillator, and a decay that has to get out of the kick's way and then come back.\n\nForked from `bass/saw-round` rather than from anything with a body on it, because the point of this voice is the absence of a box. It has **no `body`, no `breath` and no `vibrato`**, and that is a design decision rather than an omission — those three blocks exist to say \"a physical object made this\", and this object is a voltage. Adding a resonance here would make it a worse synth, not a better instrument.\n\n**A ladder filter, so `mono` and a real filter envelope** — the parent is a bare `synth` with no filter at all, which is why it can only ever be as bright as its oscillator. Base 45 Hz, 3.2 octaves, sustaining at 0.28 with a 180 ms decay: the note opens to about 400 Hz and shuts back down to the fundamental, which is the sound of a sequenced bass line moving. `Q` at 2.4 is the only place on this shelf with real resonance — the ladder's self-oscillation peak is most of what \"Moog\" means, and every other voice here keeps Q under 1 because a physical body's resonances are supposed to come from `body` instead.\n\n**`fatsquare` at 8 cents, two oscillators.** Square rather than saw: the hollow odd-harmonic spectrum is what sits *under* a four-to-the-floor kick without fighting it, where a saw's even harmonics land exactly where the kick's body is. The 8 cents of detune is the one deliberately un-machine thing about it, and it is there because two perfectly-tuned oscillators sum to one oscillator.\n\n**Attack 4 ms, release 0.18.** Both far shorter than the parent's 20 ms and 0.6. A sub with a slow attack smears the downbeat, and a sub with a long release rings through the next note and turns a bass line into a drone — at 128 BPM the sixteenth is 117 ms, so the release has to be under that or the pattern disappears. This is the one bass on the shelf that is *safe* at fast tempos, which upright-pizz's notes explicitly say it is not.\n\nSustain 0.55, decay 0.22: enough shape that a held root still has an envelope, low enough that it never pins the mix. Polyphony 2 — a sub line is monophonic in practice, and two voices is the crossfade, not a chord.",
+  "synth": {
+    "kind": "mono",
+    "oscillator": {
+      "type": "fatsquare",
+      "count": 2,
+      "spread": 8
+    },
+    "envelope": {
+      "attack": 0.004,
+      "decay": 0.22,
+      "sustain": 0.55,
+      "release": 0.18
+    },
+    "filter": {
+      "type": "lowpass",
+      "rolloff": -24,
+      "Q": 2.4
+    },
+    "filterEnvelope": {
+      "attack": 0.002,
+      "decay": 0.18,
+      "sustain": 0.28,
+      "release": 0.15,
+      "baseFrequency": 45,
+      "octaves": 3.2,
+      "exponent": 2
+    },
+    "maxPolyphony": 2
+  },
+  "approvedAt": "2026-08-15",
+  "summary": "Machine sub, resonant ladder filter and no body at all. The house/techno/trap low end, and the only bass safe at fast tempos."
+}

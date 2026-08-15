@@ -1,0 +1,83 @@
+{
+  "instrument": "bass",
+  "slug": "cello-arco",
+  "title": "Cello arco",
+  "status": "approved",
+  "forkedFrom": "bass/upright-pizz",
+  "tags": [
+    "cello",
+    "bass",
+    "bowed",
+    "arco",
+    "chamber",
+    "cinematic",
+    "acoustic",
+    "solemn"
+  ],
+  "notes": "The same instrument family as `bass/upright-pizz` with the bow on the string instead of a finger under it, which turns out to be a bigger difference than the instrument change would have been. Everything acoustic on this shelf is *plucked* — upright, nylon, sitar, jawari — so the low end has never once been able to hold a note. A chamber cue, a funeral, anything that wants the bass line to *sing* rather than to walk, had nothing.\n\n**A bow is a sustain mechanism, so the envelope inverts.** Attack 90 ms against the pizzicato's 12: the bow has to grab the string and set the Helmholtz corner running, and that takes a real fraction of a beat. Sustain 0.85, because energy keeps arriving for as long as the arm moves — the plucked voice sustains at 0.35 and is already dying. Release 0.5, which is *shorter* than upright-pizz's 1.3 even though the box is the same size: lifting a bow damps the string, where releasing a plucked string does nothing at all. That inversion — slow in, held, quick out — is the whole articulation, and it is why this is not the pizz with a longer attack.\n\n**The filter opens instead of collapsing.** Base 180 Hz, 2.6 octaves, but sustaining at 0.7 with a 140 ms attack on the filter envelope, so the note gets *brighter* under the bow and stays there. A plucked string is brightest at the instant of the pluck and darkens monotonically; a bowed one is the opposite, and getting this backwards is the fastest way to make a bowed patch sound like a plucked one with the attack turned up. `fatsawtooth12` at the source rather than the pizz's `fatsawtooth6` — bowing is a sawtooth by physics (the string sticks and slips once per period), and the bow keeps feeding the upper partials that a plucked string loses immediately.\n\n**Vibrato is now load-bearing rather than a synth-tell fix.** Rate 5.2, depth 0.05, drift 0.5 — a cellist's actual hand, four times the width of the pizzicato's token 0.012. A held bowed note with stationary pitch is not a cello at all; on a plucked note nobody would notice.\n\n**Body is a cello, not a double bass.** 100 Hz is the air mode (the double bass's is 60 — the instrument is smaller), 190 Hz the top plate, −4 dB at 420 Hz is the hollow between the modes, and 1.6 kHz is the bridge hill, which the pizz voice does not have at all because a plucked note has nothing left up there to excite it.\n\n**Breath is rosin, not thwack.** 3.8 kHz at level 0.08 with a 30 ms follower, against upright-pizz's 1.6 kHz at 5 ms. A fast follower is a transient — the string slapping the fingerboard; a slow one is a *continuous* scrape that lives under the whole note, which is what a bow does. Same block, opposite reading, and it is the second reason these two never converge on the way to the speaker.\n\nNo amp, for the reason `bass/jones-jazz` established and every acoustic voice here inherits: the power stage is a fixed 0.18 distortion, and a bowed instrument with grit on it is a synth.\n\nAuditioned on the bass étude. It will smear on the fast passage — a 90 ms attack cannot articulate sixteenths, and that is true of the real instrument. Pick it for half notes.",
+  "synth": {
+    "kind": "mono",
+    "oscillator": {
+      "type": "fatsawtooth12",
+      "count": 2,
+      "spread": 5
+    },
+    "envelope": {
+      "attack": 0.09,
+      "decay": 0.25,
+      "sustain": 0.85,
+      "release": 0.5
+    },
+    "filter": {
+      "type": "lowpass",
+      "rolloff": -12,
+      "Q": 0.8
+    },
+    "filterEnvelope": {
+      "attack": 0.14,
+      "decay": 0.3,
+      "sustain": 0.7,
+      "release": 0.4,
+      "baseFrequency": 180,
+      "octaves": 2.6,
+      "exponent": 1.2
+    },
+    "maxPolyphony": 3
+  },
+  "vibrato": {
+    "rate": 5.2,
+    "depth": 0.05,
+    "drift": 0.5
+  },
+  "body": [
+    {
+      "frequency": 100,
+      "q": 3,
+      "gain": 5
+    },
+    {
+      "frequency": 190,
+      "q": 2.5,
+      "gain": 4
+    },
+    {
+      "frequency": 420,
+      "q": 2,
+      "gain": -4
+    },
+    {
+      "frequency": 1600,
+      "q": 1,
+      "gain": 3
+    }
+  ],
+  "breath": {
+    "level": 0.08,
+    "hz": 3800,
+    "q": 0.7,
+    "attack": 0.03,
+    "release": 0.12
+  },
+  "approvedAt": "2026-08-15",
+  "summary": "Bowed low strings, the one bass that sustains. Chamber and funeral lines that sing rather than walk; too slow to articulate sixteenths."
+}

@@ -62,5 +62,6 @@
     "attack": 0.005
   },
   "forkedFrom": "epiano/fm-rhodes",
-  "approvedAt": "2026-08-15"
+  "approvedAt": "2026-08-15",
+  "summary": "The reed instead of fm-rhodes's tine: harmonicity 1, index 11, scooped middle. Soul and blues, where the Rhodes is too polite."
 }

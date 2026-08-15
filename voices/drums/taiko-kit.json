@@ -1,0 +1,119 @@
+{
+  "instrument": "drums",
+  "slug": "taiko-kit",
+  "title": "Taiko kit",
+  "status": "approved",
+  "forkedFrom": "drums/house-kit",
+  "tags": [
+    "kit",
+    "orchestral",
+    "taiko",
+    "timpani",
+    "gran-cassa",
+    "cinematic",
+    "epic",
+    "battle"
+  ],
+  "notes": "Orchestral percussion, which is not a kit and is filed as one because that is the only shape this engine has. Every cinematic and battle cue so far has been played on a rock kit turned up, and a rock kit is a *backbeat* instrument: its snare on 2 and 4 is the single most modern thing a piece can do. This voice's job is to make that impossible.\n\n**The levels are the design, more than any frequency is.** `tom-lo` sits at 0.95, a hair under the kick, where every other kit on the shelf has toms around 0.65. On this kit the toms *are* the taiko — the low drums carry the piece and the snare is punctuation, which is the exact inversion of a drum kit's hierarchy. The hi-hat is at **0.1**, effectively switched off, because an orchestra has no hi-hat and the honest way to say so is to leave the piece addressable but inaudible: a groove written for another kit will still play here, it will just stop sounding like a groove.\n\n**Kick is a gran cassa.** E1, 1.6 s decay, `pitchDecay` 0.05 through 3 octaves. Long, low and *tuned* — a concert bass drum is a definite pitch struck with a felt mallet, not a click, so the sweep is slow and shallow and what remains is a note you can sing. It shares that logic with `machine-808`'s kick and arrives somewhere completely different, because 3 octaves of sweep over 1.6 s reads as a mallet on a stretched hide where 2 octaves over 1.2 s reads as a synthesiser.\n\n**Toms are the taiko, tuned as a family.** F1, A1 and C2 — a minor third and a fifth, so a fill is a *melody* rather than three different sizes of thud — at 0.9, 0.8 and 0.7 s, `pitchDecay` 0.04 through 3.5 octaves. Long decays are the whole character: these drums are struck once and left to ring in a hall.\n\n**Snare is a rope-tensioned field drum.** 900 Hz at Q 0.6 with a 0.25 s decay — an octave *below* `house-kit`'s 1.4 kHz snare, wide rather than narrow, and much longer. Its `snareBody` runs at level 0.6, the highest on the shelf, because a field drum is mostly shell and gut and only a little wire. That combination is what makes a military roll sound like wood instead of like a rattle.\n\n**Crash is a tam-tam: 2.8 kHz, Q 0.4, 3.5 s.** The longest decay in any voice here, and low and wide where a rock crash is high and bright — a gong does not shimmer, it swells and floods. Ride becomes a suspended cymbal at 4 kHz / 1.8 s, which is a roll rather than a pulse; nothing on this kit is countable, on purpose.\n\nRim is a wood block (1.8 kHz, 0.03 s, Q 2 — narrow and pitched), clap is left low as hand percussion, and shaker becomes a tambourine at 7 kHz with a 0.09 s pink burst.\n\n**Trap:** because the toms are this loud and this long, a groove written with busy tom fills will drown the piece. Kits and grooves are separate files for good reasons, but this is the one voice on the shelf where the pattern has to be written *for* it.",
+  "kit": {
+    "levels": {
+      "kick": 1,
+      "snare": 0.7,
+      "rim": 0.4,
+      "clap": 0.35,
+      "hat": 0.1,
+      "open-hat": 0.14,
+      "ride": 0.4,
+      "crash": 0.6,
+      "tom-lo": 0.95,
+      "tom-mid": 0.92,
+      "tom-hi": 0.88,
+      "shaker": 0.3
+    },
+    "membrane": {
+      "kick": {
+        "pitch": "E1",
+        "decay": 1.6,
+        "pitchDecay": 0.05,
+        "octaves": 3
+      },
+      "tom-lo": {
+        "pitch": "F1",
+        "decay": 0.9,
+        "pitchDecay": 0.04,
+        "octaves": 3.5
+      },
+      "tom-mid": {
+        "pitch": "A1",
+        "decay": 0.8,
+        "pitchDecay": 0.04,
+        "octaves": 3.5
+      },
+      "tom-hi": {
+        "pitch": "C2",
+        "decay": 0.7,
+        "pitchDecay": 0.04,
+        "octaves": 3.5
+      }
+    },
+    "noise": {
+      "snare": {
+        "hz": 900,
+        "decay": 0.25,
+        "type": "white",
+        "q": 0.6
+      },
+      "rim": {
+        "hz": 1800,
+        "decay": 0.03,
+        "type": "white",
+        "q": 2
+      },
+      "clap": {
+        "hz": 1100,
+        "decay": 0.1,
+        "type": "white",
+        "q": 0.8
+      },
+      "hat": {
+        "hz": 6000,
+        "decay": 0.05,
+        "type": "white",
+        "q": 0.8
+      },
+      "open-hat": {
+        "hz": 5600,
+        "decay": 0.4,
+        "type": "white",
+        "q": 0.7
+      },
+      "ride": {
+        "hz": 4000,
+        "decay": 1.8,
+        "type": "white",
+        "q": 0.6
+      },
+      "crash": {
+        "hz": 2800,
+        "decay": 3.5,
+        "type": "white",
+        "q": 0.4
+      },
+      "shaker": {
+        "hz": 7000,
+        "decay": 0.09,
+        "type": "pink",
+        "q": 0.9
+      }
+    },
+    "snareBody": {
+      "pitch": "A2",
+      "decay": 0.18,
+      "pitchDecay": 0.03,
+      "octaves": 3,
+      "level": 0.6
+    }
+  },
+  "approvedAt": "2026-08-15",
+  "summary": "Orchestral percussion: gran cassa, tuned taiko toms louder than the snare, tam-tam, and no hi-hat to speak of. Cinematic and battle."
+}

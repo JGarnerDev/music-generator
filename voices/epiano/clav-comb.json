@@ -69,5 +69,6 @@
     "attack": 0.002
   },
   "forkedFrom": "epiano/fm-rhodes",
-  "approvedAt": "2026-08-15"
+  "approvedAt": "2026-08-15",
+  "summary": "Subtractive rather than FM, and the shortest release on the shelf. The only keys voice that is a rhythm instrument: funk and clav parts."
 }

@@ -2,7 +2,7 @@
 title: Looping music for games
 purpose: How to write and export a track that repeats for minutes without fatiguing or clicking at the seam.
 audience: [claude, human]
-updated: 2026-08-14
+updated: 2026-08-15
 read_order: 3
 see_also: [../readme.md, ../claude.md, palette-authoring.md]
 ---
@@ -95,7 +95,7 @@ Sounds are named in the plan, not in the built file: `"voices": { "pad":
 `voice` into the generated composition instead would be erased by the next
 rebuild, same as editing the notes.
 
-Four plan-level fields decide what the piece *is* before a single note is placed.
+Five plan-level fields decide what the piece *is* before a single note is placed.
 Leave them all out and you get the house sound, which is exactly how three loops
 became one song:
 
@@ -108,8 +108,23 @@ became one song:
   "gains": { "pad": 0.2, "pluck": 0.7 },    // per-track, over the builder's staging
                                             // ("pluck" is the rhythm guitar)
   "voices": { "drums": "frontier-kit" },    // the kit is a voice like any other
-  "groove": { "patterns": { "kick": "…" } } // the beat
+  "groove": { "patterns": { "kick": "…" } },// the beat
+  "melodyOn": "lead"                        // which instrument plays the written
+                                            // tune. Default "piano"
 }
+```
+
+`melodyOn` moves the sections' hand-written `melody` onto any pitched instrument
+— `piano`, `epiano`, `pad`, `bass`, `pluck`, `lead`. It moves the *tune* only:
+the engine's own keys decoration (the `standoff` and `breakdown` bell, the
+`turnaround` stab) belongs to those builders' sound, so it stays on the piano
+whatever the tune does. Set it with a voice or the point is lost — the shelf has
+`lead/lone-whistle`, `lead/harmonica-reed` and `lead/soprano-wordless` waiting
+for a top line, and routing to `lead` without naming one gets the default rock
+lead:
+
+```jsonc
+{ "melodyOn": "lead", "voices": { "lead": "lone-whistle" } }
 ```
 
 A plan is sections — an id, a `style`, a chord per bar, and any melody — and

@@ -1,0 +1,84 @@
+{
+  "instrument": "pluck",
+  "slug": "archtop-comp",
+  "title": "Archtop comp",
+  "status": "approved",
+  "forkedFrom": "pluck/nylon-arpeggio",
+  "tags": [
+    "guitar",
+    "archtop",
+    "hollow-body",
+    "jazz",
+    "flatwound",
+    "comping",
+    "lofi",
+    "clean"
+  ],
+  "notes": "A hollow-body archtop with flatwound strings, comping chords behind a soloist — the jazz and lo-fi rhythm part. The shelf's four plucks are two distorted electrics, a nylon and a sitar, so anything that wants a chord on the offbeat without either grit or Spain had nothing to play it.\n\nForked from `pluck/nylon-arpeggio` for its no-amp frame, and then it changes *category*: this is the only voice on the shelf modelling an instrument that is acoustic **and** electric at once, and every decision follows from that pair.\n\n**A triangle oscillator, which nothing else here uses for a guitar.** A neck humbucker sees only the fundamental region of the string's motion — the coil is a low-pass by geometry, sitting under the widest part of the vibration — and flatwound strings have almost no upper partials to begin with. The result is nearly a triangle wave, and starting from one is far truer than filtering a sawtooth down to it. This is the cleanest separation between this voice and the nylon: the nylon is a band-limited saw and this is a different waveform, not the same waveform with different EQ.\n\n**Attack 8 ms, and it is flesh.** A thumb or a soft plectrum on a wound string, slower than the nylon's 5 ms fingernail and much slower than the steel-string's 3 ms flatpick. The onset is the least clicky on the shelf, which is what lets a comped chord land *behind* the beat without announcing itself.\n\n**Decay 0.7 s to a 0.3 sustain, release 0.7.** A sustain three times the nylon's, because a magnetic pickup keeps hearing the string long after the box has stopped radiating, and a release shorter than the nylon's 1 s, because a comping hand mutes. That combination — holds longer, stops sooner — is the articulation, and neither number alone gets there.\n\n**The filter barely moves.** Base 280 Hz, 2.6 octaves, sustaining at 0.35 over a 300 ms decay. Every other plucked voice here collapses hard and fast because that is what a radiating string does; a pickup does not care about radiation, so this one darkens only slightly. Getting this wrong is what makes clean electric guitars sound like muted acoustics.\n\n**Body is a box with a pickup in front of it.** 130 Hz air mode, 300 Hz plate, +3 dB at 1.1 kHz for the woody honk an archtop has and a flat-top does not, and **−6 dB at 3.5 kHz** — the deepest notch on the shelf, and deliberately deep, because flatwounds genuinely have nothing up there and `docs/voices.md` says a hole is the cheapest strong contrast there is. Set against `steel-strum`'s +5 dB at 2.8 kHz, these two are 11 dB apart in the region the ear uses to tell guitars apart.\n\n**Breath is a thumb, not a nail.** 700 Hz at level 0.04, Q 0.8, with a 12 ms follower — low, quiet and slow, where the nylon is 2.6 kHz at 6 ms and the steel-string is 4.5 kHz at 3 ms. A thumb on a wound low string is a thud with no click in it at all.\n\nNo amp. Auditioned on the `keys` étude, same reasoning as its parent: block chords and note-to-note ring are the questions a comping voice has to answer.",
+  "probe": "keys",
+  "synth": {
+    "kind": "mono",
+    "oscillator": {
+      "type": "fattriangle",
+      "count": 2,
+      "spread": 6
+    },
+    "envelope": {
+      "attack": 0.008,
+      "decay": 0.7,
+      "sustain": 0.3,
+      "release": 0.7
+    },
+    "filter": {
+      "type": "lowpass",
+      "rolloff": -12,
+      "Q": 0.7
+    },
+    "filterEnvelope": {
+      "attack": 0.006,
+      "decay": 0.3,
+      "sustain": 0.35,
+      "release": 0.6,
+      "baseFrequency": 280,
+      "octaves": 2.6,
+      "exponent": 1.4
+    },
+    "maxPolyphony": 6
+  },
+  "vibrato": {
+    "rate": 4.2,
+    "depth": 0.014,
+    "drift": 0.7
+  },
+  "body": [
+    {
+      "frequency": 130,
+      "q": 3.5,
+      "gain": 5
+    },
+    {
+      "frequency": 300,
+      "q": 2.5,
+      "gain": 3
+    },
+    {
+      "frequency": 1100,
+      "q": 1.4,
+      "gain": 3
+    },
+    {
+      "frequency": 3500,
+      "q": 1,
+      "gain": -6
+    }
+  ],
+  "breath": {
+    "level": 0.04,
+    "hz": 700,
+    "q": 0.8,
+    "attack": 0.012,
+    "release": 0.08
+  },
+  "approvedAt": "2026-08-15",
+  "summary": "Hollow-body archtop on flatwounds: triangle-soft, no top end, no grit. Jazz and lo-fi comping behind a soloist."
+}

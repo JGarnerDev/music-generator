@@ -1,0 +1,83 @@
+{
+  "instrument": "bass",
+  "slug": "tuba-oompah",
+  "title": "Tuba oompah",
+  "status": "approved",
+  "forkedFrom": "bass/upright-pizz",
+  "tags": [
+    "tuba",
+    "brass",
+    "bass",
+    "breath",
+    "folk",
+    "klezmer",
+    "marching",
+    "acoustic"
+  ],
+  "notes": "The bass line played by a lung. Every low end on this shelf is a *string* — plucked, fingered, bowed or synthesised — and a string is excited once and then decays, which is why every bass line here has the same relationship to the beat. A brass bass is excited continuously and *starts late*, and that changes what a downbeat feels like more than any amount of tone shaping does. Folk, klezmer, a village band, a funeral procession, anything oompah: none of it had a low end that could be played on this shelf without sounding like a rock record.\n\nForked from `bass/upright-pizz` for its acoustic frame — no amp, real body resonances, audible noise — and then almost nothing survives.\n\n**The note arrives after you ask for it.** Attack 50 ms in the amplitude envelope and 60 ms in the *filter* envelope, and the filter one is the important half: a column of air in a nine-foot pipe takes time to establish, and it establishes from the bottom up, so the note starts as a fundamental and grows a spectrum. That lag is what an oompah bass sounds like, and it is why this voice is a nightmare on sixteenths and perfect on beats 1 and 3.\n\n**Breath is the loudest thing in the preset.** Level 0.11 through a 900 Hz band at Q 0.6 — a *wide* band, low down, with a 40 ms follower and a 200 ms release. Compare `upright-pizz`: 0.06 at 1.6 kHz, Q 0.9, 5 ms. Narrow and fast is a transient — a string slapping wood; wide and slow is *air moving through a pipe for the whole length of the note*. This is the block doing the instrument-identification work, exactly as `docs/voices.md` says it should when two voices would otherwise separate only on EQ.\n\n**Sustain 0.8, release 0.25.** A tuba stops when the player stops, and it stops fast — there is no box behind it ringing on, which is the double bass's whole signature (1.3 s). Short release on a sustained voice is unusual here and it is what makes the *rests* in an oompah pattern audible.\n\n**Vibrato is breath, not a hand.** Rate 4.4, depth 0.02, drift 0.8 — slow, shallow, and mostly *irregular*. A wind player's pitch wanders because their air pressure does; the 0.8 drift means the width is barely ever twice the same, which is the difference between a player and an LFO.\n\n**Body is a bore and a bell.** 75 Hz is the instrument speaking at its lowest useful note, 220 Hz is the bell flare, −4 dB at 500 Hz is the gap that makes brass sound hollow rather than merely dark, and 900 Hz is the blat you hear when it is blown hard. `fatsawtooth8` at 3 cents of spread — one instrument, one player, and brass is spectrally rich enough that band-limiting it the way nylon is band-limited would be wrong.\n\nNo amp, same rule as every acoustic voice here.",
+  "synth": {
+    "kind": "mono",
+    "oscillator": {
+      "type": "fatsawtooth8",
+      "count": 2,
+      "spread": 3
+    },
+    "envelope": {
+      "attack": 0.05,
+      "decay": 0.15,
+      "sustain": 0.8,
+      "release": 0.25
+    },
+    "filter": {
+      "type": "lowpass",
+      "rolloff": -12,
+      "Q": 0.9
+    },
+    "filterEnvelope": {
+      "attack": 0.06,
+      "decay": 0.2,
+      "sustain": 0.6,
+      "release": 0.2,
+      "baseFrequency": 120,
+      "octaves": 2.4,
+      "exponent": 1.4
+    },
+    "maxPolyphony": 3
+  },
+  "vibrato": {
+    "rate": 4.4,
+    "depth": 0.02,
+    "drift": 0.8
+  },
+  "body": [
+    {
+      "frequency": 75,
+      "q": 2.5,
+      "gain": 5
+    },
+    {
+      "frequency": 220,
+      "q": 2,
+      "gain": 4
+    },
+    {
+      "frequency": 500,
+      "q": 1.8,
+      "gain": -4
+    },
+    {
+      "frequency": 900,
+      "q": 1.2,
+      "gain": 3
+    }
+  ],
+  "breath": {
+    "level": 0.11,
+    "hz": 900,
+    "q": 0.6,
+    "attack": 0.04,
+    "release": 0.2
+  },
+  "approvedAt": "2026-08-15",
+  "summary": "Brass bass played by a lung: the note arrives late and stops dead. Oompah, klezmer, marching and village-band low end."
+}

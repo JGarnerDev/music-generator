@@ -15,6 +15,7 @@ import { resolve, basename, dirname } from "node:path";
 import { Command } from "commander";
 import { COMPOSITION_KINDS, isCompositionKind } from "../src/engine/library";
 import {
+  PITCHED_INSTRUMENTS,
   validateComposition,
   type Composition,
   type InstrumentName,
@@ -87,7 +88,7 @@ interface PlanSection {
   figure?: FigureRef;
   /** `motor` only — shorthand for a figure: 2 = straight eighths, 4 = a sixteenth chug. */
   subdivision?: 2 | 4;
-  /** Whistle/bell voice (piano), times relative to the section start. */
+  /** The written top line, times relative to the section start. Plays on the plan's `melodyOn` (default piano). */
   melody?: PlanNote[];
   /** Guitar lead voice, times relative to the section start. */
   lead?: PlanNote[];
@@ -128,6 +129,19 @@ interface Plan {
    * their default voice.
    */
   voices?: Partial<Record<InstrumentName, string>>;
+  /**
+   * Which instrument the sections' hand-written `melody` is played on. Default
+   * `piano`, which is where every top line landed before this field existed —
+   * and the reason a written tune could only ever be a keys voice, however much
+   * `lead/lone-whistle` or `lead/harmonica-reed` was the sound the scene wanted.
+   *
+   * It moves the *written* line only. The engine's own keys decoration — the
+   * `standoff`/`breakdown` bell, the `turnaround` stab — is part of those
+   * builders' sound rather than the tune, so it stays on the piano either way.
+   * Pair it with `voices.<target>`: routing the melody to `lead` without naming
+   * a voice gets the default rock lead, which is rarely the intent.
+   */
+  melodyOn?: Exclude<InstrumentName, "drums">;
   /** Section id where the loop body begins; everything before it is the intro. */
   loopFrom?: string;
   sections: PlanSection[];
@@ -153,6 +167,8 @@ interface SectionContext {
   barRoots: string[];
   /** Chromatic step into the *next* bar's root, per bar. */
   approaches: (string | null)[];
+  /** Bucket the section's written `melody` is pushed into — the plan's `melodyOn`. */
+  melodyInto: keyof Voices;
 }
 
 /** The roots of one bar: a split bar's list, or the single root that holds it. */
@@ -203,8 +219,24 @@ interface Voices {
   rhythm: Note[];
   lead: Note[];
   piano: Note[];
+  epiano: Note[];
   drums: Note[];
 }
+
+/**
+ * Which bucket an instrument's notes go in. Only `pluck` needs saying — the
+ * builder has called that bucket `rhythm` since before voices existed, because
+ * from a section builder's point of view it is the rhythm part, not a plucked
+ * tone. Everything else is its own name.
+ */
+const BUCKET_OF: Record<Exclude<InstrumentName, "drums">, keyof Voices> = {
+  piano: "piano",
+  epiano: "epiano",
+  pad: "pad",
+  bass: "bass",
+  pluck: "rhythm",
+  lead: "lead",
+};
 
 const program = new Command();
 program
@@ -269,6 +301,11 @@ function reportDefaults(plan: Plan): void {
   }
   if (!plan.gains) untouched.push("gains — the builder's house mix");
   if (!plan.voices?.drums) untouched.push("voices.drums — the default kit");
+  if (!plan.melodyOn && plan.sections.some((s) => s.melody?.length)) {
+    untouched.push(
+      'melodyOn — the tune is on the piano. `npm run voice:find -- --query "<the scene>"`',
+    );
+  }
   if (plan.sections.every((s) => s.chords.length % 4 === 0)) {
     untouched.push("phrase length — every section is a multiple of 4 bars");
   }
@@ -315,7 +352,16 @@ function buildComposition(plan: Plan): Composition {
     bassRoots.map(lastOf),
   );
 
-  const voices: Voices = { pad: [], bass: [], rhythm: [], lead: [], piano: [], drums: [] };
+  const voices: Voices = {
+    pad: [],
+    bass: [],
+    rhythm: [],
+    lead: [],
+    piano: [],
+    epiano: [],
+    drums: [],
+  };
+  const melodyInto = melodyBucketOf(plan);
 
   let bar = 0;
   for (const section of plan.sections) {
@@ -328,6 +374,7 @@ function buildComposition(plan: Plan): Composition {
       guitarRoots: bassRoots.slice(span.start, span.end).map(octaveUp),
       barRoots: bassRoots.slice(span.start, span.end).map(firstOf),
       approaches: approaches.slice(span.start, span.end),
+      melodyInto,
     };
     buildSection(ctx, voices);
     voices.drums.push(...sectionDrums(plan, ctx));
@@ -347,6 +394,7 @@ function buildComposition(plan: Plan): Composition {
       { instrument: "pluck", gain: 0.62, notes: voices.rhythm },
       { instrument: "lead", gain: 0.85, notes: voices.lead },
       { instrument: "piano", gain: 0.8, notes: voices.piano },
+      { instrument: "epiano", gain: 0.8, notes: voices.epiano },
     ] as Track[]
   )
     .filter((t) => t.notes.length > 0)
@@ -394,6 +442,24 @@ function gainFor(plan: Plan, instrument: InstrumentName, fallback: number): numb
     process.exit(2);
   }
   return gain;
+}
+
+/**
+ * The bucket the written melody lands in. A bad instrument name fails here, at
+ * build time, with the shelf printed — the same reason a bad figure name does.
+ * `drums` is rejected by name rather than by type so that a plan written by hand
+ * gets the explanation instead of a silent `undefined` bucket.
+ */
+function melodyBucketOf(plan: Plan): keyof Voices {
+  const target = plan.melodyOn;
+  if (target === undefined) return "piano";
+  const bucket = BUCKET_OF[target];
+  if (!bucket) {
+    console.error(`melodyOn: "${target}" is not a pitched instrument`);
+    console.error(`  pick one of: ${PITCHED_INSTRUMENTS.join(" | ")}`);
+    process.exit(2);
+  }
+  return bucket;
 }
 
 /**
@@ -496,7 +562,7 @@ function buildSection(ctx: SectionContext, voices: Voices): void {
     process.exit(2);
   }
   build(ctx, voices);
-  voices.piano.push(...offsetNotes(ctx.section.melody ?? [], ctx.startBar));
+  voices[ctx.melodyInto].push(...offsetNotes(ctx.section.melody ?? [], ctx.startBar));
   voices.lead.push(...offsetNotes(ctx.section.lead ?? [], ctx.startBar));
 }
 

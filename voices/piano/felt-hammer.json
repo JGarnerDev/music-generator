@@ -74,5 +74,6 @@
     "attack": 0.004
   },
   "forkedFrom": "piano/soft-triangle",
-  "approvedAt": "2026-08-15"
+  "approvedAt": "2026-08-15",
+  "summary": "Felt strip over the strings: 12 ms attack, no hammer hill, mechanism noise at 900 Hz. The intimate close piano for ballads and lonely cues."
 }

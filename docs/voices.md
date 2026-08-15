@@ -2,7 +2,7 @@
 title: Voices — designing instrument sounds
 purpose: The loop for introducing, refining and approving an instrument sound, and how an approved voice gets used in songs.
 audience: [claude, human]
-updated: 2026-08-14
+updated: 2026-08-15
 read_order: 5
 see_also: [../readme.md, ../claude.md, rendering.md, ../voices/archive.md]
 ---
@@ -97,6 +97,34 @@ resonances loudly (and prefer a deep **notch** — contrast comes from absence a
 much as presence, and a hole costs no headroom); change `breath`, since a slow
 follower is a swell and a fast one is a scrape; and separate them in *time* with
 `tremolo`, which no amount of filtering erodes.
+
+```bash
+npm run voice:check                                          # the whole shelf
+npm run voice:check -- --instrument pluck --drafts           # while designing a fork
+npm run voice:check -- --explain pluck/brown-rhythm,pluck/chainsaw-chug
+```
+
+That rule is easy to restate and hard to *apply*, because applying it means
+holding every pair of an instrument in your head at once — nine voices is
+thirty-six pairs — and knowing which of forty numbers matter.
+`voice:check` does the holding. Two things have to be true for a difference to
+count, and the second is the one that gets forgotten: it has to be on an axis
+the chain doesn't erode, **and it has to be big enough to hear**. A fork changes
+forty numbers, so `sustain: 0.9 → 0.85` is not a separation, and a check that
+counts it clears every pair and therefore finds nothing.
+
+So the rules live in [`src/engine/voice-distance.ts`](../src/engine/voice-distance.ts),
+pure and tested: `body` and the amp's tone stack are *weak* (eroded) however
+large; envelopes, breath, tremolo, section and the kit's decays are judged by
+**ratio**, because hearing is logarithmic — 20 ms against 30 is the same size of
+change as 200 against 300; tuned drums are judged in semitones; a different
+waveform always counts; `maxPolyphony` never does, being a render budget rather
+than a sound. `--explain` prints one pair's every difference with the audible
+ones marked, which is the view you want mid-fork.
+
+It is a nudge, not a gate — the same standing as `song:build`'s defaults report.
+It cannot hear a −6 dB notch, and a deep enough one is a real separation this
+page recommends. What it can do is tell you which two probes to open.
 
 ## Making a voice sound like many players
 
@@ -223,12 +251,14 @@ year and the archive is back where it started.
 | `src/engine/voice.ts` | Preset shape + validation — tested. |
 | `src/engine/section.ts` | Who plays how far off, for a `section` voice — pure, seeded, tested. |
 | `src/engine/voice-library.ts` | Filing, default resolution, approve/fork rules, archive markdown — tested. |
+| `src/engine/voice-distance.ts` | Which differences between two voices survive the lo-fi chain — pure, tested. |
 | `src/engine/probe.ts` | The études — tested. |
 | `src/app/instruments.ts`, `drums.ts` | Preset → Tone nodes. The amp's block order lives here, because that is the instrument. |
 | `src/app/voices.ts` | The bundled registry the graph resolves against. |
 | `src/dev/voice-store.ts`, `voice-ops.ts`, `voice-api.ts` | Reading/writing `voices/`, the three operations, and the bench's buttons. |
 | `scripts/new-voice.ts`, `render-voices.ts`, `approve-voice.ts` | The three commands that change files. |
 | `scripts/find-voice.ts` | `voice:find` — the read-only one: search the shelf, or print one fork brief. |
+| `scripts/check-voices.ts` | `voice:check` — the other read-only one: which pairs will converge. |
 | `public/audio/voices/` | Rendered probes + their manifest. What the bench plays. |
 
 ## Traps

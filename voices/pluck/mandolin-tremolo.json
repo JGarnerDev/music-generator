@@ -1,0 +1,88 @@
+{
+  "instrument": "pluck",
+  "slug": "mandolin-tremolo",
+  "title": "Mandolin tremolo",
+  "status": "approved",
+  "forkedFrom": "pluck/nylon-arpeggio",
+  "tags": [
+    "mandolin",
+    "tremolo",
+    "folk",
+    "bluegrass",
+    "celtic",
+    "italian",
+    "acoustic",
+    "shimmer"
+  ],
+  "notes": "A mandolin held on a tremolo — the plectrum going back and forth eight or nine times a second because the instrument cannot sustain any other way. Folk, bluegrass, Celtic, an Italian street scene, and any cue that wants a *bright* held note where `pad/string-tremolo` would be too big and too dark.\n\nForked from `pluck/nylon-arpeggio` for the acoustic frame, and then it takes the one separation `docs/voices.md` says nothing erodes: **it differs in time.** Every other plucked voice on this shelf is one attack and a decay; this one is a `tremolo` block, and no amount of lo-fi bandwidth loss can make a re-articulated note sound like a struck one.\n\n**The tremolo is the instrument.** Rate 9 — the fast end of the range, because a mandolin tremolo is genuinely quicker than a bowed one (there is no arm to reverse, only a wrist) — depth 0.7 and spread 30°. Depth is high but not 1.0, exactly as the block's contract says: at 1.0 the note stops dead between strokes and you get a machine gun, and a real mandolin's strings are still ringing when the pick comes back. The spread widens what is physically one small instrument, which is a cheat, and the honest justification is that the tremolo is the only wide thing about it.\n\n**Double courses, deliberately mistuned.** `fatsawtooth` at **12 cents**, the widest spread on the shelf. A mandolin has four *pairs* of strings tuned in unison by a person, and they are never quite in unison; that beating is as identifiable as the tremolo. Full-spectrum saw rather than the nylon's six-partial truncation — this is a short, tight, high-tension steel string and there is a great deal of energy above 3 kHz.\n\n**The shortest envelope of any pluck here: decay 0.28 s to a 0.05 sustain, release 0.5.** The note is essentially gone the instant it is struck, which is *why* the instrument is tremoloed at all — the articulation exists to work around the envelope, so building the envelope generously would remove the reason for the tremolo and leave a strange chorused guitar. Attack 2 ms, a hard pick on light strings.\n\nThe filter collapses fastest too: base 700 Hz, 3.2 octaves, shut to 0.2 in 120 ms. Bright at the pick, dark by the time the pick returns, which is what makes a tremolo *shimmer* instead of drone — each stroke has its own brightness sweep.\n\n**Body is a small box, and small means high.** 250 Hz air mode against a classical guitar's 100 — the single clearest number in the preset, and it is the instrument being physically tiny. 500 Hz plate, +5 dB at 1.8 kHz and +3 dB at 3.5 kHz for the carrying-power that lets one mandolin cut through a band with no amplification at all.\n\n**Breath is the plectrum, and it fires on every stroke.** 5 kHz at level 0.1 with a 2 ms follower. Because `breath` is gated by the instrument's own envelope follower and `tremolo` sits *before* it in the chain, each of the nine strokes a second gets its own pick attack — that per-stroke click is most of what reads as picking rather than as a volume knob being waggled.\n\nNo amp. Auditioned on the `keys` étude like its siblings.",
+  "probe": "keys",
+  "synth": {
+    "kind": "mono",
+    "oscillator": {
+      "type": "fatsawtooth",
+      "count": 2,
+      "spread": 12
+    },
+    "envelope": {
+      "attack": 0.002,
+      "decay": 0.28,
+      "sustain": 0.05,
+      "release": 0.5
+    },
+    "filter": {
+      "type": "lowpass",
+      "rolloff": -12,
+      "Q": 0.8
+    },
+    "filterEnvelope": {
+      "attack": 0.002,
+      "decay": 0.12,
+      "sustain": 0.2,
+      "release": 0.4,
+      "baseFrequency": 700,
+      "octaves": 3.2,
+      "exponent": 1.6
+    },
+    "maxPolyphony": 6
+  },
+  "vibrato": {
+    "rate": 5.5,
+    "depth": 0.008,
+    "drift": 0.7
+  },
+  "tremolo": {
+    "rate": 9,
+    "depth": 0.7,
+    "spread": 30
+  },
+  "body": [
+    {
+      "frequency": 250,
+      "q": 4,
+      "gain": 5
+    },
+    {
+      "frequency": 500,
+      "q": 2.5,
+      "gain": 3
+    },
+    {
+      "frequency": 1800,
+      "q": 1.4,
+      "gain": 5
+    },
+    {
+      "frequency": 3500,
+      "q": 1,
+      "gain": 3
+    }
+  ],
+  "breath": {
+    "level": 0.1,
+    "hz": 5000,
+    "q": 1.2,
+    "attack": 0.002
+  },
+  "approvedAt": "2026-08-15",
+  "summary": "Mandolin on a fast tremolo, a plucked voice that can hold a note. Folk, bluegrass and Celtic, where string-tremolo is too big."
+}

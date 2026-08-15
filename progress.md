@@ -2,7 +2,7 @@
 title: Progress & Roadmap
 purpose: Prioritized backlog of what to build. Living doc — check items off, reorder as reality shifts.
 audience: [claude, human]
-updated: 2026-08-14
+updated: 2026-08-15
 read_order: 2
 see_also: [readme.md, docs/vision.md]
 status: living
@@ -20,56 +20,17 @@ shipped; keep this list short and forward-looking.
 
 ## P0 — The voice shelf
 
-**Decision, 2026-08-15: the shelf comes before the songs.** `compositions/` was
-emptied on 2026-08-14 — the first library was written to find out what the tools
-could do, and it found out. The materials are what decide whether the *next*
-piece is rich or is the last piece again, so they get built first, deliberately,
-while nothing is depending on them.
+**Shipped 2026-08-15. Nothing left here; the next piece of work is P1.**
 
-What we learned about composing is not lost, it is parked: it lives in
+The decision was that the shelf comes before the songs: `compositions/` was
+emptied on 2026-08-14, and the materials — not the tooling — are what decide
+whether the *next* piece is rich or is the last piece again. The shelf now
+stands at 40 approved voices: `lead/` 9, `pad/` 4, `bass/` `pluck/` `drums/` 7
+each, `piano/` and `epiano/` 3 each.
+
+What we learned about composing is parked in
 [`docs/variety.md`](./docs/variety.md) — the knobs, the rules for choosing them,
-and the engine gaps found the hard way. Read it before writing a plan. The
-composition *work* is P1 and below until the shelf can carry it.
-
-The shelf today: `lead/` 9, `pad/` `pluck/` `bass/` `drums/` 4 each, and
-**`piano/` and `epiano/` one apiece**. The loop for all of it is fork → edit →
-render probe → audition at `/voices.html` → approve with a `--summary`; approved
-voices are **forked, never edited**. See [`docs/voices.md`](./docs/voices.md).
-
-- [~] **The keys family — awaiting audition.** `piano/` and `epiano/` had one
-      voice each, and both **predated `body`/`breath`/`vibrato` existing**: they
-      are an oscillator and an envelope with no box around them, which is why
-      every hand-written melody in the first library sounded synthetic. Four
-      drafts are written and their probes rendered — audition at `/voices.html`
-      (drafts only) and approve each with a `--summary`:
-  - `piano/felt-hammer` — felt strip over the strings; 12 ms attack, a −5 dB
-    notch where the hammer hill would be, mechanism noise at 900 Hz.
-  - `piano/music-box` — FM at a 3.5:1 *inharmonic* ratio, sustain 0, no low end
-    at all. The lullaby/doll's-house/villain voice.
-  - `epiano/wurlitzer-reed` — the reed against `fm-rhodes`'s tine: harmonicity 1
-    instead of 2, index 11, scooped middle. Soul and blues.
-  - `epiano/clav-comb` — subtractive, not FM; 0.25 s release, the shortest on the
-    shelf. The only keys voice that is a *rhythm* instrument.
-- [ ] **`melody` is still hard-routed to the piano track** (`build-song.ts`), so
-      the keys voices above are the only thing a written top line can ever be.
-      Open question, not yet decided: let a plan route `melody` to another
-      instrument the way `voices` already routes tone — the shelf has
-      `lead/lone-whistle`, `lead/harmonica-reed` and `lead/soprano-wordless`
-      doing nothing for melodies. Engine change, so it sits behind the shelf work.
-- [ ] **Non-metal `bass/` and `pluck/`.** Four each, but the character is
-      electric-and-distorted throughout: the acoustic and clean end is one voice
-      wide (`upright-pizz`, `nylon-arpeggio`). Anything folk, jazz, lo-fi or
-      chamber has nothing to be played on.
-- [ ] **Kits, continued.** Four now — `house-kit` (neutral), `frontier-kit`
-      (western punctuation), `slab-kit` (rock backbeat), `brush-kit` (quiet,
-      ride-led). Still missing the electronic end (`house`, `techno`, `dnb`,
-      `trap` all want a machine, not a room) and orchestral percussion
-      (taiko/timpani/gran cassa) for the cinematic palettes.
-- [ ] **Two voices separated only by EQ will converge.** `docs/voices.md` says
-      this and `pad/string-bed` vs `pad/mens-choir` proved it. Every voice added
-      from here has to differ in `breath`, `tremolo`, `section` or time — not in
-      a few dB of `body`. Worth a pass over the existing shelf to find the pairs
-      that are already too close to be worth choosing between.
+and the engine gaps found the hard way. Read it before writing a plan.
 
 ## P1 — Make the core loop *good*
 

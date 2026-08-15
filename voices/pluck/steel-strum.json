@@ -1,0 +1,83 @@
+{
+  "instrument": "pluck",
+  "slug": "steel-strum",
+  "title": "Steel strum",
+  "status": "approved",
+  "forkedFrom": "pluck/nylon-arpeggio",
+  "tags": [
+    "guitar",
+    "steel-string",
+    "acoustic",
+    "dreadnought",
+    "folk",
+    "strum",
+    "country",
+    "flatpick"
+  ],
+  "notes": "A steel-string dreadnought being strummed — the folk, country and singer-songwriter rhythm part. Forked from `pluck/nylon-arpeggio`, which is the only other unamplified guitar here, and then reversed on nearly every axis, because the parent's own notes name the contrast: those two instruments \"differ mostly in what happens above 3 kHz\", and this is the side of that line nothing on the shelf was on.\n\n**Full-spectrum oscillator.** `fatsawtooth` with no partial limit, where the nylon is deliberately truncated to six. A wound steel string is under three times the tension, is much lighter per unit length, and keeps energy past 5 kHz for a second or more; band-limiting it would be modelling the wrong instrument. Three oscillators at 9 cents rather than two at 5: a strum is six strings sounding within about 30 ms of each other and no two of them are exactly in tune, and that slight beating is what separates a strum from a block chord.\n\n**It rings more than twice as long.** Decay 1.1 s to a 0.18 sustain, release 1.6 s, against nylon's 0.5 / 0.12 / 1.0. This is the single biggest audible difference and it is a *time* difference rather than a spectral one, which per `docs/voices.md` is the kind that survives the lo-fi chain. Attack 3 ms — a flatpick is harder and lighter than a fingernail.\n\n**The filter starts brighter and collapses more slowly.** Base 600 Hz, 3.6 octaves, sustaining at 0.4 over a 500 ms decay, where the nylon shuts to 0.25 in 200 ms. A steel string does darken as it rings, but it takes its time about it, and the difference between \"darkens over 200 ms\" and \"darkens over 500 ms\" is the difference between a nylon and a dreadnought held next to each other.\n\n**The bridge hill is present, and that is the point.** The nylon voice carries −4 dB at 2.6 kHz to model the hill it *doesn't* have; this one carries +5 dB at 2.8 kHz, which is the same feature with the sign flipped and is most of what \"steel\" sounds like. Below it: 95 Hz air mode (a dreadnought's box is bigger than a classical's, so the Helmholtz note is lower), 190 Hz top plate, and −3 dB at 500 Hz for the scoop that keeps a strummed chord from turning to mud under a vocal.\n\n**Breath is a plectrum on a wound string.** 4.5 kHz at level 0.09 with a 3 ms follower, against the nylon's 2.6 kHz at 0.05 — nearly an octave up and nearly twice as loud. A nail on nylon is a click; a pick dragged across three wound strings is a scrape you can hear from across a room, and it is the most identifiable thing about an acoustic strum.\n\nNo amp, same rule the nylon establishes. Polyphony 8, because six strings ringing for 1.6 s overlap heavily and clipping the voice count turns a strum into an arpeggio. Auditioned on the `keys` étude for the reason the parent gives — the `pluck` probe is palm-muted sixteenths, which would only report that a long release is a bad chug.",
+  "probe": "keys",
+  "synth": {
+    "kind": "mono",
+    "oscillator": {
+      "type": "fatsawtooth",
+      "count": 3,
+      "spread": 9
+    },
+    "envelope": {
+      "attack": 0.003,
+      "decay": 1.1,
+      "sustain": 0.18,
+      "release": 1.6
+    },
+    "filter": {
+      "type": "lowpass",
+      "rolloff": -12,
+      "Q": 0.6
+    },
+    "filterEnvelope": {
+      "attack": 0.002,
+      "decay": 0.5,
+      "sustain": 0.4,
+      "release": 1.2,
+      "baseFrequency": 600,
+      "octaves": 3.6,
+      "exponent": 1.5
+    },
+    "maxPolyphony": 8
+  },
+  "vibrato": {
+    "rate": 4.6,
+    "depth": 0.01,
+    "drift": 0.6
+  },
+  "body": [
+    {
+      "frequency": 95,
+      "q": 4,
+      "gain": 6
+    },
+    {
+      "frequency": 190,
+      "q": 3,
+      "gain": 4
+    },
+    {
+      "frequency": 500,
+      "q": 1.8,
+      "gain": -3
+    },
+    {
+      "frequency": 2800,
+      "q": 1,
+      "gain": 5
+    }
+  ],
+  "breath": {
+    "level": 0.09,
+    "hz": 4500,
+    "q": 1,
+    "attack": 0.003
+  },
+  "approvedAt": "2026-08-15",
+  "summary": "Steel-string dreadnought strummed: rings twice as long as the nylon, with the bridge hill it lacks. Folk, country, singer-songwriter."
+}

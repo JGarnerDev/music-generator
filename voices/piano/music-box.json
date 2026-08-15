@@ -58,5 +58,6 @@
     "attack": 0.002
   },
   "forkedFrom": "piano/soft-triangle",
-  "approvedAt": "2026-08-15"
+  "approvedAt": "2026-08-15",
+  "summary": "Inharmonic FM at 3.5:1, zero sustain, no low end at all. Lullabies, doll's houses and villains, never an ordinary piano part."
 }
