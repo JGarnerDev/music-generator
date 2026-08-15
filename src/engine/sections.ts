@@ -22,7 +22,7 @@
 import type { Note } from "./composition";
 import { figureLine, powerChordFigure, type FigureRef } from "./figure";
 import { sustainLine, tremoloLine } from "./riff";
-import { fitToBand, transpose } from "./theory";
+import { chordPitches, fitToBand, transpose } from "./theory";
 import { COMMON_TIME, beatsPerBar, sixteenthsToNotation, stepsPerBar, type Meter } from "@utils/timing";
 
 /** The arrangement styles a plan section may ask for. */
@@ -109,6 +109,40 @@ export function lastOf(entry: string | string[]): string {
 /** A bar's roots an octave up, split bar or not. */
 export function octaveUp(entry: string | string[]): string | string[] {
   return Array.isArray(entry) ? entry.map((p) => transpose(p, 12)) : transpose(entry, 12);
+}
+
+/** One run of bars and the register its bass roots fold into. */
+export interface RootGroup {
+  /** Chord symbols, one entry per bar; an array entry splits the bar. */
+  chords: readonly (string | string[])[];
+  /** Low and high MIDI note the roots are folded between. */
+  band: [number, number];
+}
+
+/**
+ * Bass roots per bar, each group folded into its *own* register band.
+ *
+ * One band for a whole piece is a large part of why a chorus sounds like the
+ * verse it followed: inside eight semitones every root folds to the same place,
+ * so a section can get louder and busier but it cannot *lift*. Handing a section
+ * its own band is the melodic-contour knob — the chorus is up a fifth because
+ * its notes are up a fifth, not because the gain moved.
+ *
+ * Bars come back flat and in order, so everything stacked off them (guitar +12,
+ * pad +12/+19, the approach notes between bars) follows the change for free —
+ * including across a section seam, where the approach steps into the new band.
+ */
+export function foldRoots(groups: readonly RootGroup[]): (string | string[])[] {
+  return groups.flatMap(({ chords, band }) =>
+    chords.map((entry) =>
+      Array.isArray(entry) ? entry.map((sym) => fitRoot(sym, band)) : fitRoot(entry, band),
+    ),
+  );
+}
+
+/** Root pitch of a chord symbol, folded into a band. */
+function fitRoot(chordSymbol: string, band: [number, number]): string {
+  return fitToBand(chordPitches(chordSymbol, 2)[0]!, band);
 }
 
 /**

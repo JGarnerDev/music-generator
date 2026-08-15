@@ -4,10 +4,15 @@ purpose: The composition knowledge worth keeping from the first library. Read be
 audience: [claude, human]
 updated: 2026-08-15
 read_order: 7
-see_also: [knobs.md, looping.md, grooves.md, voices.md, ../progress.md]
+see_also: [hooks.md, knobs.md, looping.md, grooves.md, voices.md, ../progress.md]
 ---
 
 # Variety
+
+> This doc is about pieces sounding like *each other*. Its sibling,
+> [`hooks.md`](./hooks.md), is about a piece being forgettable on its own — the
+> contour, the withheld payoff, the one surprising chord. Variety is the floor;
+> hooks is the ceiling. Read both before writing bars.
 
 **The first library was cleared on 2026-08-14.** Four loop plans had been written
 to find out what the tools could do, and the finding was worth more than the
@@ -44,6 +49,7 @@ left alone — a nudge, never an error.
 |---|---|---|
 | `figure` (per section) | `gallop` | The rhythmic cell. `npm run figures` lists eight. Two pieces in the same key at the same tempo on the same figure *are* the same piece. |
 | `register` | `G1`–`D2` | Eight semitones folds every key into the same eight notes, so a Dm descent and a Cm descent come out at the same pitches. Widen it and the progression keeps its real shape. |
+| `register` (per section) | the plan's | A section states its own band and everything stacked off the roots follows. Without it a chorus can only get louder and busier, never *higher* — see [`hooks.md`](./hooks.md). |
 | `gains` | the builder's house mix | The mix is an arrangement decision. A piece where the bass carries the riff and the guitar sits back is a different band from the house staging. |
 | `voices.drums` | `house-kit` | Four kits now: `house-kit` (neutral), `frontier-kit` (western punctuation), `slab-kit` (rock backbeat), `brush-kit` (quiet, ride-led). |
 | phrase length | 8 bars | `chords` is one entry per bar, so the section is as long as the array. Eight everywhere is a meter the ear predicts two bars ahead. |

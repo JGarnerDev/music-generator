@@ -127,6 +127,20 @@ lead:
 { "melodyOn": "lead", "voices": { "lead": "lone-whistle" } }
 ```
 
+`register` is also a **section** field, and that is the one a chorus needs. The
+plan-level band sets where the piece lives; a section overriding it is the only
+way one part of the piece sits *above* another, since everything else a section
+can change — figure, kit, density, gain — leaves it at the same pitches:
+
+```jsonc
+{ "id": "chorus", "style": "riff", "register": ["C2", "C3"], "chords": [/* … */] }
+```
+
+Everything stacks off these roots (guitar +12, pad +12/+19), so the whole
+arrangement lifts with it, and the approach note into the section steps into the
+new band on its own. Why it matters more than the other knobs:
+[`hooks.md`](./hooks.md).
+
 A plan is sections — an id, a `style`, a chord per bar, and any melody — and
 [`scripts/build-song.ts`](../scripts/build-song.ts) expands it with the tested
 builders in [`src/engine/riff.ts`](../src/engine/riff.ts). Edit the plan, rebuild,

@@ -5,6 +5,7 @@ import {
   buildSection,
   emptyVoices,
   firstOf,
+  foldRoots,
   isStyle,
   lastOf,
   octaveUp,
@@ -211,5 +212,60 @@ describe("meter", () => {
         approaches: [null],
       }),
     ).toThrow(/states a bar of 4\/4, not 3\/4/);
+  });
+});
+
+describe("foldRoots", () => {
+  const LOW: [number, number] = [31, 38]; // G1–D2, the house band
+  const HIGH: [number, number] = [43, 55]; // G2–G3, a fifth above it
+
+  it("folds every root of a group into that group's band", () => {
+    const roots = foldRoots([{ chords: ["Dm", "C", "Bb", "A"], band: LOW }]);
+    expect(roots).toEqual(["D2", "C2", "Bb1", "A1"]);
+  });
+
+  it("gives each group its own band, so a section can sit above its neighbour", () => {
+    const roots = foldRoots([
+      { chords: ["Dm", "C"], band: LOW },
+      { chords: ["Dm", "C"], band: HIGH },
+    ]);
+    expect(roots).toEqual(["D2", "C2", "D3", "C3"]);
+  });
+
+  it("returns bars flat and in plan order", () => {
+    const roots = foldRoots([
+      { chords: ["Dm"], band: LOW },
+      { chords: ["Bb", "A"], band: LOW },
+      { chords: ["Dm"], band: LOW },
+    ]);
+    expect(roots).toEqual(["D2", "Bb1", "A1", "D2"]);
+  });
+
+  it("folds both halves of a split bar, keeping it an array", () => {
+    const roots = foldRoots([{ chords: [["Bb", "C"], "Dm"], band: LOW }]);
+    expect(roots).toEqual([["Bb1", "C2"], "D2"]);
+  });
+
+  it("stops folding once the band is wide enough to hold the roots as written", () => {
+    // Roots are read at octave 2. G1–D2 is too narrow for Bb2/A2, so they fold
+    // down and the progression comes out as a descent; two octaves holds them
+    // where they were written and it comes out as a rise. Same chords, different
+    // shape — which is why `register` is a knob and not a detail.
+    expect(foldRoots([{ chords: ["Dm", "C", "Bb", "A"], band: LOW }])).toEqual([
+      "D2",
+      "C2",
+      "Bb1",
+      "A1",
+    ]);
+    expect(foldRoots([{ chords: ["Dm", "C", "Bb", "A"], band: [31, 55] }])).toEqual([
+      "D2",
+      "C2",
+      "Bb2",
+      "A2",
+    ]);
+  });
+
+  it("reads a chord's root, not its bass-note spelling of a quality", () => {
+    expect(foldRoots([{ chords: ["Cmaj7", "Cm", "C7"], band: LOW }])).toEqual(["C2", "C2", "C2"]);
   });
 });

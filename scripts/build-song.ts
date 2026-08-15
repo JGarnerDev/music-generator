@@ -23,20 +23,17 @@ import {
   type Note,
   type Track,
 } from "../src/engine/composition";
-import { sustainLine, tremoloLine } from "../src/engine/riff";
 import {
   FIGURE_NAMES,
   figureFitsMeter,
-  figureLine,
   isFigureName,
-  powerChordFigure,
   validateFigure,
   type FigureName,
   type FigureRef,
 } from "../src/engine/figure";
 import { approachNotes } from "../src/engine/parts";
 import { grooveNotes, validateGroove, type Groove } from "../src/engine/groove";
-import { chordPitches, fitToBand, pitchToMidi, transpose } from "../src/engine/theory";
+import { pitchToMidi } from "../src/engine/theory";
 import { COMMON_TIME, validateMeter, type Meter } from "../src/utils/timing";
 import { HOUSE_LEANS, humanize } from "../src/engine/humanize";
 import {
@@ -44,6 +41,7 @@ import {
   buildSection,
   emptyVoices,
   firstOf,
+  foldRoots,
   isStyle,
   lastOf,
   octaveUp,
@@ -79,6 +77,17 @@ interface PlanSection {
   chords: (string | string[])[];
   /** Override the plan's beat for this section (a half-time chorus, a new kit). */
   groove?: Groove;
+  /**
+   * Override the plan's register for this section — `["C2", "C3"]` for a chorus
+   * that sits a fifth above the verse it followed.
+   *
+   * This is the contour knob. A section can already change its figure, its kit
+   * and its density, but with one band for the whole piece it cannot change
+   * *pitch*: the roots fold back into the same eight semitones and the chorus
+   * arrives at the same place the verse was. Everything stacks off these roots,
+   * so moving the band moves the guitar and pad with it.
+   */
+  register?: [string, string];
   /** `false` drops the kit for this section — a breakdown is defined by its silence. */
   drums?: boolean;
   /** Scales the kit's dynamics here: 0.6 for a verse, 1 for the chorus. */
@@ -127,6 +136,9 @@ interface Plan {
    * stop folding at all, so the progression keeps its real shape. Everything else
    * is stacked off these roots (guitar +12, pad +12/+19), so this is the piece's
    * whole register in one field. Default `G1`–`D2`.
+   *
+   * A section overrides it with its own `register` — that is how a chorus gets
+   * to sit above its verse rather than merely louder than it.
    */
   register?: [string, string];
   /**
@@ -237,7 +249,7 @@ console.log(
       : ", one-shot"),
 );
 
-reportDefaults(plan);
+reportDefaults(plan, meterOf(plan));
 
 /**
  * Name the choices this plan didn't make.
@@ -247,13 +259,30 @@ reportDefaults(plan);
  * at the moment the choice is skipped; this can. It is a nudge, never an error —
  * a piece is allowed to want the house sound, it just has to mean it.
  */
-function reportDefaults(plan: Plan): void {
+function reportDefaults(plan: Plan, meter: Meter): void {
   const untouched: string[] = [];
-  if (!plan.sections.some((s) => s.figure !== undefined || s.subdivision !== undefined)) {
-    untouched.push('figure — every engine section plays the default cell. `npm run figures`');
+
+  // Resolved, not stated: a plan that names `gallop` in all four sections has
+  // turned the knob and still written one rhythm, which is the thing the knob
+  // exists to prevent. Inline figures compare by shape for the same reason.
+  const figures = new Set(plan.sections.map((s) => JSON.stringify(figureOf(s, meter))));
+  if (figures.size === 1) {
+    untouched.push(
+      `figure — every section plays ${[...figures][0]!.replaceAll('"', "")}, so the piece has one` +
+        " rhythm in it. `npm run figures`",
+    );
   }
+
   if (!plan.register) {
     untouched.push("register — G1–D2, 8 semitones, so this key sounds where every other key did");
+  }
+  // Contour. Density and volume can rise without the music going anywhere; a
+  // section that doesn't move band arrives at the pitches the last one left.
+  if (!plan.sections.some((s) => s.register)) {
+    untouched.push(
+      "register per section — one band throughout, so no section sits above another." +
+        ' A chorus lifts by moving: `"register": ["C2", "C3"]`',
+    );
   }
   if (!plan.gains) untouched.push("gains — the builder's house mix");
   if (!plan.humanize) {
@@ -267,7 +296,18 @@ function reportDefaults(plan: Plan): void {
       'melodyOn — the tune is on the piano. `npm run voice:find -- --query "<the scene>"`',
     );
   }
-  if (plan.sections.every((s) => s.chords.length % 4 === 0)) {
+  // Phrase length is what the ear counts. Eight bars everywhere is predicted two
+  // bars ahead; sections that are merely all the *same* length are the same
+  // problem one step weaker, so they get their own weaker line.
+  const lengths = plan.sections.map((s) => s.chords.length);
+  if (lengths.every((n) => n === 8)) {
+    untouched.push("phrase length — every section is 8 bars, which the ear predicts two bars ahead");
+  } else if (new Set(lengths).size === 1) {
+    untouched.push(
+      `phrase length — every section is ${lengths[0]} bars. One phrase of a different length is` +
+        " what makes the others land (state three, break the fourth)",
+    );
+  } else if (lengths.every((n) => n % 4 === 0)) {
     untouched.push("phrase length — every section is a multiple of 4 bars");
   }
   if (!plan.sections.some((s) => s.chords.some((c) => Array.isArray(c)))) {
@@ -275,7 +315,9 @@ function reportDefaults(plan: Plan): void {
   }
 
   if (untouched.length === 0) return;
-  console.warn(`\n${untouched.length} knob(s) left at the default — see docs/looping.md:`);
+  console.warn(
+    `\n${untouched.length} knob(s) left at the default — see docs/variety.md and docs/hooks.md:`,
+  );
   for (const line of untouched) console.warn(`  · ${line}`);
   console.warn("Defaults are why the loops sound alike. Fine if deliberate.\n");
 }
@@ -298,12 +340,15 @@ function readPlan(path: string): Plan {
 
 function buildComposition(plan: Plan): Composition {
   const meter = meterOf(plan);
-  const bars = plan.sections.flatMap((s) => s.chords);
   const loopStartBar = findLoopStart(plan);
-  const register = registerOf(plan);
-  const fit = (chord: string) => fitToBand(rootOf(chord), register);
-  const bassRoots: (string | string[])[] = bars.map((entry) =>
-    Array.isArray(entry) ? entry.map(fit) : fit(entry),
+  const planBand = bandOf(plan.register ?? DEFAULT_REGISTER, "register");
+  const bassRoots = foldRoots(
+    plan.sections.map((section) => ({
+      chords: section.chords,
+      band: section.register
+        ? bandOf(section.register, `section "${section.id}": register`)
+        : planBand,
+    })),
   );
   // The last bar approaches the *loop start*, not the intro — that is the bar
   // that actually follows it on every lap but the first. A bar that changed
@@ -418,19 +463,22 @@ function meterOf(plan: Plan): Meter {
   return [plan.meter[0], plan.meter[1]];
 }
 
-/** The band the bass roots fold into, as MIDI numbers. Bad input fails here. */
-function registerOf(plan: Plan): [number, number] {
-  const [low, high] = plan.register ?? DEFAULT_REGISTER;
+/**
+ * A band the bass roots fold into, as MIDI numbers. Bad input fails here rather
+ * than as a line in the wrong octave. `label` names whose band it is, since a
+ * section may state its own.
+ */
+function bandOf([low, high]: [string, string], label: string): [number, number] {
   const midi = [low, high].map((pitch) => {
     const n = pitchToMidi(pitch);
     if (!Number.isFinite(n)) {
-      console.error(`register: "${pitch}" is not a pitch (want e.g. "G1", "D2")`);
+      console.error(`${label}: "${pitch}" is not a pitch (want e.g. "G1", "D2")`);
       process.exit(2);
     }
     return n;
   }) as [number, number];
   if (midi[0] > midi[1]) {
-    console.error(`register: low "${low}" is above high "${high}"`);
+    console.error(`${label}: low "${low}" is above high "${high}"`);
     process.exit(2);
   }
   return midi;
@@ -596,12 +644,4 @@ function offsetNotes(notes: PlanNote[], startBar: number): Note[] {
   });
 }
 
-function beatOf(note: Note): number {
-  return Number(note.time.split(":")[1] ?? 0);
-}
-
-/** Root pitch of a chord symbol, with an octave attached so it can be transposed. */
-function rootOf(chordSymbol: string): string {
-  return chordPitches(chordSymbol, 2)[0]!;
-}
 

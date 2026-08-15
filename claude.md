@@ -34,7 +34,12 @@ Claude-specific working rules that don't belong in the human-facing README.
    (the room), `era` (the period); see
    [`docs/palette-authoring.md`](./docs/palette-authoring.md). Layer an emotion
    with a genre/timbre for specific vibes rather than inventing new stored files.
-3. Write a **short** `compositions/segments/<name>.json` (the moving core, not a
+3. Decide **what makes this one worth hearing twice** before writing bars —
+   where the peak is, what gets withheld, which sections move register, which
+   phrase isn't 8 bars. That checklist is [`docs/hooks.md`](./docs/hooks.md);
+   variety.md keeps pieces from resembling *each other*, hooks.md keeps a piece
+   from being forgettable on its own. Then write a **short**
+   `compositions/segments/<name>.json` (the moving core, not a
    full song) using the **emotion** palette's tonality + a progression. Shape:
    `src/engine/composition.ts`. (Only emotion palettes are directly composable;
    layer others with the blend resolver.) Fastest path:
@@ -97,7 +102,9 @@ rhythm **figure** per section, a **register**, a **kit voice**, **gains**,
 **humanize**, and at least one phrase that isn't 8 bars. The builder prints which
 ones you left alone — a nudge, not an error, but "I meant it" is the only good
 reason to ignore it. Why each default is a trap, and the rules for choosing:
-[`docs/variety.md`](./docs/variety.md).
+[`docs/variety.md`](./docs/variety.md). A section states its own `register` when
+it should sit *above* the one before it — that is the contour knob, and it is
+the one a chorus needs.
 
 For `compose` the scene words choose those knobs for you and it prints what they
 picked; override with `--figure` / `--register` / `--tempo`, and reach for

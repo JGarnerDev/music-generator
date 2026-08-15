@@ -142,6 +142,9 @@ npm run typecheck  # tsc --noEmit
   writing a plan or a segment.
 - [`docs/knobs.md`](docs/knobs.md) — how scene words choose those knobs, how to
   override them, and how a new piece is checked against the shelf.
+- [`docs/hooks.md`](docs/hooks.md) — the other half: what makes a piece worth
+  hearing twice, genre-independent. Contour, withholding, negative space, one
+  surprise. Read with variety.md before writing bars.
 
 Progressive disclosure — split a section into its own frontmatter'd doc once it
 outgrows a screen here. Planned: `docs/composition-spec.md`,
