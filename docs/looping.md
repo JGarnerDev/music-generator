@@ -127,6 +127,47 @@ lead:
 { "melodyOn": "lead", "voices": { "lead": "lone-whistle" } }
 ```
 
+## Twin leads — why one lead line sounds thin
+
+One lead playing one line is thin in a way no amount of gain fixes: a single
+voice has no interval to be *in*. `twinLead` gives the piece a **second lead
+track** — its own voice, level and side of the stereo field — derived from every
+section's written `melody`:
+
+```jsonc
+{
+  "melodyOn": "lead",
+  "twinLead": {
+    "interval": "third",     // third · fourth · fifth · sixth · octave, or raw steps
+    "below": true,           // under the tune, so the melody stays on top
+    "voice": "brown-lead",   // default: whatever the lead plays (double-tracking)
+    "gain": 0.75,            // under the lead, never level with it
+    "pan": -0.35,            // the pair sits apart …
+    "leadPan": 0.35          // … which is most of what makes it read as *two*
+  }
+}
+```
+
+Distances are **scale steps, not semitones** — the interval quality changes
+underneath a constant diatonic distance (a third that is minor over one degree
+and major over the next), and that alternation is the sound. A constant semitone
+transpose leaves the key on every second note and arrives as a chorus pedal.
+Notes outside the scale snap to the nearest degree first, so the harmony part
+stays diatonic while the lead goes chromatic — what a second guitarist does.
+[`src/engine/harmony.ts`](../src/engine/harmony.ts).
+
+Three per-section fields make the twin an *arrangement* rather than an effect
+left switched on:
+
+| Field | Does |
+|---|---|
+| `"harmony": false` | one guitar here. Withhold it in a verse and the chorus arrives in harmony |
+| `"harmony": [/* notes */]` | written counterpoint — the two lines diverging and returning, which parallel motion can never do |
+| `harmonyInterval` / `harmonyBelow` | move the pair for one section: thirds under a verse, fifths under a held solo line, fourths *over* the last chorus |
+
+Parallel thirds from bar 1 to the seam is one instrument with a doubler on it.
+Choose where the twin enters, where it widens, and where it drops to one voice.
+
 `register` is also a **section** field, and that is the one a chorus needs. The
 plan-level band sets where the piece lives; a section overriding it is the only
 way one part of the piece sits *above* another, since everything else a section

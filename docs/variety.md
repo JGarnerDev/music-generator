@@ -55,6 +55,7 @@ left alone — a nudge, never an error.
 | phrase length | 8 bars | `chords` is one entry per bar, so the section is as long as the array. Eight everywhere is a meter the ear predicts two bars ahead. |
 | chord placement | on the barline | An array entry splits the bar: `["Bb", "C"]`. Everything follows it — the figure, the pad, the approach note. |
 | `groove` (per section) | the plan's | Sections are where a listener hears the phrase change. A groove that never changes is a drum machine left running. |
+| `twinLead` | absent | One lead line is a single voice with no interval to be *in* — the "thin" that gain never fixes. A second lead track, panned opposite, is the whole top of the arrangement. Vary it per section (`harmony: false`, `harmonyInterval`) or it becomes a doubler left switched on. See [`looping.md`](./looping.md). |
 | `melodyOn` | `piano` | Which instrument the written tune plays on. Left alone, every top line this repo has ever written is a keys voice — the whistle, the harmonica and the wordless soprano on the `lead` shelf have never carried a melody. |
 
 Mechanics for each: [`looping.md`](./looping.md) and [`grooves.md`](./grooves.md).

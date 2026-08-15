@@ -32,6 +32,12 @@ import {
   type FigureRef,
 } from "../src/engine/figure";
 import { approachNotes } from "../src/engine/parts";
+import {
+  HARMONY_INTERVAL_NAMES,
+  harmonize,
+  isHarmonyInterval,
+  type HarmonyInterval,
+} from "../src/engine/harmony";
 import { grooveNotes, validateGroove, type Groove } from "../src/engine/groove";
 import { pitchToMidi } from "../src/engine/theory";
 import { COMMON_TIME, validateMeter, type Meter } from "../src/utils/timing";
@@ -106,6 +112,56 @@ interface PlanSection {
   melody?: PlanNote[];
   /** Guitar lead voice, times relative to the section start. */
   lead?: PlanNote[];
+  /**
+   * The second guitar for this section, when the plan declares a `twinLead`.
+   *
+   * - omitted — derived from this section's `melody` at the plan's interval
+   * - `false` — one guitar here. The twin is worth more when it is withheld
+   *   somewhere, so a verse in unison makes the chorus arrive in harmony
+   * - notes — written out, for counterpoint that diverges and returns rather
+   *   than running parallel. Parallel everywhere is one instrument with a
+   *   chorus pedal on it
+   */
+  harmony?: PlanNote[] | false;
+  /**
+   * Override the twin's distance for this section. Moving it is how the second
+   * guitar marks a section rather than tagging along in it: thirds under a
+   * verse, fifths under the solo's held notes, fourths over the last chorus.
+   */
+  harmonyInterval?: HarmonyInterval | number;
+  /** Override the twin's side for this section — the harmony crossing above the tune is a lift. */
+  harmonyBelow?: boolean;
+}
+
+/**
+ * The second lead: a whole track, not a setting on the first.
+ *
+ * A harmony guitar is a different player — its own tone, its own level, its own
+ * side of the stereo field — and the two collapse into one thick mono voice if
+ * they share those. Panning them apart is most of what makes twin leads read as
+ * *two* rather than as one lead that got louder.
+ */
+interface TwinLead {
+  /** `third` (the default), `fourth`, `fifth`, `sixth`, or raw scale steps. */
+  interval?: HarmonyInterval | number;
+  /** Run the second line under the melody instead of over it. */
+  below?: boolean;
+  /**
+   * Mode the harmony stays inside. Default: read off the plan's `key`. State it
+   * when the tune is modal — an E dorian chorus harmonised against E aeolian
+   * flattens the raised sixth that the chorus is *about*.
+   */
+  scale?: string;
+  /** Voice slug in `voices/lead/`. Default: the same voice as the lead. */
+  voice?: string;
+  /** Gain for the harmony track. Default 0.72 — under the lead, not level with it. */
+  gain?: number;
+  /** Stereo position of the harmony guitar. Default -0.35. */
+  pan?: number;
+  /** Stereo position of the *lead* guitar, so the pair sits apart. Default 0.35. */
+  leadPan?: number;
+  /** Velocity scale applied to the derived line. Default 0.9. */
+  velocity?: number;
 }
 
 interface Plan {
@@ -168,6 +224,19 @@ interface Plan {
    * a voice gets the default rock lead, which is rarely the intent.
    */
   melodyOn?: Exclude<InstrumentName, "drums">;
+  /**
+   * Give the piece two lead guitars instead of one.
+   *
+   * A single lead line is thin in a way gain cannot fix — one voice has no
+   * interval to be *in*. Declaring this derives a second line from every
+   * section's written `melody` at a fixed diatonic distance (see
+   * `src/engine/harmony.ts`) and puts it on its own track, with its own voice,
+   * level and pan. A section overrides it with written counterpoint, or drops
+   * to one guitar with `"harmony": false`.
+   *
+   * Only meaningful with `melodyOn`, since it harmonises the *written* tune.
+   */
+  twinLead?: TwinLead;
   /**
    * Play the parts rather than placing them: micro-timing and dynamics, seeded
    * so a rebuild gives the same performance.
@@ -291,6 +360,14 @@ function reportDefaults(plan: Plan, meter: Meter): void {
     );
   }
   if (!plan.voices?.drums) untouched.push("voices.drums — the default kit");
+  // Only worth saying when there is a tune to double: a piece with no written
+  // melody has nothing for a second guitar to be in an interval with.
+  if (!plan.twinLead && plan.sections.some((s) => s.melody?.length)) {
+    untouched.push(
+      "twinLead — one lead line, so the top of the arrangement is a single voice." +
+        ' Two players: `"twinLead": { "interval": "third" }`',
+    );
+  }
   if (!plan.melodyOn && plan.sections.some((s) => s.melody?.length)) {
     untouched.push(
       'melodyOn — the tune is on the piano. `npm run voice:find -- --query "<the scene>"`',
@@ -361,6 +438,10 @@ function buildComposition(plan: Plan): Composition {
 
   const voices = emptyVoices();
   const melodyInto = melodyBucketOf(plan);
+  // The second guitar. Kept beside the buckets rather than in them: `Voices` is
+  // the section builders' contract, and a harmony line is a plan-level decision
+  // no builder knows about.
+  const harmonyNotes: Note[] = [];
 
   let bar = 0;
   for (const section of plan.sections) {
@@ -380,8 +461,10 @@ function buildComposition(plan: Plan): Composition {
     buildSection(ctx, voices);
     // The written lines are the plan's, not the builder's — a style says how the
     // engine plays, and the tune over it is the author's either way.
-    voices[melodyInto].push(...offsetNotes(section.melody ?? [], span.start));
+    const melody = offsetNotes(section.melody ?? [], span.start);
+    voices[melodyInto].push(...melody);
     voices.lead.push(...offsetNotes(section.lead ?? [], span.start));
+    harmonyNotes.push(...sectionHarmony(plan, section, melody, span.start));
     voices.drums.push(...sectionDrums(plan, ctx));
     bar = span.end;
   }
@@ -407,8 +490,24 @@ function buildComposition(plan: Plan): Composition {
       ...t,
       gain: gainFor(plan, t.instrument, t.gain ?? 1),
       ...voiceFor(plan, t.instrument),
+      ...(t.instrument === "lead" && plan.twinLead
+        ? { pan: plan.twinLead.leadPan ?? 0.35 }
+        : {}),
       notes: performed(plan, t.instrument, t.notes, meter),
     }));
+
+  // Filed directly after the lead, because that is what it is: the same section
+  // of the band, one desk over.
+  if (harmonyNotes.length > 0) {
+    const leadAt = tracks.findIndex((t) => t.instrument === "lead");
+    tracks.splice(leadAt < 0 ? tracks.length : leadAt + 1, 0, {
+      instrument: "lead",
+      gain: plan.twinLead?.gain ?? 0.72,
+      pan: plan.twinLead?.pan ?? -0.35,
+      ...harmonyVoiceOf(plan),
+      notes: performed(plan, "lead", harmonyNotes, meter),
+    });
+  }
 
   return {
     name: plan.name,
@@ -524,6 +623,97 @@ function voiceFor(plan: Plan, instrument: InstrumentName): { voice?: string } {
   if (!existsSync(resolve(process.cwd(), `voices/${instrument}/${slug}.json`))) {
     console.error(`voices.${instrument}: no such voice "${instrument}/${slug}"`);
     console.error(`  find one with: npm run voice:find -- --instrument ${instrument}`);
+    process.exit(2);
+  }
+  return { voice: slug };
+}
+
+/**
+ * The second guitar for one section: written counterpoint, silence, or the
+ * melody harmonised.
+ *
+ * Deriving it only from `melody` (never from `lead`) is deliberate — `lead` is
+ * the field for a line that is already its own part, and harmonising a part
+ * that was written against the tune gives you a third voice nobody asked for.
+ */
+function sectionHarmony(
+  plan: Plan,
+  section: PlanSection,
+  melody: Note[],
+  startBar: number,
+): Note[] {
+  const twin = plan.twinLead;
+  if (!twin) {
+    if (section.harmony !== undefined) {
+      console.error(
+        `section "${section.id}": "harmony" needs a plan-level "twinLead" — that is where the` +
+          " second guitar's voice, level and pan live",
+      );
+      process.exit(2);
+    }
+    return [];
+  }
+  if (section.harmony === false) return [];
+  if (Array.isArray(section.harmony)) return offsetNotes(section.harmony, startBar);
+  if (melody.length === 0) return [];
+
+  const [tonic, scale] = harmonyKeyOf(plan);
+  try {
+    return harmonize(melody, {
+      tonic,
+      scale,
+      interval: harmonyIntervalOf(section.harmonyInterval ?? twin.interval ?? "third"),
+      below: section.harmonyBelow ?? twin.below,
+      velocity: twin.velocity ?? 0.9,
+    });
+  } catch (err) {
+    console.error(`section "${section.id}": could not harmonise — ${(err as Error).message}`);
+    process.exit(2);
+  }
+}
+
+/** A stated interval, checked here so a typo prints the shelf. */
+function harmonyIntervalOf(interval: HarmonyInterval | number): HarmonyInterval | number {
+  if (typeof interval === "number" || isHarmonyInterval(interval)) return interval;
+  console.error(`harmony interval: unknown interval ${JSON.stringify(interval)}`);
+  console.error(`  pick one of: ${HARMONY_INTERVAL_NAMES.join(", ")} — or raw scale steps`);
+  process.exit(2);
+}
+
+/**
+ * Tonic and mode the harmony line stays inside.
+ *
+ * Read off the plan's `key` ("Em", "D minor", "G", "E dorian") unless
+ * `twinLead.scale` says otherwise, which is the field a modal chorus needs: a
+ * tune built on the dorian raised sixth, harmonised against aeolian, has that
+ * sixth flattened back out by the part that was meant to reinforce it.
+ */
+function harmonyKeyOf(plan: Plan): [string, string] {
+  const match = /^\s*([A-G][#b]?)\s*(.*?)\s*$/.exec(plan.key ?? "");
+  if (!match) {
+    console.error(`key: "${plan.key}" is not a key (want e.g. "Em", "D minor", "E dorian")`);
+    process.exit(2);
+  }
+  const [, tonic = "C", rest = ""] = match;
+  const stated = plan.twinLead?.scale;
+  if (stated) return [tonic, stated];
+  const quality = rest.toLowerCase();
+  if (quality === "" || quality === "maj" || quality === "major") return [tonic, "major"];
+  if (quality === "m" || quality === "min" || quality === "minor") return [tonic, "minor"];
+  return [tonic, quality];
+}
+
+/**
+ * The harmony track's voice: the twin's own slug, else whatever the lead plays.
+ * Two guitars on one tone is a legitimate choice (it is double-tracking), so the
+ * default follows the lead rather than forcing a second decision.
+ */
+function harmonyVoiceOf(plan: Plan): { voice?: string } {
+  const slug = plan.twinLead?.voice;
+  if (!slug) return voiceFor(plan, "lead");
+  if (!existsSync(resolve(process.cwd(), `voices/lead/${slug}.json`))) {
+    console.error(`twinLead.voice: no such voice "lead/${slug}"`);
+    console.error("  find one with: npm run voice:find -- --instrument lead");
     process.exit(2);
   }
   return { voice: slug };
