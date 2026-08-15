@@ -17,8 +17,7 @@
  */
 import type { Note } from "./composition";
 import { figureLine, powerChordFigure, type FigureOptions, type FigureName } from "./figure";
-
-const BEATS_PER_BAR = 4;
+import { COMMON_TIME, beatsPerBar, type Meter } from "@utils/timing";
 
 /** Note value each tremolo subdivision produces. Keys double as the allowed set. */
 const TREMOLO_DURATIONS: Record<number, string | undefined> = { 1: "4n", 2: "8n", 4: "16n" };
@@ -136,7 +135,10 @@ export function sustainLine(opts: SustainOptions): Note[] {
 
 export interface TremoloOptions {
   startBar: number;
-  /** Pitch per beat, read across bars — four entries fill one bar. */
+  /**
+   * Pitch per beat, read across bars — four entries fill a bar of 4/4, three a
+   * bar of 3/4.
+   */
   pitches: string[];
   /**
    * Hits per beat: 4 = a full sixteenth tremolo, 2 = eighths, 1 = one per beat.
@@ -144,6 +146,12 @@ export interface TremoloOptions {
    */
   subdivision?: 1 | 2 | 4;
   velocity?: number;
+  /**
+   * Time signature the beats are counted in. Default 4/4. Must hold a whole
+   * number of beats — a tremolo is written one pitch per beat, and 7/8's half
+   * beat has no entry to put in it.
+   */
+  meter?: Meter;
 }
 
 /**
@@ -151,16 +159,22 @@ export interface TremoloOptions {
  * climax" gesture. Alternating velocities imply down/up strokes so it breathes.
  */
 export function tremoloLine(opts: TremoloOptions): Note[] {
-  const { startBar, pitches, subdivision = 4, velocity = 0.9 } = opts;
+  const { startBar, pitches, subdivision = 4, velocity = 0.9, meter = COMMON_TIME } = opts;
   const duration = TREMOLO_DURATIONS[subdivision];
   if (duration === undefined) {
     throw new Error(`subdivision must be 1, 2 or 4, got ${subdivision}`);
   }
+  const perBar = beatsPerBar(meter);
+  if (!Number.isInteger(perBar)) {
+    throw new Error(
+      `tremolo is written one pitch per beat, and ${meter[0]}/${meter[1]} holds ${perBar} of them`,
+    );
+  }
   const step = 4 / subdivision;
 
   return pitches.flatMap((pitch, i) => {
-    const bar = startBar + Math.floor(i / BEATS_PER_BAR);
-    const beat = i % BEATS_PER_BAR;
+    const bar = startBar + Math.floor(i / perBar);
+    const beat = i % perBar;
     return Array.from({ length: subdivision }, (_, hit) => ({
       time: `${bar}:${beat}:${hit * step}`,
       pitch,

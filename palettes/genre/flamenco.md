@@ -14,6 +14,10 @@ groove:
     kick: "X..x..X.X..x..X."
     clap: "....X.......X..."
     rim:  "..o...o...o...o."
+  fill:
+    clap: "....x...x.x.xxX."
+    rim:  "..o...o...o.o.o."
+  fillEvery: 8
 instruments: [pluck, bass, pad, piano]
 ---
 

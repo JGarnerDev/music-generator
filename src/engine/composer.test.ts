@@ -3,6 +3,7 @@ import { composeFromPalette, composeFromBlend } from "./composer";
 import { blendPalettes } from "./blend";
 import { parsePalette, type Palette } from "./palette";
 import { validateComposition, type Composition, type Note } from "./composition";
+import { pitchToMidi } from "./theory";
 
 const sad: Palette = parsePalette(`---
 slug: sad
@@ -50,6 +51,11 @@ groove:
 body`);
 
 const barOf = (note: Note): number => Number(note.time.split(":")[0]);
+/** Position within the bar, in sixteenths — parts are performed, so it is fractional. */
+const sixteenthOf = (note: Note): number => {
+  const [, beat = "0", sixteenth = "0"] = note.time.split(":");
+  return Number(beat) * 4 + Number(sixteenth);
+};
 const trackNotes = (comp: Composition, instrument: string): Note[] =>
   comp.tracks.filter((t) => t.instrument === instrument).flatMap((t) => t.notes);
 
@@ -65,7 +71,9 @@ describe("form", () => {
     const comp = composeFromPalette(sad, "landing");
     const final = comp.tracks.flatMap((t) => t.notes.filter((n) => barOf(n) === 8));
     expect(final.every((n) => n.time === "8:0:0")).toBe(true);
-    expect(trackNotes(comp, "bass").at(-1)!.pitch).toBe("A2");
+    // The tonic, in whichever octave the piece's register put the rest of the
+    // line — an arrival an octave from what led to it is heard as a wrong note.
+    expect(trackNotes(comp, "bass").at(-1)!.pitch).toMatch(/^A\d$/);
   });
 
   it("voice-leads the chords instead of leaping to root position each bar", () => {
@@ -95,20 +103,69 @@ describe("layers", () => {
   it("always writes a bass — the bottom the old composer had none of", () => {
     const bass = trackNotes(composeFromPalette(sad, "bottom"), "bass");
     expect(bass.length).toBeGreaterThan(0);
-    // A1..A2, the one octave `parts` fits roots into.
-    for (const note of bass) expect(note.pitch).toMatch(/^[A-G][b#]?[12]$/);
+    // Whatever register was chosen, every root is folded into it, so the line
+    // never leaps an octave when the progression steps down.
+    const midis = bass.map((n) => pitchToMidi(n.pitch));
+    expect(Math.max(...midis) - Math.min(...midis)).toBeLessThanOrEqual(12);
   });
 
-  it("locks the bass to the kick when the blend has one", () => {
+  it("keeps the statement's bass on the kick when the blend has a kit", () => {
+    // A bass on its own rhythm against a busy kick reads as two records
+    // playing, so with a kit present and no scene word asking otherwise, the
+    // statement plays the kick's own pattern.
     const comp = composeFromBlend(blendPalettes([sad, withBeat]), "locked");
     const kicks = new Set(
       trackNotes(comp, "drums")
-        .filter((n) => n.pitch === "kick" && barOf(n) < 8)
+        .filter((n) => n.pitch === "kick")
         .map((n) => n.time),
     );
-    const bassHits = trackNotes(comp, "bass").filter((n) => barOf(n) < 8);
-    expect(bassHits.length).toBeGreaterThan(0);
-    for (const hit of bassHits) expect(kicks.has(hit.time)).toBe(true);
+    const statement = trackNotes(comp, "bass").filter((n) => barOf(n) < 4);
+    expect(statement.length).toBeGreaterThan(0);
+    for (const hit of statement) expect(kicks.has(hit.time)).toBe(true);
+  });
+
+  it("changes rhythmic cell at the restatement", () => {
+    // Repetition with a change is structure; the same cell for eight bars is a
+    // drum machine left running.
+    const comp = composeFromBlend(blendPalettes([sad, withBeat]), "locked");
+    const bass = trackNotes(comp, "bass");
+    const cell = (bar: number) =>
+      bass
+        .filter((n) => barOf(n) === bar)
+        .map((n) => n.time.split(":").slice(1).join(":"))
+        .join(" ");
+    expect(cell(4)).not.toBe(cell(0));
+  });
+
+  it("lets a scene word overrule the kick", () => {
+    const locked = composeFromBlend(blendPalettes([sad, withBeat]), "a quiet room");
+    const chased = composeFromBlend(blendPalettes([sad, withBeat]), "a rooftop chase");
+    const cell = (comp: Composition) =>
+      trackNotes(comp, "bass")
+        .filter((n) => barOf(n) === 0)
+        .map((n) => n.time)
+        .join(" ");
+    expect(cell(chased)).not.toBe(cell(locked));
+  });
+
+  it("takes an explicit knob over the scene's choice", () => {
+    const comp = composeFromBlend(blendPalettes([sad, withBeat]), "anything", {
+      knobs: { figures: ["half-time-chug", "half-time-chug"], figureFromScene: true },
+    });
+    // "X.......x......." — two hits a bar, on beats 0 and 2, and nothing else.
+    // Times are approximate because the parts are performed, not placed.
+    const bar0 = trackNotes(comp, "bass").filter((n) => barOf(n) === 0);
+    expect(bar0).toHaveLength(2);
+    expect(bar0.map((n) => Math.round(sixteenthOf(n)))).toEqual([0, 8]);
+  });
+
+  it("puts the bass in the register it was told to", () => {
+    const comp = composeFromBlend(blendPalettes([sad]), "deep", {
+      knobs: { register: "subterranean" },
+    });
+    for (const note of trackNotes(comp, "bass")) {
+      expect(pitchToMidi(note.pitch)).toBeLessThanOrEqual(pitchToMidi("C2"));
+    }
   });
 
   it("comps the harmony in rhythm rather than one block chord per bar", () => {
@@ -189,10 +246,11 @@ describe("melody", () => {
   it("answers the statement with the motif inverted, not a new tune", () => {
     const comp = composeFromPalette(sad, "call and response");
     const melody = comp.tracks.at(-1)!.notes;
-    const rhythm = (bar: number) =>
-      melody.filter((n) => barOf(n) === bar).map((n) => n.time.split(":").slice(1).join(":"));
     // Same rhythm across the form — it is one idea restated, so the phrase
-    // placement holds even though the contour flips.
+    // placement holds even though the contour flips. Rounded to the step,
+    // because the line is performed rather than placed on the grid.
+    const rhythm = (bar: number) =>
+      melody.filter((n) => barOf(n) === bar).map((n) => Math.round(sixteenthOf(n)));
     expect(rhythm(4)).toEqual(rhythm(0));
   });
 

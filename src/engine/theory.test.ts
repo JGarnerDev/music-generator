@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import {
+  SUPPORTED_MODES,
   scaleNotes,
   progressionChords,
   progressionIdiom,
@@ -89,8 +90,10 @@ describe("progressionChords", () => {
     expect(() => progressionChords("A", ["nope"], "minor")).toThrow();
   });
 
-  it("throws on a scale that isn't a mode", () => {
-    expect(() => progressionChords("A", ["i"], "harmonic minor")).toThrow(/unsupported mode/);
+  it("throws on a scale that isn't a supported mode", () => {
+    // Not "any scale tonal knows": pentatonics have no seventh to stack a triad
+    // on, and hungarian minor has a degree whose triad is unnameable.
+    expect(() => progressionChords("A", ["i"], "hungarian minor")).toThrow(/unsupported mode/);
     expect(() => progressionChords("A", ["i"], "major pentatonic")).toThrow(/unsupported mode/);
   });
 });
@@ -154,8 +157,87 @@ describe("modeFamily", () => {
     expect(modeFamily("ionian")).toBe("major");
   });
 
+  it("files phrygian-dominant as major — its tonic triad is, unlike phrygian's", () => {
+    expect(modeFamily("phrygian")).toBe("minor");
+    expect(modeFamily("phrygian-dominant")).toBe("major");
+    expect(modeFamily("harmonic-minor")).toBe("minor");
+    expect(modeFamily("lydian-dominant")).toBe("major");
+  });
+
+  it("takes a mode name hyphenated, spaced or shouted", () => {
+    expect(modeFamily("phrygian-dominant")).toBe("major");
+    expect(modeFamily("phrygian dominant")).toBe("major");
+    expect(modeFamily("Phrygian_Dominant")).toBe("major");
+  });
+
   it("throws on anything that isn't a supported mode", () => {
     expect(() => modeFamily("blues")).toThrow(/unsupported mode/);
+  });
+
+  /**
+   * The gate on `MODE_FAMILY`. Every degree of every listed mode has to stack
+   * into a nameable triad, because that is how `progressionChords` resolves a
+   * numeral. Modes with an augmented fourth between two degrees (hungarian
+   * minor, double harmonic) fail here rather than at compose time — which is the
+   * whole reason the list is hand-picked instead of "whatever tonal knows".
+   */
+  it("every supported mode stacks a triad on every degree, in every key", () => {
+    const numerals = ["I", "II", "III", "IV", "V", "VI", "VII"];
+    for (const mode of SUPPORTED_MODES) {
+      for (const tonic of ["C", "A", "Eb", "F#", "Bb", "B"]) {
+        expect(() => progressionChords(tonic, numerals, mode)).not.toThrow();
+      }
+    }
+  });
+});
+
+describe("the modes beyond the church seven", () => {
+  it("resolves a freygish I-II-I-VII in A phrygian-dominant", () => {
+    // The b2 is already in the scale, so `II` takes it — writing `bII` would
+    // flatten an already-flat degree.
+    expect(progressionChords("A", ["I", "II", "I", "VII"], "phrygian-dominant")).toEqual([
+      "A",
+      "Bb",
+      "A",
+      "G",
+    ]);
+  });
+
+  it("gives harmonic minor its dominant diatonically rather than by borrowing", () => {
+    // In aeolian `V` is a borrow — the same chord reached by raising the third
+    // in place. Here degree 4 already stacks E G# B, so the mode supplies it.
+    expect(progressionChords("A", ["i", "iv", "V", "i"], "harmonic-minor")).toEqual([
+      "Am",
+      "Dm",
+      "E",
+      "Am",
+    ]);
+  });
+
+  it("still reads case as an instruction in the new modes", () => {
+    // Lowercase asks for minor even where the mode's own triad is major, which
+    // is the one way to write the aeolian v inside a harmonic-minor piece.
+    expect(progressionChords("A", ["v"], "harmonic-minor")).toEqual(["Em"]);
+  });
+
+  it("keeps the mode's own accidentals in the melodic ladder", () => {
+    expect(scaleLadder("A", "phrygian-dominant", 4, 4)).toEqual([
+      "A4",
+      "Bb4",
+      "C#5",
+      "D5",
+      "E5",
+      "F5",
+      "G5",
+    ]);
+  });
+
+  it("matches major-idiom progressions to a phrygian-dominant key", () => {
+    const both = [
+      ["i", "VII", "VI", "VII"],
+      ["I", "II", "I", "VII"],
+    ];
+    expect(progressionsInIdiom(both, "phrygian-dominant")).toEqual([["I", "II", "I", "VII"]]);
   });
 });
 

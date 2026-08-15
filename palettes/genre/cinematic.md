@@ -14,6 +14,11 @@ groove:
     tom-lo: "X.......X...X..."
     kick:   "X...............X.......X......."
     crash:  "X..............................."
+  fill:
+    tom-lo:  "........x.x....."
+    tom-mid: "..........x.x..."
+    crash:   "..............X."
+  fillEvery: 8
 instruments: [pad, piano, bass, pluck]
 ---
 

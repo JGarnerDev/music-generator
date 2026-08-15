@@ -84,6 +84,66 @@ all, so it plays perfectly straight and the palette looks like it did nothing.
    there, not in the pattern: a groove says *where* the hits are and how they're
    accented, while how loud a hat sits under a kick is a property of the kit.
 
+## Fills
+
+A groove states one bar and repeats it. That is correct for a groove, and it is
+exactly why a long loop reads as a machine: nothing in four minutes marks where a
+phrase ends. A drummer does that without being asked.
+
+```yaml
+groove:
+  patterns:
+    kick:  "X...X...X...X..."
+    snare: "....X.......X..."
+  fill:
+    tom-hi:  "........xx......"
+    tom-mid: "..........xx...."
+    tom-lo:  "............xxX."
+  fillEvery: 8
+```
+
+- **The fill replaces the bar, it does not play over it.** A tom tumble on top of
+  the original hats is two drummers, not one.
+- **`fill` is a name off the shelf or lanes inline.** The shelf is
+  [`src/engine/fill.ts`](../src/engine/fill.ts): `snare-roll`, `tom-tumble`,
+  `kick-stutter`, `half-bar-break`, `crash-lift`, `ghost-shuffle`.
+- **A fill is exactly one bar.** Validation enforces it: a two-bar fill lands its
+  second half over the downbeat it exists to announce.
+- **It should build.** More happening in the second half than the first is what
+  makes a bar read as a lead-in rather than as a bar that went wrong.
+- **`fillEvery: 8`** is the usual phrase. 4 is busy; 16 suits
+  [`techno`](../palettes/genre/techno.md), where a fill every eight bars imposes a
+  pop structure the genre doesn't have.
+
+The two fields come as a pair — stating one without the other fails validation,
+because either alone is certainly a mistake.
+
+## Meter
+
+Lanes are sixteenths, so **a bar is not always sixteen steps**. A genre in
+another time signature says so, and every lane changes length with it:
+
+```yaml
+meter: [3, 4]      # 12 steps to the bar
+groove:
+  patterns:
+    kick: "X..........."
+    hat:  "....x...x..."
+```
+
+| Meter | Steps per bar |
+|---|---|
+| 4/4 (default) | 16 |
+| 3/4, 6/8 | 12 |
+| 12/8 | 24 |
+| 5/4 | 20 |
+
+3/4 and 6/8 are both twelve — the difference is where the accents fall, which is
+the groove's business and not the bar's. A lane of the wrong length fails at
+load with the expected count named, so a 6/8 genre that forgot to declare its
+meter gets the right complaint rather than a pattern rotating against the barline
+forever.
+
 ## Authoring one
 
 Write the beat you'd count out loud, then check three things:
@@ -94,6 +154,11 @@ Write the beat you'd count out loud, then check three things:
   a played groove from a programmed one.
 - **Is `swingUnit` matched to the lane that carries the pulse?** See above.
 
+- **Does it end anywhere?** A groove with no `fill`/`fillEvery` never marks a
+  phrase, and on a loop that is the difference a listener notices at minute two.
+
 Not every genre wants a kit. `ambient` deliberately has no `groove:` — silence
 where the drums would be is a musical decision, and an empty block would be a
-worse one.
+worse one. `minimalism` and `ragtime` also state none, for the same kind of
+reason: their pulse is in the pitched parts and a kit would be an accompaniment
+to it.

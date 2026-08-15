@@ -4,7 +4,7 @@ purpose: The composition knowledge worth keeping from the first library. Read be
 audience: [claude, human]
 updated: 2026-08-15
 read_order: 7
-see_also: [looping.md, grooves.md, voices.md, ../progress.md]
+see_also: [knobs.md, looping.md, grooves.md, voices.md, ../progress.md]
 ---
 
 # Variety
@@ -70,31 +70,50 @@ Mechanics for each: [`looping.md`](./looping.md) and [`grooves.md`](./grooves.md
    sound, that is allowed — but state it, so the next reader knows it was a
    choice.
 
-## The mapping — not written yet
+## The mapping
 
-The end state is that the *user's prompt* selects the knobs: scene words →
-figure, tempo band, register, mode, section arc, kit. Today Claude picks them by
-feel, which is why the rules above exist as a checklist instead of as code.
-Writing that mapping down (here or as a palette field) is a P1 item in
-[`progress.md`](../progress.md).
+The end state was that the *user's prompt* selects the knobs, rather than Claude
+picking them by feel. That now exists: scene words → figure, tempo band,
+register and harmony placement, printed on every run so the choice is
+reviewable. See [`knobs.md`](./knobs.md) and
+[`src/engine/knobs.ts`](../src/engine/knobs.ts).
 
-## Known gaps in the engine
+The rules above are still the rules. What changed is that something now *applies*
+them, and `compose` warns when a new piece lands in the same key and tempo band
+as one already on the shelf — rule 4, enforced.
 
-Carried here so they aren't rediscovered:
+## What the engine gained since
 
-- **`npm run compose` reaches none of this.** Figures, register and split-bar
-  harmony live in `figure.ts`/`build-song.ts`, so they exist for plan-built
-  **loops** only. Segments go through `composer.ts` + `parts.ts`, which never
-  import `figure.ts` — the fast path for scoring a scene on the fly still has one
-  rhythm vocabulary.
-- **Harmony is stuck on the Andalusian minor.** i–VII–VI–V with a harmonic-minor
-  V was the only progression the first library ever used. Dorian, a Phrygian bII
-  drone, pedal-point harmony and major-key westerns are all unexplored, and
-  phrygian-dominant — the mode this genre most wants — is unsupported
-  (`MODE_FAMILY` is the seven church modes only).
-- **A genre palette's `mode` is read by nothing.** Declared inertly everywhere.
-- **No fills.** A groove states one bar and repeats it; nothing marks the end of
-  an eight-bar phrase, which is most of why a long loop reads as a machine.
-- **No micro-timing humanize.** Every note lands exactly on its (possibly swung)
-  grid position, and two notes on the same accent character are bit-identical in
-  velocity.
+The gaps this doc used to list have been closed; kept here in short form so the
+reasoning isn't rediscovered.
+
+- **`compose` reaches the knobs.** The fast path uses `figureLine` like a
+  plan-built loop does, so it has the whole rhythm shelf, the register knob and
+  split-bar harmony. With a kit present the statement still locks to the kick
+  unless the scene asks otherwise — see [`knobs.md`](./knobs.md).
+- **Harmony beyond the Andalusian minor.** All seven church modes plus harmonic
+  minor, melodic minor, **phrygian-dominant**, lydian dominant and harmonic
+  major. The mode list is hand-picked rather than "whatever tonal knows", because
+  a mode with an augmented fourth between two degrees has a degree that is not a
+  triad; `theory.test.ts` is the gate.
+- **A genre's `mode` is read.** Not to set the key — the emotion is still the
+  sole source of tonality — but to *warn*, both when it fights the emotion's
+  scale and when it is simply being ignored.
+- **Fills.** A groove states `fill` + `fillEvery` and the phrase-ending bar is
+  replaced rather than layered over. See [`grooves.md`](./grooves.md).
+- **Micro-timing humanize.** Seeded, pure, per part, with leans rather than only
+  jitter — and clamped inside the bar, because everything upstream re-articulates
+  on the barline. See [`src/engine/humanize.ts`](../src/engine/humanize.ts).
+- **Meter beyond 4/4.** 3/4, 6/8 and 12/8 unlock the waltz, jig, shuffle and
+  doo-wop figures, and the genres that need them.
+
+## Two knobs that stayed defaults
+
+Worth stating, because "a knob nobody turns is the same as no knob" applies to
+these two most of all:
+
+- **`--form song`** writes an intro and a B section with *different harmony*.
+  The default `sample` still states a phrase and restates it, which is right for
+  checking in — but a piece asked for as a piece should say so.
+- **`humanize` in a plan** is off by default. It matters most on a long loop,
+  where the sameness of every repeat is what the ear eventually hears.

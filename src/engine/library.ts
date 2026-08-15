@@ -169,6 +169,49 @@ export function motifUsage(entries: readonly LibraryEntry[]): Map<string, Librar
   return usage;
 }
 
+/**
+ * How wide a tempo band counts as "the same tempo". 146–158 BPM is the range
+ * three of the first four loops shared without anyone noticing.
+ */
+const SAME_TEMPO_BPM = 12;
+
+/** A piece already on the shelf that the one being written would sound like. */
+export interface Neighbour {
+  entry: LibraryEntry;
+  /** Which of key / tempo / meter matched — what to change to get away from it. */
+  shared: string[];
+}
+
+/**
+ * Pieces already in the library that a new one is at risk of duplicating.
+ *
+ * Same key + same tempo band is the signal `docs/variety.md` says to look for
+ * before writing bars, and the reason it was worth writing down: `high-noon-
+ * warpath`, `six-gun-shredout` and `black-hat-arrives` shared a mode, an arc and
+ * a twelve-BPM window, and nobody spotted it until all three had been rendered.
+ *
+ * Reports rather than blocks — a campaign wanting three pieces in one key is a
+ * legitimate thing to want. Sorted most-shared first.
+ */
+export function neighboursOf(
+  candidate: Pick<Composition, "key" | "bpm" | "meter">,
+  entries: readonly LibraryEntry[],
+): Neighbour[] {
+  const meterOf = (c: Pick<Composition, "meter">) => (c.meter ?? [4, 4]).join("/");
+  return entries
+    .map((entry) => {
+      const other = entry.composition;
+      const shared: string[] = [];
+      if (other.key.toLowerCase() === candidate.key.toLowerCase()) shared.push("key");
+      if (Math.abs(other.bpm - candidate.bpm) <= SAME_TEMPO_BPM) shared.push("tempo");
+      if (meterOf(other) === meterOf(candidate)) shared.push("meter");
+      return { entry, shared };
+    })
+    // Meter alone is no signal at all — nearly everything is in 4/4.
+    .filter(({ shared }) => shared.includes("key") && shared.includes("tempo"))
+    .sort((a, b) => b.shared.length - a.shared.length);
+}
+
 /** `motifs` entries that name no known leitmotif — a broken quote, worth reporting. */
 export function danglingMotifs(entries: readonly LibraryEntry[]): { entry: LibraryEntry; motif: string }[] {
   const known = new Set(entries.filter((e) => e.kind === "leitmotifs").map((e) => e.slug));

@@ -15,6 +15,10 @@ groove:
     snare: "....X.......X..."
     hat:   "x.x.x.x.x.x.x.x."
     crash: "X..............................."
+  fill:
+    snare:  "........x.x.xxX."
+    tom-lo: "X.......X......."
+  fillEvery: 8
 instruments: [bass, pluck, piano]
 ---
 

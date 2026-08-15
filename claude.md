@@ -30,7 +30,8 @@ Claude-specific working rules that don't belong in the human-facing README.
 
 1. Parse the user's mood/scene/genre into search terms.
 2. Look up matching `palettes/<kind>/*.md` (tags/slug/title) — kinds are
-   `emotion` (mood + tonality), `genre` (groove), `timbre` (sound); see
+   `emotion` (mood + tonality), `genre` (groove), `timbre` (sound), `space`
+   (the room), `era` (the period); see
    [`docs/palette-authoring.md`](./docs/palette-authoring.md). Layer an emotion
    with a genre/timbre for specific vibes rather than inventing new stored files.
 3. Write a **short** `compositions/segments/<name>.json` (the moving core, not a
@@ -92,11 +93,18 @@ guessable.
 
 **A plan that names no knobs is the last plan again.** Three loops here became
 one song by taking every default. Choose, per piece, *before writing bars*: a
-rhythm **figure** per section, a **register**, a **kit voice**, **gains**, and at
-least one phrase that isn't 8 bars. The builder prints which ones you left alone
-— a nudge, not an error, but "I meant it" is the only good reason to ignore it.
-Why each default is a trap, and the rules for choosing:
+rhythm **figure** per section, a **register**, a **kit voice**, **gains**,
+**humanize**, and at least one phrase that isn't 8 bars. The builder prints which
+ones you left alone — a nudge, not an error, but "I meant it" is the only good
+reason to ignore it. Why each default is a trap, and the rules for choosing:
 [`docs/variety.md`](./docs/variety.md).
+
+For `compose` the scene words choose those knobs for you and it prints what they
+picked; override with `--figure` / `--register` / `--tempo`, and reach for
+`--form song` when the user asked for a piece rather than a sample. It also warns
+when the new piece lands in the same key and tempo band as one already on the
+shelf — that is rule 4 of variety.md, enforced. See
+[`docs/knobs.md`](./docs/knobs.md).
 
 ## Before you finish
 

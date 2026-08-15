@@ -62,12 +62,33 @@ point at it rather than copying it:
 }
 ```
 
-The link is provenance, not playback — the app doesn't splice the motif in for
-you. It answers "where does this theme show up?" (the bench shows `♪ quoted ×3`
-on the motif's row) and it keeps a recurring idea from silently forking into
-four near-identical versions. `npm run compositions:organize` reports any
-`motifs` entry with no matching file, so a broken quote surfaces instead of
-rotting.
+The link is provenance: it answers "where does this theme show up?" (the bench
+shows `♪ quoted ×3` on the motif's row) and it keeps a recurring idea from
+silently forking into four near-identical versions.
+`npm run compositions:organize` reports any `motifs` entry with no matching file,
+so a broken quote surfaces instead of rotting.
+
+To actually **play** the theme inside the host piece:
+
+```bash
+npm run motif:quote -- --into compositions/loops/throne-room.json \
+    --motif ashen-king --at-bar 24 --octave -1
+```
+
+That transposes the theme into the host's key by interval (taking the shorter way
+round, so it stays in the register it was written for), places it at the bar you
+name in the host's meter, mixes it under what is already there, and adds the slug
+to `motifs` so the link and the sound agree. `--dry-run` prints what it would
+write.
+
+It quotes the **tune**, not the arrangement: `drums`, `bass` and `pad` are
+accompaniment by role and are left behind, because a quote is a melody recognised
+over whatever is already playing. Copying the original's staging on top of a
+piece that has its own gives you two basses and a theme no more recognisable for
+it. The pure function is `quoteMotif` in
+[`src/engine/motif.ts`](../src/engine/motif.ts).
+
+**Re-render the host afterwards** — the audio has no idea the notes moved.
 
 Keep a leitmotif **short and singable** — a phrase, not an arrangement. Two to
 eight bars, one or two voices, no lo-fi bed. It exists to be recognised at half

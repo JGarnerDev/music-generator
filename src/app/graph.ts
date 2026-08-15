@@ -12,7 +12,9 @@
  */
 import * as Tone from "tone";
 import type { Composition, LoFiSettings } from "@engine/composition";
+import { isDry, signalChain } from "@engine/signal";
 import { impulseResponse } from "@utils/impulse";
+import { buildEffects } from "./effects";
 import { createVoice } from "./instruments";
 
 /** Seconds of reverb tail. Must stay <= render.ts's TAIL_SECONDS. */
@@ -45,9 +47,22 @@ function buildReverb(wet: number): { input: Tone.ToneAudioNode; output: Tone.Ton
   return { input, output: mix };
 }
 
-function buildLoFiChain(lofi: LoFiSettings | undefined): Tone.ToneAudioNode {
+/**
+ * The shared lo-fi bed, with two ways in.
+ *
+ * `input` is the normal one: wobble → low-pass → the room. `dry` skips only the
+ * room, joining after the reverb, so a track that asked to stay dry still gets
+ * the tape colour and the noise floor that make the piece sound like one
+ * recording — it just isn't put in a hall it was never in.
+ */
+function buildLoFiChain(lofi: LoFiSettings | undefined): {
+  input: Tone.ToneAudioNode;
+  dry: Tone.ToneAudioNode;
+} {
   const input = new Tone.Gain(1);
+  const dry = new Tone.Gain(1);
   const lowpass = new Tone.Filter(lofi?.lowpassHz ?? 3200, "lowpass");
+  const dryLowpass = new Tone.Filter(lofi?.lowpassHz ?? 3200, "lowpass");
   const reverb = buildReverb(lofi?.reverb ?? 0.25);
 
   let tail: Tone.ToneAudioNode = input;
@@ -58,6 +73,7 @@ function buildLoFiChain(lofi: LoFiSettings | undefined): Tone.ToneAudioNode {
   }
   tail.chain(lowpass, reverb.input);
   reverb.output.connect(Tone.getDestination());
+  dry.chain(dryLowpass, Tone.getDestination());
 
   if (lofi?.vinyl) {
     // Faint crackle/noise floor mixed straight into the chain input.
@@ -67,7 +83,7 @@ function buildLoFiChain(lofi: LoFiSettings | undefined): Tone.ToneAudioNode {
     noiseGain.connect(input);
     noise.start();
   }
-  return input;
+  return { input, dry };
 }
 
 /**
@@ -83,18 +99,42 @@ export function scheduleComposition(comp: Composition): void {
   const transport = Tone.getTransport();
   transport.bpm.value = comp.bpm;
   transport.loop = false;
+  // Tone reads "bars:beats:sixteenths" against this, so it has to be set before
+  // any part is scheduled — otherwise a 3/4 piece places every bar after the
+  // first a beat late, and the render is silently wrong rather than broken.
+  if (comp.meter) transport.timeSignature = [comp.meter[0], comp.meter[1]];
 
-  const chainInput = buildLoFiChain(comp.lofi);
+  const { input: chainInput, dry: dryInput } = buildLoFiChain(comp.lofi);
 
   for (const track of comp.tracks) {
     // `track.voice` names one of the instrument's presets in `voices/`; omitted
     // means its default, so a piece written before voices existed is unchanged.
     const voice = createVoice(track.instrument, track.voice);
     const trackGain = new Tone.Gain(track.gain ?? 1);
-    // The voice's own effects sit between the synth and the track gain, so a
-    // track's gain still means "how loud is this part", not "how driven".
-    voice.output.connect(trackGain);
-    trackGain.connect(chainInput);
+
+    // The track's own signal chain, from the timbre that shaped it. This is
+    // where `fuzz` and `plate-reverb` stop being prose. It sits between the
+    // instrument and the track gain, so gain still means "how loud is this
+    // part" and not "how driven" — and it is per track, because distortion
+    // belongs to the guitar and would ruin the drums summed with it.
+    const fx = buildEffects(signalChain(track.fx ?? []));
+    voice.output.connect(fx.input);
+
+    // Pan last, so the whole processed part moves together rather than the dry
+    // half of a wet/dry mix moving without its ambience.
+    let tail: Tone.ToneAudioNode = fx.output;
+    if (track.pan !== undefined && track.pan !== 0) {
+      const panner = new Tone.Panner(track.pan);
+      tail.connect(panner);
+      tail = panner;
+    }
+    tail.connect(trackGain);
+
+    // A track that asked to stay dry bypasses the shared ambience but keeps the
+    // rest of the bed. `desert-fuzz` ends on `dry` precisely to say "small amp,
+    // close mic, no room", and drowning that in a house reverb erases the one
+    // thing the palette is about.
+    trackGain.connect(isDry(track.fx ?? []) ? dryInput : chainInput);
 
     const events = track.notes.map((n) => ({
       time: n.time,

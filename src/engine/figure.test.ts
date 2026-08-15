@@ -2,18 +2,54 @@ import { describe, it, expect } from "vitest";
 import {
   FIGURES,
   FIGURE_NAMES,
+  figureFitsMeter,
   figureLine,
   isFigureName,
   powerChordFigure,
   validateFigure,
   type FigureName,
 } from "./figure";
+import type { Meter } from "@utils/timing";
+
+/** The meters the shelf is written for. A figure has to state a whole bar of one. */
+const METERS: Meter[] = [
+  [4, 4],
+  [3, 4],
+  [6, 8],
+  [12, 8],
+];
 
 describe("the figure shelf", () => {
-  it("every figure is internally valid", () => {
+  it("every figure states a whole bar of some meter", () => {
     for (const name of FIGURE_NAMES) {
-      expect(validateFigure(FIGURES[name]), name).toEqual([]);
+      const fits = METERS.filter((m) => figureFitsMeter(name, m));
+      expect(fits.length, `${name} fits no meter the shelf knows`).toBeGreaterThan(0);
     }
+  });
+
+  it("every figure is otherwise internally valid", () => {
+    // Length aside — that is the meter's business — the step string and
+    // resolution have to be well-formed on their own.
+    for (const name of FIGURE_NAMES) {
+      const issues = validateFigure(FIGURES[name]).filter((i) => !/multiple of/.test(i.message));
+      expect(issues, name).toEqual([]);
+    }
+  });
+
+  it("offers the 4/4 cells in 4/4 and the compound ones in 6/8", () => {
+    expect(figureFitsMeter("gallop", [4, 4])).toBe(true);
+    expect(figureFitsMeter("gallop", [3, 4])).toBe(false);
+    expect(figureFitsMeter("jig-lilt", [6, 8])).toBe(true);
+    // 3/4 and 6/8 are both twelve sixteenths — the difference is where the
+    // accents fall, which is the figure's business and not the bar's.
+    expect(figureFitsMeter("waltz-oom-pah", [3, 4])).toBe(true);
+    expect(figureFitsMeter("twelve-eight-shuffle", [12, 8])).toBe(true);
+  });
+
+  it("names the cells that do fit when asked for one that doesn't", () => {
+    expect(() =>
+      figureLine("gallop", { startBar: 0, roots: ["A1", "A1", "A1"], meter: [3, 4] }),
+    ).toThrow(/states a bar of 4\/4, not 3\/4.*waltz-oom-pah/s);
   });
 
   it("every figure has a summary worth printing", () => {

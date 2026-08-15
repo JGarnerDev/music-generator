@@ -14,6 +14,10 @@ groove:
     kick:  "X..x....X..x...."
     snare: "........X......."
     hat:   "x.x.x.x.x.x.x.x."
+  fill:
+    snare:  "........x.x.xxX."
+    tom-lo: "X.......X......."
+  fillEvery: 8
 ---
 
 # Desert Rock

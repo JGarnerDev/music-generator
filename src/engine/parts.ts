@@ -16,9 +16,9 @@
  * Pure and deterministic → unit tested. Pitch math lives in `theory`.
  */
 import type { Note } from "./composition";
-import { stepEvents, STEPS_PER_BAR, type StepEvent, type SwingUnit } from "./groove";
+import { stepEvents, type StepEvent, type SwingUnit } from "./groove";
 import { fitToBand, pitchToMidi, transpose } from "./theory";
-import { sixteenthsToNotation } from "@utils/timing";
+import { COMMON_TIME, sixteenthsToNotation, stepsPerBar, type Meter } from "@utils/timing";
 
 /**
  * Where a bass line lives: A1..A2. A full octave, so every pitch class has a
@@ -38,10 +38,14 @@ interface PartOptions {
   /** Swing, matched to the kit's. Default straight. */
   swing?: number;
   swingUnit?: SwingUnit;
+  /** Time signature the pattern is read in. Default 4/4. */
+  meter?: Meter;
   /**
    * Longest a note rings, in sixteenths. Notes otherwise last until the next
    * hit, which is what makes a sparse pattern sound sustained and a busy one
    * sound short without stating a duration per note.
+   *
+   * Defaults to one bar of the part's meter.
    */
   maxSustain?: number;
 }
@@ -74,11 +78,12 @@ export function bassLine(opts: BassLineOptions): Note[] {
   const { roots, band = BASS_BAND, approaches = [] } = opts;
   const fitted = roots.map((root) => fitToBand(root, band));
   const events = spanEvents(opts, roots.length);
+  const perBar = stepsPerBar(opts.meter ?? COMMON_TIME);
 
   return events.map(({ event, bar, duration, isBarLast }) => {
     const approach = approaches[bar] ?? null;
     const root = fitted[bar]!;
-    const leadsIn = isBarLast && event.step % STEPS_PER_BAR >= STEPS_PER_BAR - 4;
+    const leadsIn = isBarLast && event.step % perBar >= perBar - 4;
     return {
       time: event.time,
       pitch: leadsIn && approach ? fitToBand(approach, band) : root,
@@ -223,19 +228,24 @@ interface SpanEvent {
  * sixteenths, from the same call.
  */
 function spanEvents(opts: PartOptions, bars: number): SpanEvent[] {
-  const { startBar, pattern, intensity, swing, swingUnit, maxSustain = STEPS_PER_BAR } = opts;
+  const { startBar, pattern, intensity, swing, swingUnit, meter = COMMON_TIME } = opts;
   if (bars <= 0) return [];
-  const events = stepEvents(pattern, { startBar, bars, intensity, swing, swingUnit });
-  const spanEnd = bars * STEPS_PER_BAR;
+  const perBar = stepsPerBar(meter);
+  const maxSustain = opts.maxSustain ?? perBar;
+  const events = stepEvents(pattern, { startBar, bars, intensity, swing, swingUnit, meter });
+  const spanEnd = bars * perBar;
 
   return events.map((event, i) => {
     const nextStep = events[i + 1]?.step ?? spanEnd;
-    const bar = Math.floor(event.step / STEPS_PER_BAR);
-    const nextBar = i + 1 < events.length ? Math.floor(events[i + 1]!.step / STEPS_PER_BAR) : -1;
+    const bar = Math.floor(event.step / perBar);
+    const nextBar = i + 1 < events.length ? Math.floor(events[i + 1]!.step / perBar) : -1;
     return {
       event,
       bar,
-      duration: sixteenthsToNotation(Math.max(1, Math.min(nextStep - event.step, maxSustain))),
+      duration: sixteenthsToNotation(
+        Math.max(1, Math.min(nextStep - event.step, maxSustain)),
+        meter,
+      ),
       isBarLast: nextBar !== bar,
     };
   });

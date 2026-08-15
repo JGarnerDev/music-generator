@@ -16,6 +16,10 @@ groove:
     snare:    "..o.X..o..o.X.o."
     hat:      "XoxoXoxoXoxoXoxo"
     open-hat: "..............x."
+  fill:
+    snare:    "..o.x.o.xoxoxxX."
+    open-hat: "..............x."
+  fillEvery: 8
 instruments: [bass, pluck, epiano]
 ---
 

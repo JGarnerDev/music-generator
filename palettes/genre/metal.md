@@ -15,6 +15,11 @@ groove:
     snare: "....X.......X..."
     ride:  "x.x.x.x.x.x.x.x."
     crash: "X..............................."
+  fill:
+    tom-hi:  "........xx......"
+    tom-mid: "..........xx...."
+    tom-lo:  "............xxX."
+  fillEvery: 8
 instruments: [bass, pluck, piano]
 ---
 

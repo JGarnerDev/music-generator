@@ -3,7 +3,12 @@
  * offline render (how many seconds of WAV to produce) without touching audio.
  */
 import type { Composition } from "./composition";
-import { barsBeatsToSeconds, notationToSeconds } from "@utils/timing";
+import { COMMON_TIME, barsBeatsToSeconds, notationToSeconds, type Meter } from "@utils/timing";
+
+/** A composition's time signature, defaulting to 4/4 when it doesn't state one. */
+export function meterOf(comp: Pick<Composition, "meter">): Meter {
+  return comp.meter ?? COMMON_TIME;
+}
 
 /** A loop's position on the timeline, in seconds. */
 export interface LoopWindow {
@@ -20,11 +25,12 @@ export interface LoopWindow {
  * tracks. Callers usually add a reverb/release tail before rendering.
  */
 export function compositionDurationSeconds(comp: Composition): number {
+  const meter = meterOf(comp);
   let end = 0;
   for (const track of comp.tracks) {
     for (const note of track.notes) {
-      const start = barsBeatsToSeconds(note.time, comp.bpm);
-      const dur = notationToSeconds(note.duration, comp.bpm);
+      const start = barsBeatsToSeconds(note.time, comp.bpm, meter);
+      const dur = notationToSeconds(note.duration, comp.bpm, meter);
       end = Math.max(end, start + dur);
     }
   }
@@ -33,12 +39,14 @@ export function compositionDurationSeconds(comp: Composition): number {
 
 /**
  * The composition's loop window in seconds, or null when it isn't a looping
- * piece. Bar indices are exact because a bar is a fixed number of beats in 4/4 —
- * that exactness is what lets the exporter cut a loop file on a sample boundary.
+ * piece. Bar indices are exact because a bar is a fixed number of beats in any
+ * one meter — that exactness is what lets the exporter cut a loop file on a
+ * sample boundary.
  */
 export function loopWindowSeconds(comp: Composition): LoopWindow | null {
   if (!comp.loop) return null;
-  const start = barsBeatsToSeconds(`${comp.loop.startBar}:0:0`, comp.bpm);
-  const end = barsBeatsToSeconds(`${comp.loop.endBar}:0:0`, comp.bpm);
+  const meter = meterOf(comp);
+  const start = barsBeatsToSeconds(`${comp.loop.startBar}:0:0`, comp.bpm, meter);
+  const end = barsBeatsToSeconds(`${comp.loop.endBar}:0:0`, comp.bpm, meter);
   return { start, end, duration: end - start };
 }

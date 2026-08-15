@@ -26,17 +26,32 @@ import {
 import { sustainLine, tremoloLine } from "../src/engine/riff";
 import {
   FIGURE_NAMES,
+  figureFitsMeter,
   figureLine,
   isFigureName,
   powerChordFigure,
   validateFigure,
+  type FigureName,
   type FigureRef,
 } from "../src/engine/figure";
 import { approachNotes } from "../src/engine/parts";
 import { grooveNotes, validateGroove, type Groove } from "../src/engine/groove";
 import { chordPitches, fitToBand, pitchToMidi, transpose } from "../src/engine/theory";
+import { COMMON_TIME, validateMeter, type Meter } from "../src/utils/timing";
+import { HOUSE_LEANS, humanize } from "../src/engine/humanize";
+import {
+  STYLES,
+  buildSection,
+  emptyVoices,
+  firstOf,
+  isStyle,
+  lastOf,
+  octaveUp,
+  type SectionContext,
+  type Style,
+  type Voices,
+} from "../src/engine/sections";
 
-const BEATS_PER_BAR = 4;
 /**
  * Bass roots are fitted into one tight octave so the riff never jumps register.
  * G1–D2 is where the western/metal loops sit; a plan overrides it with `register`,
@@ -44,16 +59,6 @@ const BEATS_PER_BAR = 4;
  * every root folds to the same place and C minor sounds exactly where D minor did.
  */
 const DEFAULT_REGISTER: [string, string] = ["G1", "D2"];
-
-type Style =
-  | "standoff"
-  | "riff"
-  | "motor"
-  | "kit"
-  | "breakdown"
-  | "rebuild"
-  | "climb"
-  | "turnaround";
 
 /** ["bar:beat:sixteenth", pitch, duration, velocity] — compact enough to read in bulk. */
 type PlanNote = [string, string, string, number];
@@ -98,6 +103,15 @@ interface Plan {
   name: string;
   bpm: number;
   key: string;
+  /**
+   * Time signature, `[3, 4]` for a waltz, `[6, 8]` for a jig. Default 4/4.
+   *
+   * It changes how long a bar is, so everything counted in bars follows it: the
+   * groove lanes become twelve steps rather than sixteen, `1m` holds three beats,
+   * and the figures a section may pick narrow to the ones that state a bar of it
+   * (`npm run figures -- --meter 3/4`).
+   */
+  meter?: Meter;
   palettes?: string[];
   lofi?: LoFiSettings;
   /**
@@ -142,86 +156,28 @@ interface Plan {
    * a voice gets the default rock lead, which is rarely the intent.
    */
   melodyOn?: Exclude<InstrumentName, "drums">;
+  /**
+   * Play the parts rather than placing them: micro-timing and dynamics, seeded
+   * so a rebuild gives the same performance.
+   *
+   * `true` takes the house feel; an object tunes it. Off by default — the
+   * builders place notes exactly, and a piece whose whole point is machine-tight
+   * (a motor, a chug) should stay that way. It matters most on a long loop,
+   * where the sameness of every repeat is what the ear eventually hears.
+   */
+  humanize?: boolean | { jitter?: number; dynamics?: number; seed?: string };
   /** Section id where the loop body begins; everything before it is the intro. */
   loopFrom?: string;
   sections: PlanSection[];
 }
 
-/** Everything a style builder needs about its slice of the timeline. */
-interface SectionContext {
+/** The plan-side half of a section: what the CLI resolves before the builders run. */
+interface PlanSectionContext extends SectionContext {
   section: PlanSection;
-  startBar: number;
-  /** The figure this section's engine plays, already resolved and checked. */
-  figure: FigureRef;
-  /**
-   * Bass root per bar, fitted to the plan's register. An array entry is a bar
-   * split evenly between those roots — the engine follows it hit by hit.
-   */
-  bassRoots: (string | string[])[];
-  /** Same roots an octave up, for the guitar. */
-  guitarRoots: (string | string[])[];
-  /**
-   * One root per bar, for the layers that state a bar at a time — the pad's
-   * bell, a breakdown drone, a turnaround stab. A split bar gives its first.
-   */
-  barRoots: string[];
-  /** Chromatic step into the *next* bar's root, per bar. */
-  approaches: (string | null)[];
-  /** Bucket the section's written `melody` is pushed into — the plan's `melodyOn`. */
+  /** Bucket the section written `melody` is pushed into — the plan `melodyOn`. */
   melodyInto: keyof Voices;
 }
 
-/** The roots of one bar: a split bar's list, or the single root that holds it. */
-function slicesOf(entry: string | string[]): string[] {
-  return Array.isArray(entry) ? entry : [entry];
-}
-
-/** How long one chord of a split bar is held. Thirds of a bar have no note value. */
-const HELD_DURATION: Record<number, string> = { 1: "1m", 2: "2n", 4: "4n" };
-const SIXTEENTHS_PER_BAR = 16;
-
-/**
- * Where each chord of a bar starts and how long it is held — what the *sustained*
- * layers (pad, breakdown drone) need, as against the figure, which places its own
- * hits and only asks which root each one lands on.
- */
-function barSlices(entry: string | string[], bar: number): Note[] {
-  const pitches = slicesOf(entry);
-  const span = SIXTEENTHS_PER_BAR / pitches.length;
-  return pitches.map((pitch, i) => {
-    const at = i * span;
-    const sixteenth = Math.round((at % 4) * 1e4) / 1e4;
-    return {
-      time: `${bar}:${Math.floor(at / 4)}:${sixteenth}`,
-      pitch,
-      duration: HELD_DURATION[pitches.length] ?? "4n",
-    };
-  });
-}
-
-/** A bar's roots an octave up, split bar or not. */
-function octaveUp(entry: string | string[]): string | string[] {
-  return Array.isArray(entry) ? entry.map((p) => transpose(p, 12)) : transpose(entry, 12);
-}
-
-/** First and last chord sounding in a bar — what the neighbours' parts key off. */
-function firstOf(entry: string | string[]): string {
-  return slicesOf(entry)[0]!;
-}
-function lastOf(entry: string | string[]): string {
-  return slicesOf(entry).at(-1)!;
-}
-
-/** The voices every section writes into. */
-interface Voices {
-  pad: Note[];
-  bass: Note[];
-  rhythm: Note[];
-  lead: Note[];
-  piano: Note[];
-  epiano: Note[];
-  drums: Note[];
-}
 
 /**
  * Which bucket an instrument's notes go in. Only `pluck` needs saying — the
@@ -300,6 +256,11 @@ function reportDefaults(plan: Plan): void {
     untouched.push("register — G1–D2, 8 semitones, so this key sounds where every other key did");
   }
   if (!plan.gains) untouched.push("gains — the builder's house mix");
+  if (!plan.humanize) {
+    untouched.push(
+      "humanize — every note lands exactly on its grid position, which is what a long loop eventually sounds like",
+    );
+  }
   if (!plan.voices?.drums) untouched.push("voices.drums — the default kit");
   if (!plan.melodyOn && plan.sections.some((s) => s.melody?.length)) {
     untouched.push(
@@ -336,6 +297,7 @@ function readPlan(path: string): Plan {
 }
 
 function buildComposition(plan: Plan): Composition {
+  const meter = meterOf(plan);
   const bars = plan.sections.flatMap((s) => s.chords);
   const loopStartBar = findLoopStart(plan);
   const register = registerOf(plan);
@@ -352,24 +314,18 @@ function buildComposition(plan: Plan): Composition {
     bassRoots.map(lastOf),
   );
 
-  const voices: Voices = {
-    pad: [],
-    bass: [],
-    rhythm: [],
-    lead: [],
-    piano: [],
-    epiano: [],
-    drums: [],
-  };
+  const voices = emptyVoices();
   const melodyInto = melodyBucketOf(plan);
 
   let bar = 0;
   for (const section of plan.sections) {
     const span = { start: bar, end: bar + section.chords.length };
-    const ctx: SectionContext = {
+    const ctx: PlanSectionContext = {
       section,
+      style: styleOf(section),
       startBar: span.start,
-      figure: figureOf(section),
+      meter,
+      figure: figureOf(section, meter),
       bassRoots: bassRoots.slice(span.start, span.end),
       guitarRoots: bassRoots.slice(span.start, span.end).map(octaveUp),
       barRoots: bassRoots.slice(span.start, span.end).map(firstOf),
@@ -377,6 +333,10 @@ function buildComposition(plan: Plan): Composition {
       melodyInto,
     };
     buildSection(ctx, voices);
+    // The written lines are the plan's, not the builder's — a style says how the
+    // engine plays, and the tune over it is the author's either way.
+    voices[melodyInto].push(...offsetNotes(section.melody ?? [], span.start));
+    voices.lead.push(...offsetNotes(section.lead ?? [], span.start));
     voices.drums.push(...sectionDrums(plan, ctx));
     bar = span.end;
   }
@@ -402,17 +362,60 @@ function buildComposition(plan: Plan): Composition {
       ...t,
       gain: gainFor(plan, t.instrument, t.gain ?? 1),
       ...voiceFor(plan, t.instrument),
+      notes: performed(plan, t.instrument, t.notes, meter),
     }));
 
   return {
     name: plan.name,
     bpm: plan.bpm,
     key: plan.key,
+    // Written only when it isn't the default, so a 4/4 piece doesn't read as
+    // though someone chose 4/4.
+    ...(plan.meter ? { meter } : {}),
     ...(plan.palettes ? { palettes: plan.palettes } : {}),
     ...(plan.lofi ? { lofi: plan.lofi } : {}),
     ...(loopStartBar === null ? {} : { loop: { startBar: loopStartBar, endBar: bar } }),
     tracks,
   };
+}
+
+/**
+ * One track, played rather than placed — when the plan asked for it.
+ *
+ * Drums and bass share a lock: the bass was written to sit with the kick, and a
+ * few milliseconds of independent drift between them is a flam rather than two
+ * players. Everything else moves on its own, with the house lean for its voice.
+ */
+function performed(
+  plan: Plan,
+  instrument: InstrumentName,
+  notes: Note[],
+  meter: Meter,
+): Note[] {
+  if (!plan.humanize) return notes;
+  const tuning = plan.humanize === true ? {} : plan.humanize;
+  const seed = tuning.seed ?? plan.name;
+  const locked = instrument === "drums" || instrument === "bass";
+  return humanize(notes, {
+    seed: `${seed}|${instrument}`,
+    lock: locked ? `${seed}|rhythm-section` : undefined,
+    lean: HOUSE_LEANS[instrument] ?? 0,
+    jitter: tuning.jitter,
+    dynamics: tuning.dynamics,
+    meter,
+  });
+}
+
+/** The plan's time signature. A bad one fails here rather than as wrong bar lines. */
+function meterOf(plan: Plan): Meter {
+  if (!plan.meter) return COMMON_TIME;
+  const issues = validateMeter(plan.meter);
+  if (issues.length > 0) {
+    console.error(`meter: ${JSON.stringify(plan.meter)} is not a time signature`);
+    for (const i of issues) console.error(`  ${i.path}: ${i.message}`);
+    process.exit(2);
+  }
+  return [plan.meter[0], plan.meter[1]];
 }
 
 /** The band the bass roots fold into, as MIDI numbers. Bad input fails here. */
@@ -484,27 +487,58 @@ function voiceFor(plan: Plan, instrument: InstrumentName): { voice?: string } {
  * A bad name fails here, at build time, with the shelf printed — the alternative
  * is a silently wrong rhythm discovered an hour later in a render.
  */
-function figureOf(section: PlanSection): FigureRef {
+function figureOf(section: PlanSection, meter: Meter): FigureRef {
   const { figure } = section;
-  if (figure === undefined) {
-    // `motor` means "don't gallop": straight subdivision, root pedalling.
-    if (section.style !== "motor") return "gallop";
-    return section.subdivision === 4 ? "sixteenth-chug" : "straight-eighths";
-  }
+  if (figure === undefined) return defaultFigure(section, meter);
   if (typeof figure === "string") {
-    if (isFigureName(figure)) return figure;
-    console.error(`section "${section.id}": unknown figure "${figure}"`);
-    console.error(`  pick one of: ${FIGURE_NAMES.join(", ")}`);
-    console.error(`  or see them described with: npm run figures`);
-    process.exit(2);
+    if (!isFigureName(figure)) {
+      console.error(`section "${section.id}": unknown figure "${figure}"`);
+      console.error(`  pick one of: ${FIGURE_NAMES.join(", ")}`);
+      console.error(`  or see them described with: npm run figures`);
+      process.exit(2);
+    }
+    if (!figureFitsMeter(figure, meter)) {
+      const fits = FIGURE_NAMES.filter((n) => figureFitsMeter(n, meter));
+      console.error(
+        `section "${section.id}": figure "${figure}" does not state a bar of ${meter[0]}/${meter[1]}`,
+      );
+      console.error(`  in this meter: ${fits.join(", ") || "(none — write one inline)"}`);
+      process.exit(2);
+    }
+    return figure;
   }
-  const issues = validateFigure(figure);
+  const issues = validateFigure(figure, meter);
   if (issues.length > 0) {
     console.error(`section "${section.id}": invalid inline figure`);
     for (const i of issues) console.error(`  ${i.path}: ${i.message}`);
     process.exit(2);
   }
   return figure;
+}
+
+/**
+ * The cell a section plays when it names none. The gallop is the house default,
+ * and `motor` means "don't gallop" — straight subdivision, root pedalling. In a
+ * meter neither states a bar of, the first shelf cell that fits stands in, which
+ * is a worse choice than naming one and says so.
+ */
+function defaultFigure(section: PlanSection, meter: Meter): FigureRef {
+  const wanted: FigureName =
+    section.style !== "motor"
+      ? "gallop"
+      : section.subdivision === 4
+        ? "sixteenth-chug"
+        : "straight-eighths";
+  if (figureFitsMeter(wanted, meter)) return wanted;
+
+  const fallback = FIGURE_NAMES.find((n) => figureFitsMeter(n, meter));
+  if (!fallback) {
+    console.error(
+      `section "${section.id}": no shelf figure states a bar of ${meter[0]}/${meter[1]} — write one inline`,
+    );
+    process.exit(2);
+  }
+  return fallback;
 }
 
 /**
@@ -516,11 +550,11 @@ function figureOf(section: PlanSection): FigureRef {
  * top of a chorus. Sections are the phrase boundaries a listener hears, so they
  * are where the pattern should reset.
  */
-function sectionDrums(plan: Plan, ctx: SectionContext): Note[] {
+function sectionDrums(plan: Plan, ctx: PlanSectionContext): Note[] {
   const groove = ctx.section.groove ?? plan.groove;
   if (!groove || ctx.section.drums === false) return [];
 
-  const issues = validateGroove(groove);
+  const issues = validateGroove(groove, ctx.meter);
   if (issues.length > 0) {
     console.error(`section "${ctx.section.id}": invalid groove`);
     for (const i of issues) console.error(`  ${i.path}: ${i.message}`);
@@ -530,7 +564,16 @@ function sectionDrums(plan: Plan, ctx: SectionContext): Note[] {
     startBar: ctx.startBar,
     bars: ctx.section.chords.length,
     intensity: ctx.section.intensity ?? 1,
+    meter: ctx.meter,
   });
+}
+
+/** The section's style, checked here so a typo fails with the shelf printed. */
+function styleOf(section: PlanSection): Style {
+  if (isStyle(section.style)) return section.style;
+  console.error(`section "${section.id}": unknown style "${section.style}"`);
+  console.error(`  pick one of: ${STYLES.join(", ")}`);
+  process.exit(2);
 }
 
 /** Bar index where the named section starts, or null when the plan doesn't loop. */
@@ -543,210 +586,6 @@ function findLoopStart(plan: Plan): number | null {
   }
   console.error(`loopFrom "${plan.loopFrom}" matches no section id`);
   process.exit(2);
-}
-
-function buildSection(ctx: SectionContext, voices: Voices): void {
-  const builders: Record<Style, (ctx: SectionContext, voices: Voices) => void> = {
-    standoff: buildStandoff,
-    riff: buildRiff,
-    motor: buildMotor,
-    kit: buildKit,
-    turnaround: buildTurnaround,
-    breakdown: buildBreakdown,
-    rebuild: buildRebuild,
-    climb: buildClimb,
-  };
-  const build = builders[ctx.section.style];
-  if (!build) {
-    console.error(`section "${ctx.section.id}": unknown style "${ctx.section.style}"`);
-    process.exit(2);
-  }
-  build(ctx, voices);
-  voices[ctx.melodyInto].push(...offsetNotes(ctx.section.melody ?? [], ctx.startBar));
-  voices.lead.push(...offsetNotes(ctx.section.lead ?? [], ctx.startBar));
-}
-
-/** Western intro: choir, tolling bell, no engine — then a two-beat pickup into the riff. */
-function buildStandoff(ctx: SectionContext, voices: Voices): void {
-  voices.pad.push(...padFor(ctx, 0.3));
-  voices.piano.push(...bellFor(ctx, 0.5));
-
-  // Last two beats of the final bar: the gallop fires up and launches the riff.
-  const lastBar = ctx.startBar + ctx.bassRoots.length - 1;
-  const root = ctx.bassRoots.at(-1)!;
-  const approach = ctx.approaches.at(-1) ?? null;
-  const pickup = (notes: Note[]) => notes.filter((n) => beatOf(n) >= 2);
-  voices.bass.push(
-    ...pickup(figureLine(ctx.figure, { startBar: lastBar, roots: [root], approaches: [approach] })),
-  );
-  voices.rhythm.push(
-    ...pickup(
-      powerChordFigure(ctx.figure, {
-        startBar: lastBar,
-        roots: [octaveUp(root)],
-        approaches: [approach ? transpose(approach, 12) : null],
-      }),
-    ),
-  );
-}
-
-/**
- * The engine at full force: the section's figure in the bass, doubled by power
- * chords an octave up, pad underneath. The *figure* is what makes one of these
- * sections sound unlike another — see `figureOf`.
- */
-function buildRiff(ctx: SectionContext, voices: Voices): void {
-  buildEngine(ctx, voices, { pad: 0.4, bassGhost: 0.8, rhythmGhost: 0.78 });
-}
-
-/**
- * The desert-rock engine: straight eighths (or a sixteenth chug) pedalling the
- * root, guitar in unison an octave up. `riff` gallops and therefore *moves*; this
- * one refuses to, which is the whole style — the weight comes from repetition.
- * The pad sits lower than under `riff` because fuzz and sustained voices fight.
- *
- * The two styles now differ only in dynamics: the figure is the section's to
- * choose, so `motor` is "quieter pad, ghosts a hair up" and the default straight
- * subdivision, not a separate rhythm engine.
- */
-function buildMotor(ctx: SectionContext, voices: Voices): void {
-  buildEngine(ctx, voices, { pad: 0.26, bassGhost: 0.82, rhythmGhost: 0.8 });
-}
-
-/** Bass + doubled power chords + pad, on whatever figure the section picked. */
-function buildEngine(
-  ctx: SectionContext,
-  voices: Voices,
-  dyn: { pad: number; bassGhost: number; rhythmGhost: number },
-): void {
-  voices.pad.push(...padFor(ctx, dyn.pad));
-  voices.bass.push(
-    ...figureLine(ctx.figure, {
-      startBar: ctx.startBar,
-      roots: ctx.bassRoots,
-      approaches: ctx.approaches,
-      ghost: dyn.bassGhost,
-    }),
-  );
-  voices.rhythm.push(
-    ...powerChordFigure(ctx.figure, {
-      startBar: ctx.startBar,
-      roots: ctx.guitarRoots,
-      approaches: ctx.approaches.map((a) => (a ? transpose(a, 12) : null)),
-      accent: 0.92,
-      ghost: dyn.rhythmGhost,
-    }),
-  );
-}
-
-/**
- * Drums alone — the kit intro, the break where the band stops and the drummer
- * doesn't. Writes no pitched voice at all; the section's groove is the section.
- */
-function buildKit(_ctx: SectionContext, _voices: Voices): void {}
-
-/** The riff, plus a low piano stab per bar to mark the last section before the wrap. */
-function buildTurnaround(ctx: SectionContext, voices: Voices): void {
-  buildRiff(ctx, voices);
-  ctx.barRoots.forEach((root, i) => {
-    voices.piano.push({
-      time: `${ctx.startBar + i}:0:0`,
-      pitch: transpose(root, 12),
-      duration: "4n",
-      velocity: 0.55,
-    });
-  });
-}
-
-/** Everything drops out: bell, choir, whistle, space. The contrast that saves the loop. */
-function buildBreakdown(ctx: SectionContext, voices: Voices): void {
-  voices.pad.push(...padFor(ctx, 0.42));
-  voices.piano.push(...bellFor(ctx, 0.55));
-  ctx.bassRoots.forEach((entry, i) => {
-    for (const note of barSlices(entry, ctx.startBar + i)) {
-      voices.bass.push({ ...note, velocity: 0.6 });
-    }
-  });
-}
-
-/** Bass creeps back on eighths, guitar on downbeats, full gallop for the last two bars. */
-function buildRebuild(ctx: SectionContext, voices: Voices): void {
-  voices.pad.push(...padFor(ctx, 0.4));
-  const gallopFrom = ctx.bassRoots.length - 2;
-
-  ctx.bassRoots.forEach((entry, i) => {
-    const bar = ctx.startBar + i;
-    if (i >= gallopFrom) {
-      voices.bass.push(
-        ...figureLine(ctx.figure, {
-          startBar: bar,
-          roots: [entry],
-          approaches: [ctx.approaches[i] ?? null],
-        }),
-      );
-      voices.rhythm.push(
-        ...powerChordFigure(ctx.figure, {
-          startBar: bar,
-          roots: [ctx.guitarRoots[i]!],
-          approaches: [ctx.approaches[i] ? transpose(ctx.approaches[i]!, 12) : null],
-        }),
-      );
-      return;
-    }
-    // eighths on the root: motion without the full weight of the gallop yet
-    voices.bass.push(
-      ...tremoloLine({
-        startBar: bar,
-        pitches: Array<string>(BEATS_PER_BAR).fill(firstOf(entry)),
-        subdivision: 2,
-        velocity: 0.7 + i * 0.03,
-      }),
-    );
-    if (i >= 2) {
-      const guitarRoot = firstOf(ctx.guitarRoots[i]!);
-      voices.rhythm.push(
-        { time: `${bar}:0:0`, pitch: guitarRoot, duration: "1m", velocity: 0.6 },
-        { time: `${bar}:0:0`, pitch: transpose(guitarRoot, 7), duration: "1m", velocity: 0.55 },
-      );
-    }
-  });
-}
-
-/** Tremolo on each chord's fifth, jumping an octave halfway up — the pre-climax lift. */
-function buildClimb(ctx: SectionContext, voices: Voices): void {
-  buildRiff(ctx, voices);
-  const half = Math.ceil(ctx.bassRoots.length / 2);
-  const pitches = ctx.bassRoots.flatMap((entry, i) => {
-    const fifth = fitToBand(transpose(firstOf(entry), 7), i < half ? [60, 71] : [72, 83]);
-    return Array<string>(BEATS_PER_BAR).fill(fifth);
-  });
-  voices.lead.push(...tremoloLine({ startBar: ctx.startBar, pitches, subdivision: 4, velocity: 0.88 }));
-}
-
-/**
- * Held root + fifth — the choir/organ bed under everything. It follows a split
- * bar's chords rather than holding the first one over both, which is the whole
- * point of splitting the bar.
- */
-function padFor(ctx: SectionContext, velocity: number): Note[] {
-  return ctx.bassRoots.flatMap((entry, i) =>
-    barSlices(entry, ctx.startBar + i).flatMap(({ time, pitch, duration }) => {
-      const up = transpose(pitch, 12);
-      return [
-        { time, pitch: up, duration, velocity },
-        { time, pitch: transpose(up, 7), duration, velocity: Math.max(0.05, velocity - 0.05) },
-      ];
-    }),
-  );
-}
-
-/** A single low toll every other bar — the western bell. */
-function bellFor(ctx: SectionContext, velocity: number): Note[] {
-  return sustainLine({
-    startBar: ctx.startBar,
-    pitches: ctx.barRoots.map((root, i) => (i % 2 === 0 ? root : null)),
-    velocity,
-  });
 }
 
 /** Move plan notes (written relative to their section) onto the real timeline. */

@@ -37,7 +37,7 @@ loose musical ideas into something you're pumped about.
 
 | Path | What | Notes |
 |---|---|---|
-| `palettes/<kind>/*.md` | Intent → music: `emotion`, `genre`, `timbre` | Per-kind schema; see [palette-authoring](docs/palette-authoring.md) |
+| `palettes/<kind>/*.md` | Intent → music: `emotion`, `genre`, `timbre`, `space`, `era` | Per-kind schema; see [palette-authoring](docs/palette-authoring.md) |
 | `src/engine/` | Pure music brains | tonal, theory, arrange, validation — **tested** |
 | `src/utils/` | Promoted general helpers | rng, timing, wav, mp3, loop seams — **tested** |
 | `src/app/` | Browser player + the audio graph | Tone.js glue, thin, not unit-tested. The graph runs only under `npm run render`; the app itself just plays files |
@@ -66,6 +66,14 @@ npm run typecheck  # tsc --noEmit
   — layers blend via [`blend.ts`](docs/palette-authoring.md#blending). The beat
   rides along with the genre: an emotion alone is drumless, `--with lofi` arrives
   with a kit. See [grooves](docs/grooves.md).
+  - Your scene words pick the **knobs** — rhythmic figure, register, tempo within
+    the palette's band, whether the harmony moves inside the bar — and `compose`
+    prints which words chose what. Override with `--figure` / `--register` /
+    `--tempo`; ask for a longer piece with `--form song`, which adds an intro and
+    a B section with its own harmony. See [knobs](docs/knobs.md).
+- **Quote a theme:** `npm run motif:quote -- --into <composition> --motif <slug>
+  --at-bar <n>` writes a leitmotif into another piece, transposed into its key.
+  See [library](docs/library.md).
 - **File it:** kind is the folder, and the bench tabs mirror it. Sweep or
   promote with `npm run compositions:organize` — see [library](docs/library.md),
   which also covers **leitmotifs** (themes other pieces quote via `motifs`).
@@ -132,7 +140,9 @@ npm run typecheck  # tsc --noEmit
 - [`docs/variety.md`](docs/variety.md) — why the first four loops came out as one
   song, the knobs that prevent it, and the rules for choosing them. Read before
   writing a plan or a segment.
+- [`docs/knobs.md`](docs/knobs.md) — how scene words choose those knobs, how to
+  override them, and how a new piece is checked against the shelf.
 
 Progressive disclosure — split a section into its own frontmatter'd doc once it
 outgrows a screen here. Planned: `docs/composition-spec.md`,
-`docs/palette-authoring.md`, `docs/lofi-chain.md`. Not written until needed.
+`docs/lofi-chain.md`. Not written until needed.

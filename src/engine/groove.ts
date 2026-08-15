@@ -22,8 +22,15 @@
  * makes the sounds lives in `src/app/drums.ts`.
  */
 import { type Note, type DrumPiece, isDrumPiece } from "./composition";
+import { FILL_NAMES, fillBars, fillPatterns, isFillName, type FillRef } from "./fill";
+import { COMMON_TIME, stepsPerBar, type Meter } from "@utils/timing";
 
-/** Steps in one bar of 4/4 at sixteenth resolution. */
+/**
+ * Steps in one bar of 4/4 at sixteenth resolution — the default, and what every
+ * lane in `palettes/genre/` is written against. A piece in another meter passes
+ * its `meter` and every function here counts in `stepsPerBar(meter)` instead:
+ * 12 for 3/4 and 6/8, 24 for 12/8.
+ */
 export const STEPS_PER_BAR = 16;
 const STEPS_PER_BEAT = 4;
 
@@ -60,6 +67,18 @@ export interface Groove {
   swingUnit?: SwingUnit;
   /** Kit piece → step string. Lanes cycle independently over the bar count. */
   patterns: Partial<Record<DrumPiece, string>>;
+  /**
+   * The bar that ends a phrase — a name off the shelf in `fill.ts`, or lanes
+   * written inline. It **replaces** the groove for that bar rather than playing
+   * over it: a tom tumble on top of the original hats is two drummers.
+   */
+  fill?: FillRef;
+  /**
+   * How often the fill lands, in bars. 8 is the usual phrase; 4 is busy, 16 is
+   * a long build. Absent (or under 2) means no fills, which is what a groove
+   * with no phrase to mark should say.
+   */
+  fillEvery?: number;
 }
 
 export interface GrooveIssue {
@@ -74,6 +93,13 @@ export interface GrooveNotesOptions {
   bars: number;
   /** Scales every velocity, for a quieter verse or a louder chorus. Default 1. */
   intensity?: number;
+  /** Time signature the bars are counted in. Default 4/4. */
+  meter?: Meter;
+  /**
+   * How far into a phrase this span starts, for fill placement — for a caller
+   * that renders one phrase in more than one call. Default 0.
+   */
+  phraseOffset?: number;
 }
 
 /** One struck step: where it lands and how hard. What a lane reduces to. */
@@ -95,6 +121,8 @@ export interface StepEventOptions {
   swing?: number;
   /** Which subdivision the swing applies to. Default `16n`. */
   swingUnit?: SwingUnit;
+  /** Time signature the bars are counted in. Default 4/4. */
+  meter?: Meter;
 }
 
 /**
@@ -106,20 +134,21 @@ export interface StepEventOptions {
  * without either lane knowing about the other.
  */
 export function stepEvents(pattern: string, opts: StepEventOptions): StepEvent[] {
-  const { startBar, bars, intensity = 1, swingUnit } = opts;
+  const { startBar, bars, intensity = 1, swingUnit, meter = COMMON_TIME } = opts;
   if (pattern.length === 0) return [];
   const swing = clampUnit(opts.swing ?? 0);
   const swingPeriod = swingUnit === "8n" ? 4 : 2;
+  const perBar = stepsPerBar(meter);
   const steps = [...pattern] as StepChar[];
   const events: StepEvent[] = [];
 
-  for (let step = 0; step < bars * STEPS_PER_BAR; step++) {
+  for (let step = 0; step < bars * perBar; step++) {
     const char = steps[step % steps.length]!;
     const level = ACCENT_VELOCITY[char as keyof typeof ACCENT_VELOCITY];
     if (level === undefined) continue; // "." and anything else = rest
 
     events.push({
-      time: stepTime(startBar, step, swing, swingPeriod),
+      time: stepTime(startBar, step, swing, swingPeriod, perBar),
       velocity: round(clampUnit(level * intensity), 3),
       step,
     });
@@ -135,21 +164,45 @@ export function stepEvents(pattern: string, opts: StepEventOptions): StepEvent[]
  * about the other.
  */
 export function grooveNotes(groove: Groove, opts: GrooveNotesOptions): Note[] {
-  const { startBar, bars, intensity = 1 } = opts;
+  const { startBar, bars, intensity = 1, meter, phraseOffset = 0 } = opts;
+  const swing = { swing: groove.swing, swingUnit: groove.swingUnit };
   const notes: Note[] = [];
+
+  // Which bars the groove doesn't play, because the fill is playing instead.
+  const filled = new Set(
+    groove.fill && groove.fillEvery ? fillBars(bars, groove.fillEvery, phraseOffset) : [],
+  );
+  const perBar = stepsPerBar(meter ?? COMMON_TIME);
 
   for (const [piece, pattern] of Object.entries(groove.patterns)) {
     if (!pattern) continue;
     const duration = PIECE_DURATION[piece as DrumPiece] ?? DEFAULT_DURATION;
-    const events = stepEvents(pattern, {
-      startBar,
-      bars,
-      intensity,
-      swing: groove.swing,
-      swingUnit: groove.swingUnit,
-    });
-    for (const { time, velocity } of events) {
+    const events = stepEvents(pattern, { startBar, bars, intensity, meter, ...swing });
+    for (const { time, velocity, step } of events) {
+      if (filled.has(Math.floor(step / perBar))) continue;
       notes.push({ time, pitch: piece, duration, velocity });
+    }
+  }
+
+  // The fill bars, each read from its own start so the fill states its first bar
+  // rather than whatever step of it the phrase happened to reach.
+  if (groove.fill) {
+    const patterns = fillPatterns(groove.fill);
+    for (const bar of filled) {
+      for (const [piece, pattern] of Object.entries(patterns)) {
+        if (!pattern) continue;
+        const duration = PIECE_DURATION[piece as DrumPiece] ?? DEFAULT_DURATION;
+        const events = stepEvents(pattern, {
+          startBar: startBar + bar,
+          bars: 1,
+          intensity,
+          meter,
+          ...swing,
+        });
+        for (const { time, velocity } of events) {
+          notes.push({ time, pitch: piece, duration, velocity });
+        }
+      }
     }
   }
 
@@ -166,9 +219,15 @@ export function grooveNotes(groove: Groove, opts: GrooveNotesOptions): Note[] {
  * late by `swing * period/6` steps, which is exactly a triplet's worth at
  * `swing: 1` for either resolution.
  */
-function stepTime(startBar: number, step: number, swing: number, swingPeriod: number): string {
-  const bar = startBar + Math.floor(step / STEPS_PER_BAR);
-  const withinBar = step % STEPS_PER_BAR;
+function stepTime(
+  startBar: number,
+  step: number,
+  swing: number,
+  swingPeriod: number,
+  perBar: number,
+): string {
+  const bar = startBar + Math.floor(step / perBar);
+  const withinBar = step % perBar;
   const beat = Math.floor(withinBar / STEPS_PER_BEAT);
   const sixteenth = withinBar % STEPS_PER_BEAT;
   const offBeat = withinBar % swingPeriod === swingPeriod / 2;
@@ -181,8 +240,9 @@ function stepTime(startBar: number, step: number, swing: number, swingPeriod: nu
  * means valid. Pattern length must be a whole number of bars — a 15-char lane is
  * a typo, not a polymeter, and it would rotate against the bar line forever.
  */
-export function validateGroove(input: unknown): GrooveIssue[] {
+export function validateGroove(input: unknown, meter: Meter = COMMON_TIME): GrooveIssue[] {
   const issues: GrooveIssue[] = [];
+  const perBar = stepsPerBar(meter);
   if (typeof input !== "object" || input === null) {
     return [{ path: "groove", message: "must be an object" }];
   }
@@ -203,8 +263,57 @@ export function validateGroove(input: unknown): GrooveIssue[] {
   if (entries.length === 0) {
     issues.push({ path: "groove.patterns", message: "must name at least one kit piece" });
   }
+  checkLanes(entries, "groove.patterns", perBar, meter, issues);
+
+  if (g.fillEvery !== undefined) {
+    const every = g.fillEvery;
+    if (typeof every !== "number" || !Number.isInteger(every) || every < 2) {
+      issues.push({
+        path: "groove.fillEvery",
+        message: "must be a whole number of bars, 2 or more",
+      });
+    }
+    if (g.fill === undefined) {
+      issues.push({ path: "groove.fill", message: "required when `fillEvery` is set" });
+    }
+  }
+  if (g.fill !== undefined) {
+    if (typeof g.fill === "string") {
+      if (!isFillName(g.fill)) {
+        issues.push({
+          path: "groove.fill",
+          message: `unknown fill "${g.fill}" — pick one of: ${FILL_NAMES.join(", ")}`,
+        });
+      }
+    } else if (typeof g.fill === "object" && g.fill !== null) {
+      const lanes = Object.entries(g.fill as Record<string, unknown>);
+      if (lanes.length === 0) {
+        issues.push({ path: "groove.fill", message: "must name at least one kit piece" });
+      }
+      // A fill is exactly one bar: it marks a phrase end, and a two-bar one
+      // would land its second half over the downbeat it exists to announce.
+      checkLanes(lanes, "groove.fill", perBar, meter, issues, { exactlyOneBar: true });
+    } else {
+      issues.push({ path: "groove.fill", message: "must be a fill name or a lane object" });
+    }
+    if (g.fillEvery === undefined) {
+      issues.push({ path: "groove.fillEvery", message: "required when `fill` is set" });
+    }
+  }
+  return issues;
+}
+
+/** Shared lane checks for a groove's patterns and a fill's — same notation. */
+function checkLanes(
+  entries: [string, unknown][],
+  base: string,
+  perBar: number,
+  meter: Meter,
+  issues: GrooveIssue[],
+  opts: { exactlyOneBar?: boolean } = {},
+): void {
   for (const [piece, pattern] of entries) {
-    const path = `groove.patterns.${piece}`;
+    const path = `${base}.${piece}`;
     if (!isDrumPiece(piece)) issues.push({ path, message: `unknown drum piece "${piece}"` });
     if (typeof pattern !== "string") {
       issues.push({ path, message: "must be a step string" });
@@ -213,21 +322,28 @@ export function validateGroove(input: unknown): GrooveIssue[] {
     if (!/^[.xXo]+$/.test(pattern)) {
       issues.push({ path, message: 'step string may only use "X", "x", "o" and "."' });
     }
-    if (pattern.length % STEPS_PER_BAR !== 0) {
+    if (opts.exactlyOneBar) {
+      if (pattern.length !== perBar) {
+        issues.push({
+          path,
+          message: `a fill is one bar — expected ${perBar} steps for ${meter[0]}/${meter[1]}, got ${pattern.length}`,
+        });
+      }
+    } else if (pattern.length % perBar !== 0) {
       issues.push({
         path,
-        message: `length must be a multiple of ${STEPS_PER_BAR} (one bar), got ${pattern.length}`,
+        message: `length must be a multiple of ${perBar} (one bar of ${meter[0]}/${meter[1]}), got ${pattern.length}`,
       });
     }
   }
-  return issues;
 }
 
 /** Longest lane in bars — how much music the groove states before it repeats. */
-export function grooveBars(groove: Groove): number {
+export function grooveBars(groove: Groove, meter: Meter = COMMON_TIME): number {
+  const perBar = stepsPerBar(meter);
   const lengths = Object.values(groove.patterns)
     .filter((p): p is string => typeof p === "string" && p.length > 0)
-    .map((p) => Math.ceil(p.length / STEPS_PER_BAR));
+    .map((p) => Math.ceil(p.length / perBar));
   return lengths.length === 0 ? 0 : Math.max(...lengths);
 }
 

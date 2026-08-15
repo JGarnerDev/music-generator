@@ -28,9 +28,9 @@
  * (`gallopLine`, `motorLine`) on top of this.
  */
 import type { Note } from "./composition";
+import type { SwingUnit } from "./groove";
 import { transpose } from "./theory";
-
-const BEATS_PER_BAR = 4;
+import { COMMON_TIME, beatsPerBar, type Meter } from "@utils/timing";
 
 /** Accent characters a figure may use. Same vocabulary as a groove lane. */
 const HIT_CHARS = "Xxo";
@@ -143,6 +143,45 @@ export const FIGURES = {
     chordOn: "Xx",
     summary: "Long-short on an eighth-triplet grid. The galloping-horse figure — cavalry, spaghetti-western chase, classic NWOBHM.",
   },
+  // --- 12 steps: one bar of 3/4 or 6/8 -------------------------------------
+  "waltz-oom-pah": {
+    steps: "X.......x...",
+    resolution: 4,
+    secondary: -0.12,
+    duration: "4n",
+    chordOn: "X",
+    summary: "3/4. Root on one, a lighter answer on three, beat two left to the chords. The bass half of the oom-pah-pah — ballroom, music box, a sad waltz.",
+  },
+  "waltz-drive": {
+    steps: "X...x...x...",
+    resolution: 4,
+    secondary: -0.06,
+    chordOn: "Xx",
+    summary: "3/4. All three beats struck evenly. Turns a waltz from a dance into a drive — Shostakovich-ish menace, carousel gone wrong.",
+  },
+  "jig-lilt": {
+    steps: "X.o.x.X.o.x.",
+    resolution: 4,
+    secondary: -0.07,
+    chordOn: "Xx",
+    summary: "6/8. Two groups of three eighths, weight on each group's first. The compound-time canter — celtic jigs, sea shanties, a riding theme.",
+  },
+  "six-eight-stab": {
+    steps: "X.....x.....",
+    resolution: 4,
+    secondary: -0.08,
+    duration: "4n.",
+    chordOn: "Xx",
+    summary: "6/8 at its bare pulse: two dotted quarters, nothing between. Room for a melody to lilt over the top — barcarolle, lullaby, a slow funeral march.",
+  },
+  // --- 24 steps: one bar of 12/8 -------------------------------------------
+  "twelve-eight-shuffle": {
+    steps: "X.ox.oX.ox.oX.ox.oX.ox.o",
+    resolution: 4,
+    secondary: -0.07,
+    chordOn: "Xx",
+    summary: "12/8. Four beats each split in three — the triplet feel written out rather than swung. Slow blues, doo-wop, gospel shuffle.",
+  },
 } as const satisfies Record<string, Figure>;
 
 export type FigureName = keyof typeof FIGURES;
@@ -184,6 +223,24 @@ export interface FigureOptions {
   accent?: number;
   /** Velocity of an `o` hit. */
   ghost?: number;
+  /**
+   * Time signature the figure is read in. Default 4/4. A figure's step string
+   * has to state a whole bar *of this meter*, so the shelf's sixteen-character
+   * cells are 4/4 only — a 3/4 piece wants twelve, and `npm run figures` prints
+   * which are playable in which meter.
+   */
+  meter?: Meter;
+  /**
+   * Swing, matched to the kit's — 0 straight … 1 full triplet shuffle.
+   *
+   * A figure written on its own straight grid under a shuffled kit flams on
+   * every off-beat, which is the same trap `parts.ts` exists to avoid; pass the
+   * groove's swing whenever there is one. Ignored at resolution 3, where the
+   * grid is already triplets and delaying it again is just wrong.
+   */
+  swing?: number;
+  /** Which subdivision the swing applies to. Default `16n`. */
+  swingUnit?: SwingUnit;
 }
 
 /** One hit of a figure, resolved from its step string. */
@@ -214,7 +271,7 @@ export function figureLine(figure: FigureRef, opts: FigureOptions): Note[] {
  * palm-muting. No third, so the mode is carried by the melody.
  */
 export function powerChordFigure(figure: FigureRef, opts: FigureOptions): Note[] {
-  const { chordOn } = figureFor(figure);
+  const { chordOn } = figureFor(figure, opts.meter ?? COMMON_TIME);
   const struck = struckNotes(figure, opts);
   const voiced = new Set(struck.filter(({ char }) => chordOn.includes(char)).map(({ note }) => note));
   return withFifths(
@@ -231,9 +288,20 @@ export function powerChordFigure(figure: FigureRef, opts: FigureOptions): Note[]
  * chord and a two-bar cell states its second half against the second chord.
  */
 function struckNotes(ref: FigureRef, opts: FigureOptions): { note: Note; char: string }[] {
-  const figure = figureFor(ref);
-  const { startBar, roots, approaches = [], accent = 0.95, ghost = 0.8 } = opts;
-  const stepsPerBar = BEATS_PER_BAR * figure.resolution;
+  const {
+    startBar,
+    roots,
+    approaches = [],
+    accent = 0.95,
+    ghost = 0.8,
+    meter = COMMON_TIME,
+    swingUnit,
+  } = opts;
+  const figure = figureFor(ref, meter);
+  // Triplets are already where a shuffle would put them; swinging them again
+  // pushes the middle of the triplet off the end of the beat.
+  const swing = figure.resolution === 3 ? 0 : Math.max(0, Math.min(1, opts.swing ?? 0));
+  const stepsPerBar = beatsPerBar(meter) * figure.resolution;
   const cycleBars = figure.steps.length / stepsPerBar;
   const hits = hitsOf(figure);
   const struck: { note: Note; char: string }[] = [];
@@ -257,7 +325,7 @@ function struckNotes(ref: FigureRef, opts: FigureOptions): { note: Note; char: s
       struck.push({
         char: hit.char,
         note: {
-          time: hitTime(bar, stepInBar, figure.resolution),
+          time: hitTime(bar, stepInBar, figure.resolution, swing, swingUnit === "8n" ? 4 : 2),
           pitch: isLast && approach ? approach : root,
           duration: figure.duration ?? durationFor(gap, figure.resolution),
           velocity: velocityFor(hit.char, accent, ghost, figure.secondary),
@@ -295,7 +363,10 @@ export function withFifths(notes: Note[], voiced: (note: Note) => boolean): Note
  * field, a plan) fails where it is written rather than as silent wrong rhythm
  * eight bars in.
  */
-export function validateFigure(input: unknown): { path: string; message: string }[] {
+export function validateFigure(
+  input: unknown,
+  meter: Meter = COMMON_TIME,
+): { path: string; message: string }[] {
   const issues: { path: string; message: string }[] = [];
   if (typeof input !== "object" || input === null) {
     return [{ path: "figure", message: "must be an object" }];
@@ -316,20 +387,35 @@ export function validateFigure(input: unknown): { path: string; message: string 
     issues.push({ path: "figure.steps", message: "must have at least one hit" });
   }
   if (resolution === 3 || resolution === 4) {
-    const stepsPerBar = BEATS_PER_BAR * resolution;
-    if (f.steps.length % stepsPerBar !== 0) {
+    const perBar = beatsPerBar(meter) * resolution;
+    if (!Number.isInteger(perBar)) {
+      issues.push({
+        path: "figure.resolution",
+        message: `resolution ${resolution} does not divide a bar of ${meter[0]}/${meter[1]} evenly`,
+      });
+    } else if (f.steps.length % perBar !== 0) {
       issues.push({
         path: "figure.steps",
-        message: `length must be a multiple of ${stepsPerBar} (one bar at resolution ${resolution}), got ${f.steps.length}`,
+        message: `length must be a multiple of ${perBar} (one bar of ${meter[0]}/${meter[1]} at resolution ${resolution}), got ${f.steps.length}`,
       });
     }
   }
   return issues;
 }
 
-function figureFor(ref: FigureRef): Figure {
+/**
+ * Whether a shelf figure fits a meter — its step string has to state a whole
+ * number of bars. The sixteen-step cells are 4/4 (and, at 12 steps a bar, 3/4
+ * and 6/8 take the twelve-step ones). Exported so a CLI can print the shelf
+ * filtered to the meter in hand rather than offering a cell that won't build.
+ */
+export function figureFitsMeter(name: FigureName, meter: Meter = COMMON_TIME): boolean {
+  return validateFigure(FIGURES[name], meter).length === 0;
+}
+
+function figureFor(ref: FigureRef, meter: Meter = COMMON_TIME): Figure {
   if (typeof ref !== "string") {
-    const issues = validateFigure(ref);
+    const issues = validateFigure(ref, meter);
     if (issues.length > 0) {
       throw new Error(`invalid inline figure: ${issues.map((i) => i.message).join("; ")}`);
     }
@@ -338,6 +424,14 @@ function figureFor(ref: FigureRef): Figure {
   const figure: Figure | undefined = FIGURES[ref];
   if (!figure) {
     throw new Error(`unknown figure "${ref}" — pick one of: ${FIGURE_NAMES.join(", ")}`);
+  }
+  const issues = validateFigure(figure, meter);
+  if (issues.length > 0) {
+    const fits = FIGURE_NAMES.filter((n) => figureFitsMeter(n, meter));
+    throw new Error(
+      `figure "${ref}" states a bar of 4/4, not ${meter[0]}/${meter[1]} — ` +
+        (fits.length > 0 ? `try ${fits.join(", ")}` : "write one inline for this meter"),
+    );
   }
   return figure;
 }
@@ -359,11 +453,24 @@ function hitsOf(figure: Figure): Hit[] {
 /**
  * "bar:beat:sixteenth" for a step. At resolution 3 the sixteenth is fractional —
  * `0:0:1.3333` — which is the same thing a swung groove step emits.
+ *
+ * The swing delay is the same arithmetic as `groove.ts`'s `stepTime`, so a
+ * figure and the kit it plays under land on the same off-beats: a step halfway
+ * through a swing period moves late by `swing * period/6` sixteenths.
  */
-function hitTime(bar: number, stepInBar: number, resolution: 3 | 4): string {
+function hitTime(
+  bar: number,
+  stepInBar: number,
+  resolution: 3 | 4,
+  swing: number,
+  swingPeriod: number,
+): string {
   const beat = Math.floor(stepInBar / resolution);
   const sixteenth = ((stepInBar % resolution) * 4) / resolution;
-  return `${bar}:${beat}:${round(sixteenth, 4)}`;
+  const withinBar = (stepInBar * 4) / resolution;
+  const offBeat = swing > 0 && withinBar % swingPeriod === swingPeriod / 2;
+  const swung = offBeat ? sixteenth + (swing * swingPeriod) / 6 : sixteenth;
+  return `${bar}:${beat}:${round(swung, 4)}`;
 }
 
 function durationFor(gap: number, resolution: 3 | 4): string {

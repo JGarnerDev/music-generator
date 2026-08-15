@@ -10,9 +10,26 @@ import { Scale, Chord, Note, RomanNumeral } from "tonal";
  * which is the only thing the rest of the engine needs to know about a mode.
  * `major`/`minor` are the aliases palettes write for ionian/aeolian.
  *
+ * Keys are tonal's own scale names, so `keyScale` can hand one straight to
+ * `Scale.get`. Palettes write them hyphenated (`phrygian-dominant`);
+ * `canonicalMode` normalises that, so both spellings resolve to one entry.
+ *
+ * The list is **not** every scale tonal knows, and lengthening it is not free:
+ * everything downstream builds triads by stacking thirds out of the scale, so a
+ * mode with an augmented fourth between two of its degrees (hungarian minor,
+ * double harmonic) has a degree that is not a triad at all and throws. The
+ * `every mode stacks triads` case in `theory.test.ts` is the gate — a new entry
+ * that fails it does not belong here.
+ *
  * Locrian is filed under minor for its minor third; its tonic triad is actually
  * diminished, so it has no stable tonic to cadence on. It resolves rather than
  * throws, but nothing here makes it sound settled.
+ *
+ * The five beyond the church modes are the ones a genre actually asks for:
+ * `phrygian-dominant` is freygish — klezmer, flamenco, the spaghetti-western
+ * standoff — and unlike phrygian its **tonic triad is major**, so it takes
+ * major-idiom progressions and gets its colour from the b2 and the major third
+ * sitting a step apart.
  */
 const MODE_FAMILY: Record<string, "major" | "minor"> = {
   major: "major",
@@ -24,17 +41,60 @@ const MODE_FAMILY: Record<string, "major" | "minor"> = {
   dorian: "minor",
   phrygian: "minor",
   locrian: "minor",
+  "harmonic minor": "minor",
+  "melodic minor": "minor",
+  "phrygian dominant": "major",
+  "lydian dominant": "major",
+  "harmonic major": "major",
 };
 
-/** Every mode name a palette's `scale`/`mode` may use. */
-export const SUPPORTED_MODES = Object.keys(MODE_FAMILY);
+/**
+ * Every mode name a palette's `scale`/`mode` may use, in the hyphenated spelling
+ * palettes and CLI flags are written in (`phrygian-dominant`).
+ */
+export const SUPPORTED_MODES = Object.keys(MODE_FAMILY).map((m) => m.replace(/ /g, "-"));
+
+/**
+ * A mode name as `MODE_FAMILY` (and tonal) spell it. Palettes and CLI flags write
+ * `phrygian-dominant` because a hyphen survives a filename, a slug and a bare
+ * YAML scalar; tonal wants `phrygian dominant`. One normaliser rather than two
+ * spellings scattered through the engine.
+ */
+export function canonicalMode(scaleType: string): string {
+  return scaleType.toLowerCase().trim().replace(/[-_]+/g, " ");
+}
+
+/**
+ * The two names each of the same scale. Palettes write `minor` because that is
+ * what a human says; the modal names are what a musician says about the same
+ * seven notes.
+ */
+const MODE_ALIASES: Record<string, string> = {
+  major: "ionian",
+  minor: "aeolian",
+};
+
+/**
+ * Whether two mode names mean the same scale — `minor` and `aeolian` do, and
+ * `dorian` and `aeolian` do not, however alike they look on a keyboard.
+ *
+ * Needed because a genre and an emotion may reach for the same mode under
+ * different names, and reporting that as a disagreement is noise.
+ */
+export function sameMode(a: string, b: string): boolean {
+  const norm = (m: string) => {
+    const c = canonicalMode(m);
+    return MODE_ALIASES[c] ?? c;
+  };
+  return norm(a) === norm(b);
+}
 
 /**
  * Whether a mode's tonic triad is major or minor — the "idiom" a progression is
  * matched against, and which parallel scale a borrowed numeral draws from.
  */
 export function modeFamily(scaleType: string): "major" | "minor" {
-  const family = MODE_FAMILY[scaleType.toLowerCase()];
+  const family = MODE_FAMILY[canonicalMode(scaleType)];
   if (!family) {
     throw new Error(
       `unsupported mode: "${scaleType}" — expected one of ${SUPPORTED_MODES.join(", ")}`,
@@ -45,7 +105,7 @@ export function modeFamily(scaleType: string): "major" | "minor" {
 
 /** Notes of a scale as pitch classes, e.g. scaleNotes("A", "minor") -> ["A","B","C",...]. */
 export function scaleNotes(tonic: string, type: string): string[] {
-  const scale = Scale.get(`${tonic} ${type}`);
+  const scale = Scale.get(`${tonic} ${canonicalMode(type)}`);
   if (scale.empty) throw new Error(`unknown scale: "${tonic} ${type}"`);
   return scale.notes;
 }
@@ -65,6 +125,11 @@ export function scaleNotes(tonic: string, type: string): string[] {
  * `scaleType` is any mode in `MODE_FAMILY`, so the same numerals recolour with
  * the key: `[i, IV, i, VII]` gives `Dm G Dm C` in D dorian (the major IV is the
  * mode's whole point) and `Dm Gm Dm C` in D minor.
+ *
+ * Degrees are the **mode's own**, not the parallel major's — which matters most
+ * where the mode already carries the accidental. A phrygian-dominant key's second
+ * degree is flat, so freygish is written `[I, II, I, VII]` and not `[I, bII, …]`:
+ * `II` takes the diatonic Bb where `bII` would flatten it a second time.
  *
  * progressionChords("A", ["i", "VI", "III", "VII"]) -> ["Am", "F", "C", "G"].
  */

@@ -7,6 +7,7 @@ import {
   inferKind,
   kindFromPath,
   motifUsage,
+  neighboursOf,
   searchEntries,
   tagsOf,
 } from "./library";
@@ -122,5 +123,40 @@ describe("motifUsage", () => {
     expect(danglingMotifs(entries)).toEqual([
       { entry: expect.objectContaining({ slug: "finale" }), motif: "ghost" },
     ]);
+  });
+});
+
+describe("neighboursOf", () => {
+  const shelf = buildLibrary({
+    "compositions/loops/warpath.json": comp({ key: "D minor", bpm: 152 }),
+    "compositions/loops/shredout.json": comp({ key: "D minor", bpm: 146 }),
+    "compositions/segments/lament.json": comp({ key: "F major", bpm: 68 }),
+    "compositions/segments/waltz.json": comp({ key: "D minor", bpm: 150, meter: [3, 4] }),
+  });
+
+  it("finds the piece already written in this key and tempo band", () => {
+    const found = neighboursOf({ key: "D minor", bpm: 158 }, shelf);
+    expect(found.map((n) => n.entry.slug)).toContain("warpath");
+  });
+
+  it("ignores a piece in another key, however close the tempo", () => {
+    expect(neighboursOf({ key: "F major", bpm: 152 }, shelf).map((n) => n.entry.slug)).toEqual([]);
+  });
+
+  it("ignores the same key at a genuinely different tempo", () => {
+    expect(neighboursOf({ key: "D minor", bpm: 90 }, shelf)).toEqual([]);
+  });
+
+  it("still reports a piece in another meter, but ranks the exact match first", () => {
+    // A waltz in the same key at the same tempo is a weaker collision than a
+    // 4/4 piece is, so it sorts below — but it is worth knowing about.
+    const found = neighboursOf({ key: "D minor", bpm: 151 }, shelf);
+    expect(found[0]!.shared).toContain("meter");
+    expect(found.map((n) => n.entry.slug)).toContain("waltz");
+  });
+
+  it("says which fields matched, so there is something to change", () => {
+    const [first] = neighboursOf({ key: "D minor", bpm: 152 }, shelf);
+    expect(first!.shared).toEqual(["key", "tempo", "meter"]);
   });
 });

@@ -30,11 +30,22 @@ supplies groove + harmonic vocabulary, a **timbre** supplies the actual sound.
 | `timbre` | `palettes/timbre/` | *what does it sound like?* | instrument voices, signal/fx chain, character — **no harmony** |
 
 **Kinds are open-ended.** These three have strict schemas; any *other* subfolder
-(`palettes/era/`, `palettes/space/`, …) is a new descriptive layer and validates
-against a permissive **generic** schema — the base fields plus any optional
-structured hints it wants (`tempo`, `instruments`, `signal`, …). Add a folder + a
-file with prose; no code change. Promote a kind to a strict schema (in
-`SCHEMAS`) once its shape settles.
+is a new descriptive layer and validates against a permissive **generic** schema
+— the base fields plus any optional structured hints it wants (`tempo`,
+`instruments`, `signal`, `meter`, …). Add a folder + a file with prose; no code
+change. Promote a kind to a strict schema (in `SCHEMAS`) once its shape settles.
+
+Two such kinds ship:
+
+| kind | folder | answers | carries |
+|---|---|---|---|
+| `space` | `palettes/space/` | *where is it?* | `signal` — the room, and what it does to the writing |
+| `era` | `palettes/era/` | *when is it?* | `mode`, `tempo`, `instruments`, `progressions` |
+
+A `space` is not just a reverb setting: a cathedral changes what you can *write*
+(slower harmony, thinner texture) as much as how it sounds, and that guidance is
+the body of the file. An `era` is a period lean — `medieval` says dorian and no
+leading tone, `eighties` says gated snare and chorus on everything.
 
 ## Subtypes
 
@@ -93,15 +104,23 @@ tags: [jazz, swing, ...]
 parent: <slug>                 # optional: makes this a subtype of another genre
 tempo: [80, 132]               # required, unless `parent` supplies it
 mode: either                   # optional harmonic lean: any mode name, or `either`
+meter: [3, 4]                  # optional time signature; default 4/4
 progressions:                  # optional signature progressions
   - [ii, V, I]
 groove:                        # optional: the beat, in step notation
   swing: 0.7                   #   0 straight … 1 full triplet shuffle
   swingUnit: 8n                #   which off-beats move: 8n | 16n (default 16n)
   patterns:                    #   one lane per kit piece; X accent, x hit, o ghost, . rest
-    ride: "X...x.x.X...x.x."   #   16 chars = one bar; lanes cycle independently
+    ride: "X...x.x.X...x.x."   #   16 chars = one bar of 4/4; lanes cycle independently
+  fill: tom-tumble             #   optional: the phrase-ending bar, named or inline
+  fillEvery: 8                 #   …and how often. The two come as a pair.
 instruments: [epiano, bass]    # optional
 ```
+
+`meter` changes how long a bar is, so the groove's lanes change length with it —
+12 steps for 3/4 and 6/8, 24 for 12/8. A genre's `mode` is a **lean**, not a key:
+the emotion is still the sole source of tonality, and the blend warns when the
+two disagree (see [Blending](#blending)).
 
 A genre's beat is most of its identity — see [grooves](grooves.md) for the
 notation, the kit pieces, and the swing rule that fails silently if you get it
@@ -139,12 +158,27 @@ Rules (small on purpose, all unit-tested):
   as tempo — which is what lets a subtype override its parent.
 - **Groove** — the last layer stating one wins, taken **whole**; lanes are never
   merged across genres. No layer states one → no drum track.
-- **Instruments** — merge every layer's list in order, keep known voices, dedupe;
-  pick a sustained `padVoice` + a `leadVoice` (piano > epiano > pluck) for the two
-  tracks.
-- **Signal** — concat every layer's fx chain, then nudge the lo-fi settings
-  (drive → darker + wobble; tape/chorus → wobble; reverb/echo → wetter) so a
-  timbre audibly changes the render.
+- **Meter** — the last layer stating one wins. Not intersected the way tempo is:
+  two meters have no overlap to take, and a piece is in one of them.
+- **Instruments** — merged in order for provenance, but the **voices are chosen by
+  the timbre**. A timbre outranks every other kind, because a timbre *is* the
+  sound: `--with metal,brown-sound` comps on a guitar rather than on a piano the
+  emotion mentioned in passing. Within a layer, its own ordering wins over the
+  engine's preference list — `tape` names `[epiano, piano, pad]` because it means
+  a Rhodes.
+  - `leadVoice` comps, `melodyVoice` sings, and they differ where it matters:
+    `pluck` and `lead` are one guitar with two rigs, so a piece comping on
+    `pluck` sings on `lead`. A solo on the rhythm tone is the puny-solo problem.
+- **Signal** — concat every layer's fx chain. Tokens are then **built as real
+  audio nodes**, per track and in the order written — the order *is* the
+  instrument, so sag-before-drive and drive-before-sag are different amps. See
+  [`src/engine/signal.ts`](../src/engine/signal.ts) for the token table; words
+  with no effect behind them are ignored rather than rejected, because a timbre is
+  prose first. `dry` keeps that track out of the shared reverb.
+- **Warnings** — a genre's `mode` is finally read. The blend reports when it
+  fights the emotion's scale (chords in one idiom, melody in the other) and when
+  it is merely being ignored (a freygish genre under a major emotion loses the
+  one interval it exists for). Neither is an error; `compose` prints them.
 
 ## Adding one
 
@@ -154,9 +188,19 @@ Rules (small on purpose, all unit-tested):
 - Files stay in `palettes/<kind>/` regardless of depth — the folder is the kind,
   and `parent:` carries the hierarchy. There is no subtype folder.
 - Write the prose body: *when to reach for it* and *how to voice it*. Keep it short.
-- **Rules:** emotion `scale` (and a genre's `mode`) is any church mode —
-  `major`/`ionian`, `dorian`, `phrygian`, `lydian`, `mixolydian`,
-  `minor`/`aeolian`, `locrian`. Anything else fails at load. Numerals resolve
+- **Rules:** emotion `scale` (and a genre's `mode`) is any mode the engine
+  resolves — the seven church modes (`major`/`ionian`, `dorian`, `phrygian`,
+  `lydian`, `mixolydian`, `minor`/`aeolian`, `locrian`) plus `harmonic-minor`,
+  `melodic-minor`, `phrygian-dominant`, `lydian-dominant` and `harmonic-major`.
+  Anything else fails at load. The list is hand-picked rather than "every scale
+  tonal knows": harmony stacks triads out of the scale, so a mode with an
+  augmented fourth between two degrees has a degree that is not a triad at all.
+  - **Accidentals are the mode's own.** In phrygian-dominant the second degree is
+    already flat, so freygish is `[I, II, I, VII]` — writing `bII` flattens an
+    already-flat degree and gives the wrong chord.
+  - **`phrygian-dominant`'s tonic triad is major**, unlike phrygian's, so it takes
+    major-idiom progressions.
+  Numerals resolve
   against the mode's own scale, so `[i, VII, i, IV]` in D dorian gives
   `Dm C Dm G` — the natural-6 major IV that makes it dorian rather than D minor.
   A mode is filed as major- or minor-idiom by its tonic triad, and that is what

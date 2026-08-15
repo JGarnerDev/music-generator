@@ -16,6 +16,10 @@ groove:
     kick:  "X.......X......."
     snare: "....X.......X..."
     hat:   "x.x.x.x.x.x.x.x."
+  fill:
+    snare: "..o.o.x.o.x.oxX."
+    hat:   "x...x...x...x..."
+  fillEvery: 8
 instruments: [piano, epiano, bass, pluck]
 ---
 

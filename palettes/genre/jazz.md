@@ -17,6 +17,10 @@ groove:
     ride: "X...x.x.X...x.x."
     hat:  "....x.......x..."
     kick: "o.......o......."
+  fill:
+    snare: "....o...x.o.x.X."
+    ride:  "X...x...X...x..."
+  fillEvery: 8
 instruments: [epiano, bass, piano]
 ---
 

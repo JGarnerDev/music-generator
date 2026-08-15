@@ -24,6 +24,7 @@ import matter from "gray-matter";
 import { z } from "zod";
 import { DRUM_PIECES } from "./composition";
 import { validateGroove } from "./groove";
+import { COMMON_TIME, validateMeter } from "@utils/timing";
 
 // --- shared field schemas -------------------------------------------------
 /**
@@ -42,6 +43,11 @@ export const MODE_NAMES = [
   "dorian",
   "phrygian",
   "locrian",
+  "harmonic-minor",
+  "melodic-minor",
+  "phrygian-dominant",
+  "lydian-dominant",
+  "harmonic-major",
 ] as const;
 const isMode = (s: string): boolean => (MODE_NAMES as readonly string[]).includes(s);
 
@@ -68,23 +74,50 @@ const modeLean = z.enum(MODE_LEANS);
  * so the notation has exactly one definition and a bad lane fails at load with
  * the same message whether it came from frontmatter or from JSON.
  */
-const groove = z
-  .object({
-    swing: z.number().optional(),
-    swingUnit: z.enum(["8n", "16n"]).optional(),
-    // partialRecord, not record: a groove names the pieces it plays, and zod's
-    // plain record over an enum demands every key.
-    patterns: z.partialRecord(z.enum(DRUM_PIECES), z.string()),
-  })
-  .superRefine((value, ctx) => {
-    for (const issue of validateGroove(value)) {
-      ctx.addIssue({
-        code: "custom",
-        path: issue.path.split(".").slice(1), // drop the leading "groove"
-        message: issue.message,
-      });
-    }
-  });
+const groove = z.object({
+  swing: z.number().optional(),
+  swingUnit: z.enum(["8n", "16n"]).optional(),
+  // partialRecord, not record: a groove names the pieces it plays, and zod's
+  // plain record over an enum demands every key.
+  patterns: z.partialRecord(z.enum(DRUM_PIECES), z.string()),
+  /** The phrase-ending bar: a name off `fill.ts`'s shelf, or lanes inline. */
+  fill: z.union([z.string().min(1), z.partialRecord(z.enum(DRUM_PIECES), z.string())]).optional(),
+  /** How often that fill lands, in bars. Usually 8. */
+  fillEvery: z.number().optional(),
+});
+
+/**
+ * A time signature, `[beats, unit]`. A genre in 3/4 or 6/8 says so here, and its
+ * groove lanes are then twelve steps to the bar rather than sixteen.
+ */
+const meter = z.tuple([z.number(), z.number()]).superRefine((value, ctx) => {
+  for (const issue of validateMeter(value)) {
+    ctx.addIssue({ code: "custom", path: [], message: issue.message });
+  }
+});
+
+/**
+ * The step strings inside a `groove` are checked here rather than on the groove
+ * schema itself, because how long a bar is depends on the palette's `meter` —
+ * a sibling field the groove object can't see. Running it at the palette level
+ * means a 6/8 genre's twelve-step lanes validate and a 6/8 genre that forgot to
+ * declare its meter fails with the length message, which is the right complaint.
+ */
+function refineGroove(
+  fm: { groove?: unknown; meter?: [number, number] },
+  ctx: z.RefinementCtx,
+): void {
+  if (fm.groove == null) return;
+  // A bad meter is reported by its own schema; don't measure bars against it.
+  if (fm.meter != null && validateMeter(fm.meter).length > 0) return;
+  for (const issue of validateGroove(fm.groove, fm.meter ?? COMMON_TIME)) {
+    ctx.addIssue({
+      code: "custom",
+      path: issue.path.split("."), // "groove.patterns.kick"
+      message: issue.message,
+    });
+  }
+}
 
 const base = z.object({
   slug: z.string().min(1),
@@ -142,6 +175,8 @@ export const genreSchema = base
     progressions: progressions.optional(),
     /** Harmonic lean, so the blend knows which mode this genre wants. */
     mode: modeLean.optional(),
+    /** Time signature. Absent = 4/4, which is what most genres are. */
+    meter: meter.optional(),
     /** The beat. Optional — a genre defined by harmony alone needn't state one. */
     groove: groove.optional(),
     instruments,
@@ -154,6 +189,7 @@ export const genreSchema = base
         message: "required unless the genre declares a parent to inherit it from",
       });
     }
+    refineGroove(fm, ctx);
   });
 
 /** Timbre: pure sound. Instrument voices + a signal chain. No harmony/tempo. */
@@ -172,17 +208,20 @@ export const timbreSchema = base.extend({
  * descriptive layer parses on tags + prose alone and can opt into whatever fields
  * make sense. Promote it to a strict schema once its shape stabilizes.
  */
-export const genericSchema = base.extend({
-  kind: z.string().min(1),
-  tonality: tonality.optional(),
-  progressions: progressions.optional(),
-  tempo: tempo.optional(),
-  mode: modeLean.optional(),
-  groove: groove.optional(),
-  instruments,
-  signal: z.array(z.string().min(1)).optional(),
-  character: z.string().min(1).optional(),
-});
+export const genericSchema = base
+  .extend({
+    kind: z.string().min(1),
+    tonality: tonality.optional(),
+    progressions: progressions.optional(),
+    tempo: tempo.optional(),
+    mode: modeLean.optional(),
+    meter: meter.optional(),
+    groove: groove.optional(),
+    instruments,
+    signal: z.array(z.string().min(1)).optional(),
+    character: z.string().min(1).optional(),
+  })
+  .superRefine(refineGroove);
 
 /** Kinds with a strict, hand-tuned schema. Everything else falls back to generic. */
 export const SCHEMAS = {

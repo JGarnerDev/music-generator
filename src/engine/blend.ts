@@ -28,6 +28,8 @@ import {
   type LoFiSettings,
 } from "./composition";
 import type { Groove } from "./groove";
+import { modeFamily, sameMode } from "./theory";
+import { COMMON_TIME, type Meter } from "@utils/timing";
 
 /** Read a palette's optional structured hints regardless of its kind. */
 const hints = (p: Palette): GenericFrontmatter => p.frontmatter as GenericFrontmatter;
@@ -40,18 +42,38 @@ export interface MusicalDirection {
   progressions: string[][];
   /** Sustained harmony track voice. */
   padVoice: InstrumentName;
-  /** Chords + melody track voice. */
+  /** The comping voice — the chords in rhythm. */
   leadVoice: InstrumentName;
+  /**
+   * The top line's voice, which is **not** always the comping one.
+   *
+   * `pluck` and `lead` are one instrument played two ways (see
+   * `composition.ts`), and a solo played on the rhythm tone is the classic puny
+   * solo. A guitar timbre therefore comps on `pluck` and sings on `lead`.
+   */
+  melodyVoice: InstrumentName;
   /** Full merged voice set (provenance + room for future tracks). */
   instruments: InstrumentName[];
   /** The beat, from the most specific layer that states one. Absent = no drums. */
   groove?: Groove;
+  /**
+   * Time signature, from the last layer that states one. A genre carries this —
+   * a waltz is a waltz because of its meter, not its tempo — and it has to be
+   * resolved alongside the groove, since the two are counted in the same bars.
+   */
+  meter: Meter;
   /** Ordered fx/processing hints gathered from timbre layers. */
   signal: string[];
   /** Lo-fi chain, emotion baseline nudged by the signal hints. */
   lofi: LoFiSettings;
   /** Palette slugs in blend order. */
   slugs: string[];
+  /**
+   * Things about this combination worth saying out loud — a genre whose declared
+   * mode fights the emotion's key, say. Not errors: the blend still resolves,
+   * and a deliberate clash is a legitimate thing to want. A caller prints them.
+   */
+  warnings: string[];
 }
 
 export class BlendError extends Error {}
@@ -93,7 +115,13 @@ export function withAncestors(selected: Palette[], all: Palette[]): Palette[] {
 // Pitched only: `drums` is never a melodic voice, and a palette that lists it
 // means "this music has a beat" — which is what `groove` says, properly.
 const KNOWN_VOICES = new Set<string>(PITCHED_INSTRUMENTS);
-const LEAD_PREFERENCE: InstrumentName[] = ["piano", "epiano", "pluck"];
+
+/** Voices that can state a chord in rhythm, best first. */
+const COMP_PREFERENCE: InstrumentName[] = ["piano", "epiano", "pluck"];
+/** Voices that can hold a sustained harmony bed, best first. */
+const PAD_PREFERENCE: InstrumentName[] = ["pad", "epiano", "piano"];
+/** Voices that can carry a top line, best first. */
+const MELODY_PREFERENCE: InstrumentName[] = ["lead", "piano", "epiano", "pluck"];
 
 /** Blend a set of palettes (in layer order) into one `MusicalDirection`. */
 export function blendPalettes(palettes: Palette[]): MusicalDirection {
@@ -114,19 +142,155 @@ export function blendPalettes(palettes: Palette[]): MusicalDirection {
   const instruments = mergeInstruments(palettes);
   const signal = mergeSignal(palettes);
 
+  // A timbre outranks everything for voice selection — that is what a timbre
+  // *is*, so `--with metal,brown-sound` has to comp on a guitar rather than on
+  // a piano the emotion happened to mention first. Failing a timbre, the last
+  // layer that names instruments has the most specific say.
+  const timbre = voicedLayer(palettes, (p) => p.frontmatter.kind === "timbre");
+  const voiced = timbre ?? voicedLayer(palettes) ?? instruments;
+  const leadVoice = pickVoice(voiced, instruments, COMP_PREFERENCE) ?? "piano";
+
   return {
     tonic: tonality.tonic,
     scale: tonality.scale,
     tempo,
     progressions,
     instruments,
-    padVoice: instruments.find((i) => i === "pad") ?? "pad",
-    leadVoice: LEAD_PREFERENCE.find((v) => instruments.includes(v)) ?? "piano",
+    padVoice: padVoiceFor(timbre, instruments),
+    leadVoice,
+    melodyVoice: melodyVoiceFor(leadVoice, voiced, instruments),
     groove: resolveGroove(palettes),
+    meter: resolveMeter(palettes),
     signal,
     lofi: deriveLofi(signal),
     slugs: palettes.map((p) => p.frontmatter.slug),
+    warnings: warningsFor(palettes, tonality.scale),
   };
+}
+
+/**
+ * The instruments named by the **last** layer that names any — the most specific
+ * statement about what this piece sounds like. Undefined when no layer says.
+ *
+ * Deliberately not the merged list: merging answers "what voices are in play",
+ * which is provenance, and picking from it lets an emotion's incidental `piano`
+ * outrank a timbre whose entire job is to say which instrument this is.
+ */
+function voicedLayer(
+  palettes: Palette[],
+  where: (p: Palette) => boolean = () => true,
+): InstrumentName[] | undefined {
+  let resolved: InstrumentName[] | undefined;
+  for (const p of palettes) {
+    if (!where(p)) continue;
+    const named = (hints(p).instruments ?? []).filter((i): i is InstrumentName =>
+      KNOWN_VOICES.has(i),
+    );
+    if (named.length > 0) resolved = named;
+  }
+  return resolved;
+}
+
+/**
+ * Pick one voice for a job, honouring the **layer's own order** first.
+ *
+ * A palette lists its instruments in the order it means them — `tape` names
+ * `[epiano, piano, pad]` because the sound it is describing is a Rhodes through
+ * a worn cassette, not a grand piano. Scanning the preference list instead would
+ * hand that blend a piano every time, on the strength of a global ranking the
+ * author never saw. The preference list is the tie-break, not the rule.
+ */
+function pickVoice(
+  named: InstrumentName[],
+  merged: InstrumentName[],
+  preference: InstrumentName[],
+): InstrumentName | undefined {
+  return (
+    named.find((v) => preference.includes(v)) ?? preference.find((v) => merged.includes(v))
+  );
+}
+
+/**
+ * The sustained harmony voice.
+ *
+ * `pad` is the dedicated one, so any layer naming it settles the question — a
+ * genre listing `[bass, pluck, piano]` is saying what the band plays, not that
+ * the harmony bed should become a piano. A **timbre** does get to say that,
+ * because a timbre is a statement about the sound itself: "this piece is a
+ * Rhodes" means the bed is a Rhodes.
+ */
+function padVoiceFor(
+  timbre: InstrumentName[] | undefined,
+  instruments: InstrumentName[],
+): InstrumentName {
+  if (timbre) {
+    const named = PAD_PREFERENCE.find((v) => timbre.includes(v));
+    if (named) return named;
+  }
+  return PAD_PREFERENCE.find((v) => instruments.includes(v)) ?? "pad";
+}
+
+/**
+ * Which voice sings the top line.
+ *
+ * `pluck` and `lead` are the same guitar with two rigs, and a solo played on the
+ * rhythm tone is the puny-solo problem `composition.ts` describes. So a piece
+ * comping on `pluck` sings on `lead` — even when no palette listed `lead`,
+ * because "electric guitar" implies both and no author should have to say it
+ * twice.
+ */
+function melodyVoiceFor(
+  leadVoice: InstrumentName,
+  voiced: InstrumentName[],
+  instruments: InstrumentName[],
+): InstrumentName {
+  if (voiced.includes("lead")) return "lead";
+  if (leadVoice === "pluck") return "lead";
+  return pickVoice(voiced, instruments, MELODY_PREFERENCE) ?? leadVoice;
+}
+
+/**
+ * Combinations worth flagging. Currently one, and it is the honest job for the
+ * `mode` field every genre palette declares and nothing has ever read.
+ *
+ * A genre leaning minor under a major emotion (or the reverse) is not an error —
+ * numerals resolve as written, and `progressionsInIdiom` already picks the
+ * variant that fits where a genre ships both. What it can't fix is the melody,
+ * which is drawn from the *emotion's* scale: with the chords in one idiom and
+ * the tune in the other, a passing note rubs against the chord under it. The
+ * clash is narrow rather than constant — the melody re-anchors to a chord tone
+ * every bar — but it is real, and it is invisible until you hear it.
+ */
+function warningsFor(palettes: Palette[], scale: string): string[] {
+  const family = modeFamily(scale);
+  const out: string[] = [];
+  for (const p of palettes) {
+    if (p.frontmatter.kind === "emotion") continue;
+    const mode = hints(p).mode;
+    if (!mode || mode === "either") continue;
+    // Same mode by any of its names (minor ≡ aeolian) — nothing to say.
+    if (sameMode(mode, scale)) continue;
+
+    if (modeFamily(mode) !== family) {
+      out.push(
+        `${p.frontmatter.slug} leans ${mode} but the key is ${scale}: the chords will follow the ` +
+          `genre and the melody the emotion, so passing notes can rub. Pair it with a ` +
+          `${modeFamily(mode)}-key emotion, or mean it.`,
+      );
+      continue;
+    }
+    // Same family, different mode. Not a clash — but the genre's mode is doing
+    // nothing, because the emotion is the sole source of tonality and the
+    // numerals resolve against *its* scale. A freygish genre under a plain major
+    // emotion loses the one interval it exists for, silently, which is exactly
+    // what this field was declared inertly for years without saying.
+    out.push(
+      `${p.frontmatter.slug} wants ${mode}, but the key is ${scale} and the emotion decides: ` +
+        `its numerals will resolve against ${scale}, so the mode's own colour is lost. ` +
+        `Use an emotion with "scale: ${mode}" to hear it.`,
+    );
+  }
+  return out;
 }
 
 /**
@@ -141,9 +305,26 @@ function resolveGroove(palettes: Palette[]): Groove | undefined {
   let resolved: Groove | undefined;
   for (const p of palettes) {
     const g = hints(p).groove;
-    if (g && Object.keys(g.patterns).length > 0) resolved = g;
+    // The cast is over `fill`, which the schema types as a bare string because
+    // zod can't name the shelf's literals. `validateGroove` has already rejected
+    // any name that isn't on it, at load, with the shelf printed.
+    if (g && Object.keys(g.patterns).length > 0) resolved = g as Groove;
   }
   return resolved;
+}
+
+/**
+ * The meter comes from the last layer that states one — a bare emotion is 4/4,
+ * `--with waltz` is 3/4. Not intersected the way tempo is: two meters have no
+ * overlap to take, and a piece is in one of them.
+ */
+function resolveMeter(palettes: Palette[]): Meter {
+  let resolved: Meter | undefined;
+  for (const p of palettes) {
+    const m = hints(p).meter;
+    if (m) resolved = [m[0], m[1]];
+  }
+  return resolved ?? COMMON_TIME;
 }
 
 /** Intersect every layer's tempo range; on an empty overlap the later layer wins. */

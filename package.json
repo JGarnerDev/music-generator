@@ -18,6 +18,7 @@
     "palette:new": "tsx scripts/new-palette.ts",
     "palette:tree": "tsx scripts/palette-tree.ts",
     "composition:validate": "tsx scripts/validate-composition.ts",
+    "motif:quote": "tsx scripts/quote-motif.ts",
     "compositions:organize": "tsx scripts/organize-compositions.ts",
     "voice:new": "tsx scripts/new-voice.ts",
     "voice:find": "tsx scripts/find-voice.ts",

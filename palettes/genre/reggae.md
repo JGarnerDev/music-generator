@@ -15,6 +15,10 @@ groove:
     kick:  "........X......."
     rim:   "........X......."
     hat:   "..x...x...x...x."
+  fill:
+    rim:  "........X...x.X."
+    hat:  "..x...x...x.x.x."
+  fillEvery: 8
 instruments: [epiano, bass, pluck, pad]
 ---
 

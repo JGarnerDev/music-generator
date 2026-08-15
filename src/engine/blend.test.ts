@@ -178,11 +178,57 @@ body`);
     expect(d.tempo).toEqual([160, 180]);
   });
 
-  it("merges instruments in order and picks pad + lead voices", () => {
+  it("merges every layer's instruments in order, for provenance", () => {
     const d = blendPalettes([emotion(), jazz, synth]);
     expect(d.instruments).toEqual(["piano", "pad", "epiano", "bass", "pluck"]);
+  });
+
+  it("lets the timbre decide the voices — that is what a timbre is", () => {
+    // The emotion mentions a piano in passing; the timbre says what this piece
+    // *is*. Before this rule the piano won and a guitar blend played on keys.
+    const d = blendPalettes([emotion(), jazz, synth]);
+    expect(d.leadVoice).toBe("pluck");
+  });
+
+  it("falls back to the merged set when no layer names an instrument", () => {
+    const bare = parsePalette(`---
+kind: timbre
+slug: bare
+title: Bare
+tags: [bare]
+signal: [tape-saturation]
+---
+body`);
+    const d = blendPalettes([emotion(), bare]);
+    expect(d.leadVoice).toBe("piano");
     expect(d.padVoice).toBe("pad");
-    expect(d.leadVoice).toBe("piano"); // first of piano>epiano>pluck present
+  });
+
+  it("sings on the lead rig when it comps on the rhythm one", () => {
+    // `pluck` and `lead` are one guitar with two rigs; a solo on the rhythm
+    // tone is the puny-solo problem, and no palette should have to say so.
+    const d = blendPalettes([emotion(), jazz, synth]);
+    expect(d.leadVoice).toBe("pluck");
+    expect(d.melodyVoice).toBe("lead");
+  });
+
+  it("keeps the comping voice for the tune when it is a keys voice", () => {
+    const d = blendPalettes([emotion(), jazz]);
+    expect(d.leadVoice).toBe("epiano");
+    expect(d.melodyVoice).toBe("epiano");
+  });
+
+  it("uses a sustaining voice for the pad, preferring one the layers named", () => {
+    const noPad = parsePalette(`---
+kind: timbre
+slug: keys
+title: Keys
+tags: [keys]
+instruments: [epiano]
+---
+body`);
+    expect(blendPalettes([emotion(), noPad]).padVoice).toBe("epiano");
+    expect(blendPalettes([emotion(), synth]).padVoice).toBe("pad");
   });
 
   it("gathers the signal chain and nudges lo-fi (drive darkens, ambience wets)", () => {
@@ -250,5 +296,94 @@ body`);
     expect(d.tempo).toEqual([70, 78]); // emotion [60,78] ∩ jazz [70,120]
     expect(d.instruments).toEqual(["piano", "pad", "epiano", "bass"]);
     expect(d.progressions).toEqual([["i", "bII", "i"]]); // but its own harmony wins
+  });
+});
+
+describe("mode warnings", () => {
+  const minorGenre: Palette = parsePalette(`---
+kind: genre
+slug: metal
+title: Metal
+tags: [metal]
+tempo: [120, 180]
+mode: aeolian
+---
+body`);
+
+  const major = (): Palette =>
+    parsePalette(`---
+kind: emotion
+slug: happy
+title: Happy
+tags: [happy]
+tonality:
+  tonic: C
+  scale: major
+progressions:
+  - [I, V, vi, IV]
+tempo: [100, 130]
+---
+body`);
+
+  it("warns when a genre's mode fights the emotion's key", () => {
+    // The reproducer from progress.md: the chords go minor while the melody is
+    // still drawn from the emotion's major scale.
+    const d = blendPalettes([major(), minorGenre]);
+    expect(d.warnings).toHaveLength(1);
+    expect(d.warnings[0]).toMatch(/metal leans aeolian but the key is major/);
+  });
+
+  it("stays quiet when the genre and the key agree, whatever they call it", () => {
+    // The genre says `aeolian`, the emotion says `minor`. Same seven notes.
+    expect(blendPalettes([emotion(), minorGenre]).warnings).toEqual([]);
+  });
+
+  it("stays quiet for a genre that recolours either way", () => {
+    expect(blendPalettes([major(), jazz]).warnings).toEqual([]);
+  });
+
+  const dorian: Palette = parsePalette(`---
+kind: genre
+slug: medieval
+title: Medieval
+tags: [medieval]
+tempo: [80, 110]
+mode: dorian
+---
+body`);
+
+  it("calls a cross-family clash what it is", () => {
+    expect(blendPalettes([major(), dorian]).warnings[0]).toMatch(/passing notes can rub/);
+  });
+
+  it("says when a genre's mode is simply being ignored", () => {
+    // Dorian under an aeolian key is no clash — both are minor-idiom — but the
+    // natural sixth the genre exists for never arrives, because the emotion is
+    // the sole source of tonality. That silence is what the `mode` field spent
+    // years not saying.
+    const [warning] = blendPalettes([emotion(), dorian]).warnings;
+    expect(warning).toMatch(/wants dorian/);
+    expect(warning).toMatch(/scale: dorian/);
+  });
+
+  it("says nothing when the emotion already supplies the genre's mode", () => {
+    const dorianEmotion = parsePalette(`---
+kind: emotion
+slug: solemn
+title: Solemn
+tags: [solemn]
+tonality:
+  tonic: G
+  scale: dorian
+progressions:
+  - [i, VII, i, i]
+tempo: [50, 72]
+---
+body`);
+    expect(blendPalettes([dorianEmotion, dorian]).warnings).toEqual([]);
+  });
+
+  it("says nothing at all for a genre that declares no mode", () => {
+    expect(blendPalettes([major(), synth]).warnings).toEqual([]);
   });
 });

@@ -14,6 +14,10 @@ groove:
     tom-lo: "X..x..X..x..X..x"
     rim:    "........X......."
     shaker: "x.x.x.x.x.x.x.x."
+  fill:
+    tom-lo: "X..x..X..x.xxxX."
+    shaker: "x.x.x.x.x.x.x.x."
+  fillEvery: 8
 instruments: [pluck, pad, bass, piano]
 ---
 

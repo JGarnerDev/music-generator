@@ -5,6 +5,9 @@
  * Keep this file the single source of truth for the shape of a song. Anything
  * that reads or writes a composition imports these types + `validateComposition`.
  */
+// Relative, not `@utils/timing`: `vite.config.ts` pulls this module in through
+// its dev plugins, and config is loaded before the resolve aliases exist.
+import { validateMeter } from "../utils/timing";
 
 export interface Note {
   /** Transport time, "bars:beats:sixteenths" (Tone.js format), e.g. "0:0" or "1:2:2". */
@@ -77,6 +80,20 @@ export interface Track {
    * [`./voice`](./voice.ts) and `voices/archive.md` for what is available.
    */
   voice?: string;
+  /**
+   * This track's own signal chain, as the tokens a timbre palette writes
+   * (`["variac-sag", "overdrive", "plate-reverb"]`). Built in order — the order
+   * *is* the instrument, so sag before drive and drive before sag are two
+   * different amps.
+   *
+   * Per track rather than per mix because distortion belongs to the guitar and
+   * would ruin the drums it was summed with. Words with no effect behind them
+   * are ignored rather than rejected: a timbre is prose first. See
+   * [`./signal`](./signal.ts).
+   */
+  fx?: string[];
+  /** Stereo position, -1 hard left … 0 centre … 1 hard right. Default centre. */
+  pan?: number;
 }
 
 export interface LoFiSettings {
@@ -113,6 +130,16 @@ export interface Composition {
   bpm: number;
   /** e.g. "A minor" — informational; palettes/theory decide pitches. */
   key: string;
+  /**
+   * Time signature, `[beats, unit]`. Absent = 4/4.
+   *
+   * Unlike `key` this is **not** informational: it sets how many beats a bar
+   * holds, so it decides where `"3:0:0"` falls in seconds, how long `1m` rings,
+   * and how many steps a groove lane needs. A piece whose notes were written in
+   * 3/4 and whose `meter` says nothing plays at four-quarter bars, which puts
+   * every downbeat after the first in the wrong place.
+   */
+  meter?: [beats: number, unit: number];
   tracks: Track[];
   lofi?: LoFiSettings;
   /** Loop window for endless playback. Absent = the piece plays once. */
@@ -161,6 +188,9 @@ export function validateComposition(input: unknown): ValidationIssue[] {
     push("key", "must be a non-empty string");
   }
 
+  if (c.meter !== undefined) {
+    for (const issue of validateMeter(c.meter)) push(issue.path, issue.message);
+  }
   if (c.loop !== undefined) validateLoop(c.loop, push);
   for (const field of ["palettes", "tags", "motifs"] as const) {
     if (c[field] !== undefined) validateSlugList(c[field], field, push);
@@ -189,6 +219,12 @@ export function validateComposition(input: unknown): ValidationIssue[] {
     // An unknown slug falls back to the instrument's default at build time.
     if (t.voice !== undefined && (typeof t.voice !== "string" || t.voice.trim() === "")) {
       push(`${base}.voice`, "must be a non-empty voice slug");
+    }
+    if (t.fx !== undefined) validateSlugList(t.fx, `${base}.fx`, push);
+    // A pan outside -1..1 is silently clamped by the audio node, so it would be
+    // a value that looks like it did something and didn't.
+    if (t.pan !== undefined && !(typeof t.pan === "number" && t.pan >= -1 && t.pan <= 1)) {
+      push(`${base}.pan`, "must be a number in -1..1");
     }
     if (!Array.isArray(t.notes) || t.notes.length === 0) {
       push(`${base}.notes`, "must be a non-empty array");

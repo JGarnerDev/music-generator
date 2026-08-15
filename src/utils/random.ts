@@ -7,8 +7,14 @@
  * once a second caller wanted it, now covered by tests. Follow this pattern.
  */
 
+/**
+ * A seeded source of numbers in [0, 1). Named so a function that takes one can
+ * say so in its signature rather than repeating `() => number`.
+ */
+export type Rng = () => number;
+
 /** mulberry32 — small, fast, good-enough PRNG for musical choices. */
-export function makeRng(seed: number): () => number {
+export function makeRng(seed: number): Rng {
   let a = seed >>> 0;
   return function next(): number {
     a |= 0;

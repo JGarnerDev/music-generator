@@ -3,7 +3,10 @@ import {
   secondsPerBeat,
   notationToSeconds,
   barsBeatsToSeconds,
+  beatsPerBar,
   sixteenthsToNotation,
+  stepsPerBar,
+  validateMeter,
 } from "./timing";
 
 describe("sixteenthsToNotation", () => {
@@ -81,5 +84,49 @@ describe("barsBeatsToSeconds", () => {
   });
   it("throws on garbage", () => {
     expect(() => barsBeatsToSeconds("a:b", 120)).toThrow();
+  });
+});
+
+describe("meter", () => {
+  it("counts a bar in quarter-note beats", () => {
+    expect(beatsPerBar()).toBe(4);
+    expect(beatsPerBar([3, 4])).toBe(3);
+    expect(beatsPerBar([6, 8])).toBe(3);
+    expect(beatsPerBar([12, 8])).toBe(6);
+    expect(beatsPerBar([7, 8])).toBe(3.5);
+  });
+
+  it("counts a bar in sixteenth steps — 3/4 and 6/8 are both twelve", () => {
+    expect(stepsPerBar()).toBe(16);
+    expect(stepsPerBar([3, 4])).toBe(12);
+    expect(stepsPerBar([6, 8])).toBe(12);
+    expect(stepsPerBar([12, 8])).toBe(24);
+    expect(stepsPerBar([5, 4])).toBe(20);
+  });
+
+  it("moves the bar line, not the beat", () => {
+    // A quarter note is a quarter note in any meter; what changes is how many
+    // of them a bar holds before the next one starts.
+    expect(notationToSeconds("4n", 120, [3, 4])).toBeCloseTo(0.5);
+    expect(notationToSeconds("1m", 120, [3, 4])).toBeCloseTo(1.5);
+    expect(barsBeatsToSeconds("1:0:0", 120, [3, 4])).toBeCloseTo(1.5);
+    expect(barsBeatsToSeconds("2:0:0", 120, [6, 8])).toBeCloseTo(3);
+  });
+
+  it("names a whole bar `1m` whatever the meter", () => {
+    expect(sixteenthsToNotation(12, [3, 4])).toBe("1m");
+    expect(sixteenthsToNotation(24, [12, 8])).toBe("1m");
+    expect(sixteenthsToNotation(24, [3, 4])).toBe("2m");
+    // 16 isn't a whole bar of 3/4, so it falls back to a plain note value.
+    expect(sixteenthsToNotation(16, [3, 4])).toBe("1n");
+  });
+
+  it("rejects a meter whose bar isn't a whole number of sixteenths", () => {
+    expect(validateMeter([4, 4])).toEqual([]);
+    expect(validateMeter([7, 8])).toEqual([]);
+    expect(validateMeter([3, 32])).not.toEqual([]);
+    expect(validateMeter([0, 4])).not.toEqual([]);
+    expect(validateMeter([3, 5])).not.toEqual([]);
+    expect(validateMeter("3/4")).not.toEqual([]);
   });
 });
