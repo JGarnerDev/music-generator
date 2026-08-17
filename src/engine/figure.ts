@@ -429,7 +429,8 @@ function figureFor(ref: FigureRef, meter: Meter = COMMON_TIME): Figure {
   if (issues.length > 0) {
     const fits = FIGURE_NAMES.filter((n) => figureFitsMeter(n, meter));
     throw new Error(
-      `figure "${ref}" states a bar of 4/4, not ${meter[0]}/${meter[1]} — ` +
+      `figure "${ref}" does not state a whole bar of ${meter[0]}/${meter[1]} ` +
+        `(${issues.map((i) => i.message).join("; ")}) — ` +
         (fits.length > 0 ? `try ${fits.join(", ")}` : "write one inline for this meter"),
     );
   }

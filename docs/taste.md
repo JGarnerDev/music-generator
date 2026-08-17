@@ -128,6 +128,58 @@ much is the subject is untested.
 
 ## Derived rules
 
+### For modal colour, move the 6th — leave the 2nd and the 7th alone
+
+To recolour a piece without leaving its root, raise the sixth and change nothing
+else: a natural 6 over a minor drone landed as well as the plain minor it was
+varied against. The two degrees that lost are the ones worth naming, because both
+are reached for by reflex — flattening the 2nd, and raising the 7th into a
+leading tone. The raised 7th lost *despite* pulling harder into the tonic, so
+"it resolves better" is not a reason to use it here. Pick a mode by which degree
+it moves rather than by its name.
+
+**From:** `modal-colour` × `note-choice` — untagged, 4 attempts over one
+third-less drone in one key, each attempt exactly one degree from the control so
+the thumb could only be about that degree. Plain minor and the raised 6th up; the
+flattened 2nd and the raised 7th down. **Provisional** — one set, and with no
+tags this is evidence that the 6th is the safe degree to move, not evidence of
+why the other two failed.
+
+### Withhold the tonic chord as long as you like — but land it
+
+Delaying the home chord costs nothing. Stating it in bar 1, holding it back to
+the halfway point, and holding it back to the final chord all landed equally.
+What lost was never arriving: circling the whole way and ending on the dominant.
+So this knob is free to turn all the way up, and the only constraint is that the
+last chord is home — a nine-bar sample can go eight bars with no tonic chord in
+it provided the ninth bar is one. An ending parked on the V reads as unfinished
+rather than as tension held open.
+
+This is about the *chord*, and it does not contradict leaving the last melody
+note on a degree that isn't the tonic — the melody may hang over a bass that has
+landed. What failed was the harmony itself never getting there.
+
+**From:** `tonic-withholding` × `resolution` — untagged, 4 attempts with the top
+line and the bass rhythm held identical so only the chord underneath moved.
+Arrival at bar 1, at the halfway point and on the last chord all up; refused
+down. **Provisional** — one set, one key, no tags, and short: whether a
+four-minute piece can hold out proportionally as long is untested.
+
+### Syncopate by displacement, not by subdivision
+
+When a groove needs a fingerprint, pick a cell that puts a hit somewhere the
+pulse isn't — a half-time chug, eighths pushed off the beat, or an asymmetric
+3+3+2. The cell that lost was the gallop, and the thing that separates it from
+the other three is that it does not displace anything: it fills the same places
+more densely. More hits is not more groove. Choose the cell against a fixed kit
+so the displacement has something square to be heard against.
+
+**From:** `syncopation` × `figure` — untagged, 4 attempts with the kit and the
+comping part identical so only the low cell moved. Half-time chug, pushed
+eighths and 3+3+2 up; gallop down. **Provisional** — one set, one tempo, no
+tags. Note that 3+3+2 winning here is a second and independent up for the cell
+the ostinato preference above already reaches for.
+
 ### For a chorus lift, commit the register — don't sit in the middle
 
 Take `register` to `subterranean` or `high`. The middle two read as `thin`: `low`
@@ -246,3 +298,16 @@ Ordered by how much a verdict would change:
 - `guitar-solo` × `phrasing` — a written axis, so it needs composing by hand,
   and it is the one most likely to produce a rule that changes every piece.
 - `hook` × `note-choice` — what makes a cell hummable for this listener.
+- `modal-colour` × `note-choice`, a second mood — and with the modes named by
+  their altered degree rather than by name, to test whether the 6th is genuinely
+  the free one or whether the two losers lost for being darker rather than for
+  which degree they moved.
+- `cadence` × `resolution` — the tonic rule says land the chord; this asks
+  whether the *phrase* may still be left open above it, which is the boundary
+  the two rules currently share and neither one tests.
+- `groove-feel` × `figure`, a second tempo — the gallop losing may be about
+  subdivision or about speed, and one tempo cannot tell those apart.
+
+Three sets ran untagged and produced three provisional rules on direction alone.
+The cheapest gain available now is not a new concept: it is re-running any of
+those three with tags on, which turns "this won" into "this won because".

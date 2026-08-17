@@ -211,7 +211,7 @@ describe("meter", () => {
         barRoots: ["D2"],
         approaches: [null],
       }),
-    ).toThrow(/states a bar of 4\/4, not 3\/4/);
+    ).toThrow(/does not state a whole bar of 3\/4/);
   });
 });
 

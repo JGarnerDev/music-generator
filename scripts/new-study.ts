@@ -28,7 +28,12 @@ import { blendPalettes, withAncestors } from "../src/engine/blend";
 import { composeFromBlend } from "../src/engine/composer";
 import { findPalettes, loadPalettesFromDir } from "../src/engine/palette-loader";
 import { isEmotionPalette, type Palette } from "../src/engine/palette";
-import { FIGURE_NAMES, isFigureName, type FigureName } from "../src/engine/figure";
+import {
+  FIGURE_NAMES,
+  figureFitsMeter,
+  isFigureName,
+  type FigureName,
+} from "../src/engine/figure";
 import type { Knobs, RegisterName, TempoLean } from "../src/engine/knobs";
 import { INSTRUMENT_NAMES, type Composition, type InstrumentName } from "../src/engine/composition";
 import {
@@ -200,10 +205,23 @@ function compose(variant: string, index: number): Composition {
   // arrangement the palette would really write is the context the verdict has to
   // hold for, and only the tracks that are not the question get taken away.
   const stripped = stripToParts(full, only);
+  const had = [...new Set(full.tracks.map((t) => t.instrument))];
   if (stripped.tracks.length === 0) {
-    const had = [...new Set(full.tracks.map((t) => t.instrument))].join(", ");
-    console.error(`--only ${only.join(",")} left no tracks — this blend writes: ${had}`);
+    console.error(`--only ${only.join(",")} left no tracks — this blend writes: ${had.join(", ")}`);
     process.exit(1);
+  }
+  // Naming a part the blend never wrote is worse than a typo: the set still
+  // builds, one part lighter than asked for, and the axis ends up being judged
+  // against a thinner arrangement than the handoff describes.
+  if (index === 0) {
+    const missing = only.filter((name) => !had.includes(name));
+    if (missing.length > 0) {
+      console.warn(
+        `  ! --only names ${missing.join(", ")}, which this blend does not write — kept ${stripped.tracks
+          .map((t) => t.instrument)
+          .join(", ")}. It writes: ${had.join(", ")}.`,
+      );
+    }
   }
   return stripped;
 }
@@ -229,7 +247,12 @@ function knobsFor(variant: string): Partial<Knobs> {
 /** The values this axis fans out across, capped at `count` and always distinct. */
 function variantsFor(chosen: StudyAxis, n: number): string[] {
   if (chosen.name === "figure") {
-    const shelf = [...FIGURE_NAMES].filter(isFigureName);
+    // Filtered by meter: the shelf carries cells of both lengths, and a 3/4 cell
+    // picked for a 4/4 blend (or the reverse) throws out of the composer rather
+    // than producing an attempt, which kills the whole set mid-fan-out.
+    const shelf = [...FIGURE_NAMES]
+      .filter(isFigureName)
+      .filter((name) => figureFitsMeter(name, direction.meter));
     const picked: FigureName[] = [];
     while (picked.length < Math.min(n, shelf.length)) {
       const candidate = pick(rng, shelf.filter((name) => !picked.includes(name)));

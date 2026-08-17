@@ -49,7 +49,7 @@ describe("the figure shelf", () => {
   it("names the cells that do fit when asked for one that doesn't", () => {
     expect(() =>
       figureLine("gallop", { startBar: 0, roots: ["A1", "A1", "A1"], meter: [3, 4] }),
-    ).toThrow(/states a bar of 4\/4, not 3\/4.*waltz-oom-pah/s);
+    ).toThrow(/does not state a whole bar of 3\/4.*waltz-oom-pah/s);
   });
 
   it("every figure has a summary worth printing", () => {
