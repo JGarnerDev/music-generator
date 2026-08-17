@@ -24,7 +24,12 @@
     "voice:find": "tsx scripts/find-voice.ts",
     "voice:render": "tsx scripts/render-voices.ts",
     "voice:approve": "tsx scripts/approve-voice.ts",
-    "voice:check": "tsx scripts/check-voices.ts"
+    "voice:check": "tsx scripts/check-voices.ts",
+    "study:new": "tsx scripts/new-study.ts",
+    "study:render": "tsx scripts/render-studies.ts",
+    "study:verdict": "tsx scripts/study-verdict.ts",
+    "study:clean": "tsx scripts/clean-studies.ts",
+    "study:ledger": "tsx scripts/study-verdict.ts --ledger"
   },
   "dependencies": {
     "commander": "^15.0.0",

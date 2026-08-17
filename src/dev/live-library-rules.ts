@@ -7,8 +7,9 @@
  */
 
 /**
- * `library` — a composition or voice preset, which the app reaches through an
- * eager glob, so the server's module cache has to be dropped as well.
+ * `library` — a composition, voice preset or study, each of which the app
+ * reaches through an eager glob, so the server's module cache has to be dropped
+ * as well.
  * `audio` — a rendered file under `public/`, fetched fresh every time, so a
  * reload is enough. `null` — everything else; Vite's own HMR owns it.
  */
@@ -26,6 +27,7 @@ export function reloadReason(relativePath: string): ReloadReason {
 
   if (path.startsWith("compositions/") && path.endsWith(".json")) return "library";
   if (path.startsWith("voices/") && path.endsWith(".json")) return "library";
+  if (path.startsWith("studies/") && path.endsWith(".json")) return "library";
   if (path.startsWith("public/audio/") && AUDIO_FILE.test(path)) return "audio";
   return null;
 }

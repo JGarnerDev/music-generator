@@ -34,7 +34,11 @@ Claude-specific working rules that don't belong in the human-facing README.
    (the room), `era` (the period); see
    [`docs/palette-authoring.md`](./docs/palette-authoring.md). Layer an emotion
    with a genre/timbre for specific vibes rather than inventing new stored files.
-3. Decide **what makes this one worth hearing twice** before writing bars —
+3. Read [`docs/taste.md`](./docs/taste.md) — the rules derived from studies the
+   user has actually thumbed up or down. It outranks your instincts and the
+   palette's defaults, because it is the only file here that records *this*
+   listener rather than a genre. Then decide **what makes this one worth hearing
+   twice** before writing bars —
    where the peak is, what gets withheld, which sections move register, which
    phrase isn't 8 bars. That checklist is [`docs/hooks.md`](./docs/hooks.md);
    variety.md keeps pieces from resembling *each other*, hooks.md keeps a piece
@@ -89,6 +93,32 @@ render the probe, audition at `/voices.html`, approve — and it is
 [`docs/voices.md`](./docs/voices.md), not an edit to `src/app/instruments.ts`.
 Approved voices are forked, never edited, and an approval needs a `--summary`
 so the new voice gets an archive row.
+
+**If the question is *how to approach* something** — "how should a guitar solo
+go", "what makes a hook land" — that is not a piece, it is a **study**. Fan out
+four attempts that differ on exactly one axis and let the user thumb them:
+
+```bash
+npm run study:new -- --concepts        # the concept shelf (~35, grouped)
+npm run study:new -- --concept chorus-lift --axis register --mood "<scene>"
+npm run study:render -- --set chorus-lift/<set>
+```
+
+Then `/studies.html`. Verdicts land in the generated `studies/ledger.md`; you
+turn recurring tags into rules in [`docs/taste.md`](./docs/taste.md) by hand,
+and then **tear the study down** — `npm run study:clean -- --set <concept>/<set>
+--yes`. A study is scratch: it exists to produce one rule, and a set left in the
+bench with its finding already written invites a second verdict on a settled
+question. So `taste.md` never names a study, a set, an id or a file — the files
+will not exist. It has to read as a rule on its own.
+
+Concepts and verdict tags are **fixed shelves in `src/engine/study.ts`** — a
+concept invented for one study is a data point that can never be counted with
+another, so extend the shelf there rather than by creating a folder. Written
+axes (`phrasing`, `contour`, `note-choice`, …) come out scaffolded and
+`"draft": true`: the composer cannot fan those out, so you compose the varying
+part yourself before they render. Rules and the whole loop:
+[`docs/studies.md`](./docs/studies.md).
 
 **If it's for a game** (anything that plays under a scene on repeat), it needs a
 loop, not a song: write a `plans/<name>.json` and

@@ -43,6 +43,7 @@ loose musical ideas into something you're pumped about.
 | `src/app/` | Browser player + the audio graph | Tone.js glue, thin, not unit-tested. The graph runs only under `npm run render`; the app itself just plays files |
 | `compositions/<kind>/*.json` | Song specs (the Claude↔app contract) | Kind = folder = tab: `leitmotifs`, `segments`, `loops`, `songs`. See [library](docs/library.md); shape in `src/engine/composition.ts` |
 | `voices/<instrument>/*.json` | Instrument sounds, several per instrument | Folder = instrument. Approved ones get a row in [`voices/archive.md`](voices/archive.md); the `notes` inside each file are its design record. Process in [voices](docs/voices.md) |
+| `studies/<concept>/*.json` | Attempts at a musical *concept*, to be thumbed up or down | Folder = concept. **Scratch** — deleted once distilled into [`docs/taste.md`](docs/taste.md), which is the permanent record. Verdicts queue in the generated `studies/ledger.md`. Process in [studies](docs/studies.md) |
 | `plans/*.json` | Section plans for long/looping pieces | Expanded by `npm run song:build`; see [looping](docs/looping.md) |
 | `scripts/*.ts` | Deterministic CLI chores | commander, named flags. `render.ts` is the big one: see [rendering](docs/rendering.md) |
 | `src/dev/` | Dev-server middleware, render harness, render profiler | Never in the built bundle |
@@ -53,7 +54,7 @@ loose musical ideas into something you're pumped about.
 
 ```bash
 npm install
-npm run dev        # local workshop bench → Play / Stop / Download
+npm run dev        # three benches: / compositions · /voices.html · /studies.html
 npm run render -- --all   # render every composition to public/audio/
 npm test           # vitest (engine + utils)
 npm run typecheck  # tsc --noEmit
@@ -104,6 +105,16 @@ npm run typecheck  # tsc --noEmit
   [`voices/archive.md`](voices/archive.md) — `--summary` is that row, and the
   long why-it-works goes in `--notes`, which the index deliberately leaves in
   the file. Full loop: [voices](docs/voices.md).
+- **Decide an approach:** a *study* is a short attempt at a musical concept
+  ("guitar solo", "chorus lift") made to be judged. Fan out four that differ on
+  exactly one axis — `npm run study:new -- --concept chorus-lift --axis register
+  --mood "<scene>"` — render them (`npm run study:render -- --set <concept>/<set>`),
+  then thumb them at `/studies.html`. Verdicts accumulate in the generated
+  `studies/ledger.md`; the rules drawn out of them are
+  [`docs/taste.md`](docs/taste.md), which composing reads. Once a set has given
+  up its rule, delete it — `npm run study:clean -- --set <concept>/<set> --yes`
+  (dry run without `--yes`). Studies are scratch; `taste.md` is the record, and
+  is written to stand without them. Full loop: [studies](docs/studies.md).
 - **New palette:** `npm run palette:new -- --kind emotion|genre|timbre --slug <slug> --title "<t>" --tags a,b,c`
   (writes `palettes/<kind>/<slug>.md`). Add `--parent <slug>` for a **subtype**
   (`desert-rock` → `rock`): it states only its deltas and inherits the rest.
@@ -145,6 +156,11 @@ npm run typecheck  # tsc --noEmit
 - [`docs/hooks.md`](docs/hooks.md) — the other half: what makes a piece worth
   hearing twice, genre-independent. Contour, withholding, negative space, one
   surprise. Read with variety.md before writing bars.
+- [`docs/studies.md`](docs/studies.md) — the third bench: attempts at a musical
+  concept, four at a time on one axis, judged by ear so the approach is chosen
+  rather than defaulted.
+- [`docs/taste.md`](docs/taste.md) — what those verdicts added up to. The rules
+  this listener's music is written by. Read at step 3, with hooks.md.
 
 Progressive disclosure — split a section into its own frontmatter'd doc once it
 outgrows a screen here. Planned: `docs/composition-spec.md`,

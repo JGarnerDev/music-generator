@@ -17,3 +17,9 @@ export const VOICE_APPROVE_ENDPOINT = "/__voices/approve";
 
 /** POST `{ from, slug, title? }` → copies a voice to a new draft slug. */
 export const VOICE_FORK_ENDPOINT = "/__voices/fork";
+
+/**
+ * POST `{ id, thumb, tags?, note? }` → records a verdict on that study and
+ * rewrites `studies/ledger.md`. `{ id, clear: true }` takes the verdict back.
+ */
+export const STUDY_VERDICT_ENDPOINT = "/__studies/verdict";
