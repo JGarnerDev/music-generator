@@ -1,6 +1,30 @@
 {
   "entries": [
     {
+      "name": "redwater-golden-lioness-scene",
+      "file": "redwater-golden-lioness-scene.mp3",
+      "seconds": 152.98164583333335,
+      "bytes": 3060480,
+      "isLoop": false,
+      "renderedAt": "2026-08-17T17:21:25.140Z"
+    },
+    {
+      "name": "redwater-golden-lioness-scene.loop",
+      "file": "redwater-golden-lioness-scene.loop.mp3",
+      "seconds": 132.41379166666667,
+      "bytes": 2649120,
+      "isLoop": true,
+      "renderedAt": "2026-08-17T17:20:06.553Z"
+    },
+    {
+      "name": "redwater-lioness-motif",
+      "file": "redwater-lioness-motif.mp3",
+      "seconds": 12.017229166666667,
+      "bytes": 240960,
+      "isLoop": false,
+      "renderedAt": "2026-08-17T15:56:32.699Z"
+    },
+    {
       "name": "redwater-tavern-raid",
       "file": "redwater-tavern-raid.mp3",
       "seconds": 120.76733333333334,

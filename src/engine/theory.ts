@@ -386,6 +386,25 @@ export function pitchToMidi(pitch: string): number {
 }
 
 /**
+ * MIDI number → scientific pitch. The inverse of `pitchToMidi`, needed wherever
+ * pitch arrives as a number rather than a name — a transcribed recording, a MIDI
+ * file.
+ *
+ * A MIDI number names a key, not a spelling, so the black notes need a choice:
+ * `spelling` picks which enharmonic comes back. Pass the piece's key rather than
+ * taking the default when you can — a Bb in an F-minor tune written as A# reads
+ * as a wrong note to anyone who looks at it, even though it sounds identical.
+ */
+export function midiToPitch(midi: number, spelling: "sharps" | "flats" = "sharps"): string {
+  if (!Number.isInteger(midi)) throw new Error(`midi must be an integer, got ${midi}`);
+  // tonal's `fromMidi` is the flat spelling and takes no options — the sharp one
+  // is a separate function, not a flag.
+  const name = spelling === "sharps" ? Note.fromMidiSharps(midi) : Note.fromMidi(midi);
+  if (!name) throw new Error(`not a midi note number: ${midi}`);
+  return name;
+}
+
+/**
  * Shift a pitch by whole octaves until it sits inside a MIDI band, keeping its
  * pitch class — how a bass line stays in one register while its roots wander.
  *

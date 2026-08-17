@@ -45,6 +45,7 @@ loose musical ideas into something you're pumped about.
 | `voices/<instrument>/*.json` | Instrument sounds, several per instrument | Folder = instrument. Approved ones get a row in [`voices/archive.md`](voices/archive.md); the `notes` inside each file are its design record. Process in [voices](docs/voices.md) |
 | `studies/<concept>/*.json` | Attempts at a musical *concept*, to be thumbed up or down | Folder = concept. **Scratch** — deleted once distilled into [`docs/taste.md`](docs/taste.md), which is the permanent record. Verdicts queue in the generated `studies/ledger.md`. Process in [studies](docs/studies.md) |
 | `plans/*.json` | Section plans for long/looping pieces | Expanded by `npm run song:build`; see [looping](docs/looping.md) |
+| `recordings/*.wav` | Guitar takes — "make the hook sound like *this*" | Audio gitignored, the `.notes.json` transcription beside it is committed. Capture rules: [`recordings/readme.md`](recordings/readme.md); the loop: [transcribe](docs/transcribe.md) |
 | `scripts/*.ts` | Deterministic CLI chores | commander, named flags. `render.ts` is the big one: see [rendering](docs/rendering.md) |
 | `src/dev/` | Dev-server middleware, render harness, render profiler | Never in the built bundle |
 | `public/audio/` | Rendered MP3s + `manifest.json` — what the bench plays | Committed; written by `npm run render` |
@@ -115,6 +116,16 @@ npm run typecheck  # tsc --noEmit
   up its rule, delete it — `npm run study:clean -- --set <concept>/<set> --yes`
   (dry run without `--yes`). Studies are scratch; `taste.md` is the record, and
   is written to stand without them. Full loop: [studies](docs/studies.md).
+- **Use a recorded idea:** the user plays a hook on the guitar and wants *that*
+  tune. `npm run transcribe -- --file recordings/<take>.wav --tempo <bpm> --key
+  <key>` prints it as scale degrees and a rhythm lane — Claude cannot hear audio,
+  so that text is the whole interface. Add `--emit <slug> --confirm` to write a
+  leitmotif, render it, and stand the original take beside it in the bench for an
+  A/B. `--mode shape` keeps only the intervals and rhythm, for when the gesture is
+  wanted in another key. Corrections are free: `--requantize` reuses the saved
+  detector output so the model runs once per take. Capture rules:
+  [`recordings/readme.md`](recordings/readme.md); the loop:
+  [transcribe](docs/transcribe.md).
 - **New palette:** `npm run palette:new -- --kind emotion|genre|timbre --slug <slug> --title "<t>" --tags a,b,c`
   (writes `palettes/<kind>/<slug>.md`). Add `--parent <slug>` for a **subtype**
   (`desert-rock` → `rock`): it states only its deltas and inherits the rest.
@@ -161,6 +172,9 @@ npm run typecheck  # tsc --noEmit
   rather than defaulted.
 - [`docs/taste.md`](docs/taste.md) — what those verdicts added up to. The rules
   this listener's music is written by. Read at step 3, with hooks.md.
+- [`docs/transcribe.md`](docs/transcribe.md) — a recorded guitar take becomes
+  notes: the record → read → emit → confirm loop, literal vs shape, and the four
+  things it cannot do.
 
 Progressive disclosure — split a section into its own frontmatter'd doc once it
 outgrows a screen here. Planned: `docs/composition-spec.md`,

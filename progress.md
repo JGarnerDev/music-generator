@@ -40,6 +40,10 @@ the palette shelf (14 emotions, 39 genres, 13 timbres, 4 spaces, 3 eras) are
 done; see [`docs/knobs.md`](./docs/knobs.md) and the "what the engine gained"
 section of [`docs/variety.md`](./docs/variety.md).
 
+**Guitar transcription shipped 2026-08-17** — `npm run transcribe`, a recorded
+take read back as scale degrees, emitted as a leitmotif, and A/B'd against the
+recording in the bench. See [`docs/transcribe.md`](./docs/transcribe.md).
+
 - [ ] **Sampled instruments and kit via `smplr`.** Swap synth piano/pad/drums for
       real samples behind the same instrument interface. **Blocked on a decision,
       not on code:** `smplr` resolves its packs from remote CDNs

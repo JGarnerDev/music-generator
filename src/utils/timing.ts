@@ -152,6 +152,28 @@ export function sixteenthsToNotation(sixteenths: number, meter: Meter = COMMON_T
   return NOTATION_BY_SIXTEENTHS.find(([len]) => len <= n)![1];
 }
 
+/**
+ * A step index on the sixteenth grid → the `"bars:beats:sixteenths"` transport
+ * time a `Note` carries. The inverse of reading that string: anything that
+ * thinks in steps — a step sequencer, a quantized transcription — has to write
+ * one of these to become a note.
+ *
+ * Beats are quarter notes, so a bar's steps divide by 4 into beats and the
+ * remainder is the sixteenth. In 7/8 (14 steps) the last beat is a half beat,
+ * which surfaces here as a bar whose highest beat index is 3 with only two
+ * sixteenths under it — correct, and the reason this reads `stepsPerBar` rather
+ * than assuming 16.
+ */
+export function sixteenthsToTransport(step: number, meter: Meter = COMMON_TIME): string {
+  if (!Number.isInteger(step) || step < 0) {
+    throw new Error(`step must be a non-negative integer, got ${step}`);
+  }
+  const perBar = stepsPerBar(meter);
+  const bar = Math.floor(step / perBar);
+  const within = step - bar * perBar;
+  return `${bar}:${Math.floor(within / 4)}:${within % 4}`;
+}
+
 /** Convert "bars:beats:sixteenths" transport time to seconds. Missing parts = 0. */
 export function barsBeatsToSeconds(time: string, bpm: number, meter: Meter = COMMON_TIME): number {
   const parts = time.trim().split(":");

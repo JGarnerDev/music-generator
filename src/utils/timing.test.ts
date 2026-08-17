@@ -5,6 +5,7 @@ import {
   barsBeatsToSeconds,
   beatsPerBar,
   sixteenthsToNotation,
+  sixteenthsToTransport,
   stepsPerBar,
   validateMeter,
 } from "./timing";
@@ -84,6 +85,29 @@ describe("barsBeatsToSeconds", () => {
   });
   it("throws on garbage", () => {
     expect(() => barsBeatsToSeconds("a:b", 120)).toThrow();
+  });
+});
+
+describe("sixteenthsToTransport", () => {
+  it("splits a step index into bars, beats and sixteenths", () => {
+    expect(sixteenthsToTransport(0)).toBe("0:0:0");
+    expect(sixteenthsToTransport(2)).toBe("0:0:2");
+    expect(sixteenthsToTransport(4)).toBe("0:1:0");
+    expect(sixteenthsToTransport(16)).toBe("1:0:0");
+    expect(sixteenthsToTransport(37)).toBe("2:1:1");
+  });
+  it("counts bars in the meter it is given", () => {
+    expect(sixteenthsToTransport(12, [3, 4])).toBe("1:0:0"); // 3/4 bar = 12 steps
+    expect(sixteenthsToTransport(12, [4, 4])).toBe("0:3:0");
+  });
+  it("round-trips through barsBeatsToSeconds", () => {
+    for (const step of [0, 3, 7, 16, 45]) {
+      expect(barsBeatsToSeconds(sixteenthsToTransport(step), 120)).toBeCloseTo(step * (60 / 120 / 4), 6);
+    }
+  });
+  it("throws on a fractional or negative step", () => {
+    expect(() => sixteenthsToTransport(1.5)).toThrow();
+    expect(() => sixteenthsToTransport(-1)).toThrow();
   });
 });
 

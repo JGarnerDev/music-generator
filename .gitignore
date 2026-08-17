@@ -10,6 +10,15 @@ exports/*
 assets/samples/*
 !assets/samples/.gitkeep
 
+# Guitar takes are large, personal, and not the source of truth — the transcription
+# they produce is. Keep the folder and its capture rules; drop the audio.
+recordings/**/*.wav
+recordings/**/*.aiff
+recordings/**/*.aif
+recordings/**/*.flac
+recordings/**/*.m4a
+recordings/**/*.mp3
+
 # Local env / editor
 .env
 .env.local

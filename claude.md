@@ -120,6 +120,23 @@ axes (`phrasing`, `contour`, `note-choice`, …) come out scaffolded and
 part yourself before they render. Rules and the whole loop:
 [`docs/studies.md`](./docs/studies.md).
 
+**If the user hands you a recording** — "I want the hook to sound like this" —
+that is not a composing problem, it is a transcription. You cannot hear it, so
+the CLI's printed summary is the only thing you will ever know about the take:
+
+```bash
+npm run transcribe -- --file recordings/<take>.wav --tempo 90 --key Am
+npm run transcribe -- --file recordings/<take>.wav --tempo 90 --key Am \
+  --emit <slug> --confirm      # write a leitmotif, render it, A/B it against the take
+```
+
+Ask the user for the tempo and the key rather than guessing; grid fit cannot tell
+a tempo from its double. Use `--mode shape` when the take demonstrates a gesture
+you will rewrite in another key, `literal` when it *is* the part. **Every
+correction takes `--requantize`** — the model runs once per take and everything
+after is re-derived in seconds. Never re-run it just to try another tempo. Full
+loop, flags and the four things it cannot do: [`docs/transcribe.md`](./docs/transcribe.md).
+
 **If it's for a game** (anything that plays under a scene on repeat), it needs a
 loop, not a song: write a `plans/<name>.json` and
 `npm run song:build -- --plan plans/<name>.json` instead of hand-writing notes,

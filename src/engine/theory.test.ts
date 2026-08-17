@@ -9,6 +9,8 @@ import {
   chordPitches,
   fitToBand,
   scaleLadder,
+  midiToPitch,
+  pitchToMidi,
   transpose,
   voiceLead,
 } from "./theory";
@@ -378,6 +380,26 @@ describe("voiceLead", () => {
 
   it("is deterministic", () => {
     expect(voiceLead("G", ["C4", "E4", "G4"])).toEqual(voiceLead("G", ["C4", "E4", "G4"]));
+  });
+});
+
+describe("midiToPitch", () => {
+  it("names the white notes", () => {
+    expect(midiToPitch(60)).toBe("C4");
+    expect(midiToPitch(69)).toBe("A4");
+  });
+  it("spells the black notes the way it is asked to", () => {
+    expect(midiToPitch(61, "sharps")).toBe("C#4");
+    expect(midiToPitch(61, "flats")).toBe("Db4");
+  });
+  it("round-trips through pitchToMidi", () => {
+    for (const midi of [21, 40, 61, 70, 88, 108]) {
+      expect(pitchToMidi(midiToPitch(midi))).toBe(midi);
+      expect(pitchToMidi(midiToPitch(midi, "flats"))).toBe(midi);
+    }
+  });
+  it("throws on a fractional midi number", () => {
+    expect(() => midiToPitch(60.5)).toThrow();
   });
 });
 
