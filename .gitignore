@@ -25,3 +25,5 @@ public/audio/*.wav
 public/audio/*.mp3
 public/audio/voices/*.wav
 public/audio/voices/*.mp3
+
+tasks/

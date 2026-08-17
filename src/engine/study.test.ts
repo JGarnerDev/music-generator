@@ -12,6 +12,7 @@ import {
   isAxisName,
   isConceptSlug,
   isVerdictTag,
+  stripToParts,
   studyBars,
   tagsOfFacet,
   validateStudy,
@@ -171,6 +172,43 @@ describe("validateStudy", () => {
 
   it("rejects a non-object", () => {
     expect(validateStudy(null)[0]?.path).toBe("$");
+  });
+});
+
+describe("stripToParts", () => {
+  const note = { time: "0:0", pitch: "D4", duration: "4n" };
+  const dense: Composition = {
+    ...composition,
+    tracks: [
+      { instrument: "drums", notes: [{ time: "0:0", pitch: "kick", duration: "16n" }] },
+      { instrument: "bass", notes: [note] },
+      { instrument: "pluck", notes: [note], gain: 0.55 },
+      { instrument: "pluck", notes: [note], gain: 0.45 },
+      { instrument: "lead", notes: [note] },
+    ],
+  };
+
+  it("keeps only the named instruments, in the original order", () => {
+    const stripped = stripToParts(dense, ["lead", "bass"]);
+    expect(stripped.tracks.map((t) => t.instrument)).toEqual(["bass", "lead"]);
+  });
+
+  // The second pluck is the arpeggio layer — exactly the doubling that hides a
+  // layering question, so it goes even though its instrument was asked for.
+  it("keeps only the first track of a repeated instrument", () => {
+    const stripped = stripToParts(dense, ["pluck"]);
+    expect(stripped.tracks).toHaveLength(1);
+    expect(stripped.tracks[0]?.gain).toBe(0.55);
+  });
+
+  it("leaves the composition alone when nothing is named", () => {
+    expect(stripToParts(dense, [])).toBe(dense);
+  });
+
+  it("keeps everything else about the composition", () => {
+    const stripped = stripToParts(dense, ["lead"]);
+    expect(stripped.bpm).toBe(dense.bpm);
+    expect(stripped.key).toBe(dense.key);
   });
 });
 

@@ -22,7 +22,12 @@
  * organising rules are `./study-library.ts`, and the prose distilled *out* of the
  * verdicts is `docs/taste.md` — written by hand, because a rule is a judgement.
  */
-import { validateComposition, type Composition, type ValidationIssue } from "./composition";
+import {
+  validateComposition,
+  type Composition,
+  type InstrumentName,
+  type ValidationIssue,
+} from "./composition";
 
 /** Longest a study's `approach` line may be — it is a table cell in the ledger. */
 export const APPROACH_MAX = 120;
@@ -129,7 +134,7 @@ export const CONCEPTS: readonly Concept[] = [
     title: "Twin leads",
     group: "melody",
     blurb: "Two lead lines instead of one — harmonised, answering, or trading. Which reading works.",
-    axes: ["interplay", "register", "phrasing"],
+    axes: ["interplay", "note-choice", "register", "phrasing"],
   },
   {
     slug: "call-response",
@@ -666,6 +671,34 @@ function validateVerdict(
     });
   }
   if (v.note !== undefined && typeof v.note !== "string") push("verdict.note", "must be a string");
+}
+
+/**
+ * The composition with everything but the named parts removed.
+ *
+ * A study is an A/B test, not a piece: anything on the record that isn't the
+ * axis is noise the ear has to subtract before it can hear the question. A set
+ * fanned out at full arrangement density — drums, pad, two rhythm parts — came
+ * back with every attempt thumbed up and not one tag, which is what "I couldn't
+ * tell what changed" looks like in a ledger.
+ *
+ * **The first track of each named instrument, in the original order.** A palette
+ * routinely writes an instrument twice (a rhythm comp *and* an arpeggio on the
+ * same pluck), and the second is exactly the doubling that hides a layering
+ * question. A study that genuinely needs two of one instrument — twin leads —
+ * adds its second one afterwards as the varying part, which is the only way the
+ * pair is attributable to the axis anyway.
+ */
+export function stripToParts(comp: Composition, keep: readonly InstrumentName[]): Composition {
+  if (keep.length === 0) return comp;
+  const wanted = new Set<InstrumentName>(keep);
+  const taken = new Set<InstrumentName>();
+  const tracks = comp.tracks.filter((track) => {
+    if (!wanted.has(track.instrument) || taken.has(track.instrument)) return false;
+    taken.add(track.instrument);
+    return true;
+  });
+  return { ...comp, tracks };
 }
 
 /** Bars a study's composition occupies, from the last note's bar index. */

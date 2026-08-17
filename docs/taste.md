@@ -59,9 +59,10 @@ different `pan`. *How* the pair should relate is no longer open — see the twin
 leads rule below, which rules out the answering and trading readings this
 preference used to offer.
 
-**From:** stated directly. Still unstudied as stated: no set has put one lead
-against two, only two leads against each other. The `call-response` concept
-exists to test the wider gap.
+**From:** stated directly. Still unstudied for *leads*: no set has put one lead
+against two, only two leads against each other. The nearest evidence is from the
+rhythm parts, where the single unlayered part lost outright — see the layering
+rule below.
 
 ## Derived rules
 
@@ -103,18 +104,83 @@ thing to follow.
 with note counts held equal so density could not be the thing being judged.
 Harmonised in thirds up, octave-doubled up, trading bars down, contrary motion
 down. **Provisional** — one set. It narrows the standing preference above rather
-than confirming it.
+than confirming it. Note the scope: this is about two *leads*, presented as
+equals. A quieter line underneath is governed by the countermelody rule below,
+and that one went the other way.
+
+### Double a lead at a third, a fourth or the octave — not a sixth
+
+For the second lead, take diatonic thirds, diatonic fourths or a straight octave
+below the first. The sixth was the one width that lost: it opens far enough that
+the two lines stop reading as one thickened part and start sounding like a
+separate, lower melody — which is the independence the rule above rejects. The
+octave is a real option, not a cop-out; it thickens without adding a colour.
+
+**From:** `twin-leads` × `note-choice`, 8 attempts across two moods, two keys and
+two densities. Thirds, fourths and the octave up, the sixth down.
+**Provisional** — only one of the two sets discriminated at all: the other was
+fanned out over a full arrangement, came back four-for-four with no tags, and
+says nothing. That failure is why studies are now stripped to the parts under
+test.
+
+### A quieter line underneath may move against the melody
+
+A subordinate part — lower, and mixed under the top line — is allowed to be
+independent. Contrary motion works there: it falls where the melody rises, and
+because it is not competing for the ear it reads as depth rather than as a
+second thing to follow. A held pedal tone under the moving line works equally
+well and is the cheapest version. Shadowing the melody in parallel thirds also
+works but wants rationing — it is the strongest of the three and turns into the
+whole texture if every section does it.
+
+**From:** `countermelody` × `interplay`, 4 attempts, gain and register of the
+under-line held so only its behaviour varied. Pedal tone up, contrary motion up,
+parallel thirds up but noted as "use sparingly", delayed echo down.
+**Provisional** — one set. Read it against the twin-leads rule: the same
+contrary motion that lost between two equal leads won underneath one.
+
+### Never answer a line with a delayed copy of itself
+
+Whatever the second part does, it should not be the first part again, later. A
+canon at the bar and a pair of leads trading bars both lost, and they are the
+same idea: the ear hears the repeat, recognises it as material it already has,
+and stops following. If the two parts are not going to sound together, give the
+second one different notes.
+
+**From:** two sets on different concepts — `twin-leads` × `interplay` and
+`countermelody` × `interplay`, 8 attempts total. Trading bars down; echoing a
+bar later down. **Provisional** — two attempts is not a tally, but they are two
+independent routes to the same failure.
+
+### Layer the rhythm part — a single one underneath is not enough
+
+Under a lead, one rhythm part on its own lost against every layered reading. Add
+a second: an octave-below double locked exactly to the first, a sustained
+root-and-fifth drone held through the bar, or the double coming and going every
+other bar all worked. Note that trading bars — which loses between two leads —
+is fine down here, because a layer dropping out is heard as the arrangement
+breathing rather than as a line abandoning the tune.
+
+**From:** `texture-layering` × `interplay`, 4 attempts stripped to bass, one
+rhythm part and a lead. The unlayered control down; locked octave double,
+sustained drone and alternating double all up. **Provisional** — one set, and
+the three winners were not separated from each other.
 
 ## Worth studying next
 
 Ordered by how much a verdict would change:
 
-- `twin-leads` × `interplay`, a second mood — the newest rule, and the one that
-  changes the most pieces if it holds.
+- `twin-leads` × `note-choice`, a third mood — the sixth losing is the sharpest
+  new result and rests on one discriminating set.
+- `countermelody` × `interplay`, a second mood — it contradicts the twin-leads
+  rule on contrary motion, so the boundary between "equal pair" and
+  "subordinate line" is currently drawn from four attempts.
+- `tone-pairing` × `tone`, stripped — asked once at full arrangement density and
+  returned nothing usable. Whether one instrument playing a dyad differs from two
+  instruments splitting it is still open.
+- `texture-layering` × `density`, not `interplay` — layering won, so the next
+  question is how much of it before the lead stops being findable.
 - `negative-space` × `density`, a second mood — confirm or kill the ladder.
 - `guitar-solo` × `phrasing` — a written axis, so it needs composing by hand,
   and it is the one most likely to produce a rule that changes every piece.
 - `hook` × `note-choice` — what makes a cell hummable for this listener.
-- `call-response` × `interplay` — the twin-leads verdict went against the two
-  lines separating; this asks whether a wider gap between *different*
-  instruments fares any better.

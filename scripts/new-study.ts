@@ -30,7 +30,7 @@ import { findPalettes, loadPalettesFromDir } from "../src/engine/palette-loader"
 import { isEmotionPalette, type Palette } from "../src/engine/palette";
 import { FIGURE_NAMES, isFigureName, type FigureName } from "../src/engine/figure";
 import type { Knobs, RegisterName, TempoLean } from "../src/engine/knobs";
-import type { Composition } from "../src/engine/composition";
+import { INSTRUMENT_NAMES, type Composition, type InstrumentName } from "../src/engine/composition";
 import {
   CONCEPTS,
   CONCEPT_GROUPS,
@@ -38,6 +38,7 @@ import {
   STUDY_MAX_BARS,
   axisOf,
   conceptOf,
+  stripToParts,
   studyBars,
   validateStudy,
   type Concept,
@@ -62,6 +63,11 @@ program
   .option("--mood <text>", 'scene words the shared context is built from, e.g. "dusty standoff"')
   .option("--palette <slug>", "emotion palette (default: best match for --mood)")
   .option("--with <csv>", "extra palette slugs to layer, e.g. spaghetti-western,analog-synth", "")
+  .option(
+    "--only <csv>",
+    "strip every attempt to these instruments, e.g. bass,lead — the parts the axis is about",
+    "",
+  )
   .option("--set <slug>", "name for this set of attempts (default: derived from the mood)")
   .option("--n <count>", `attempts to write`, String(DEFAULT_N))
   .option("--seed <text>", "extra entropy for a different shared context", "")
@@ -76,6 +82,7 @@ const opts = program.opts<{
   mood?: string;
   palette?: string;
   with: string;
+  only: string;
   set?: string;
   n: string;
   seed: string;
@@ -97,6 +104,7 @@ const concept = requireConcept(opts.concept);
 const axis = requireAxis(concept, opts.axis);
 const mood = requireMood(opts.mood);
 const count = requireCount(opts.n);
+const only = requireParts(opts.only);
 
 const set = (opts.set ?? slugify(mood)).trim();
 if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(set)) {
@@ -182,12 +190,22 @@ report();
  */
 function compose(variant: string, index: number): Composition {
   const knobs = knobsFor(variant);
-  return composeFromBlend(direction, mood, {
+  const full = composeFromBlend(direction, mood, {
     seed: `study|${set}|${opts.seed}`,
     name: `study-${concept.slug}-${set}-${LETTERS[index]}`,
     knobs,
     form: "sample",
   });
+  // Stripped *after* composing, not by asking the palette for fewer parts: the
+  // arrangement the palette would really write is the context the verdict has to
+  // hold for, and only the tracks that are not the question get taken away.
+  const stripped = stripToParts(full, only);
+  if (stripped.tracks.length === 0) {
+    const had = [...new Set(full.tracks.map((t) => t.instrument))].join(", ");
+    console.error(`--only ${only.join(",")} left no tracks — this blend writes: ${had}`);
+    process.exit(1);
+  }
+  return stripped;
 }
 
 /** The knob override this variant stands for. Written axes override nothing. */
@@ -312,6 +330,21 @@ function requireMood(text: string | undefined): string {
   return text.trim();
 }
 
+/**
+ * The instruments to keep. Empty means keep everything, which is the old
+ * behaviour and rarely the right one — a study heard against a full arrangement
+ * is a study whose axis the ear has to go looking for.
+ */
+function requireParts(raw: string): InstrumentName[] {
+  const names = raw.split(",").map((s) => s.trim()).filter(Boolean);
+  const unknown = names.filter((name) => !INSTRUMENT_NAMES.includes(name as InstrumentName));
+  if (unknown.length > 0) {
+    console.error(`--only: unknown instrument(s) ${unknown.join(", ")}. Known: ${INSTRUMENT_NAMES.join(", ")}`);
+    process.exit(2);
+  }
+  return names as InstrumentName[];
+}
+
 function requireCount(raw: string): number {
   const n = Number(raw);
   if (!Number.isInteger(n) || n < 2 || n > LETTERS.length) {
@@ -337,6 +370,14 @@ function report(): void {
   console.log(`\nWrote ${written.length} attempt(s) to studies/${concept.slug}/:`);
   for (const id of written) console.log(`  · ${id}`);
   console.log(`\nSet "${set}" · concept ${concept.slug} · axis ${axis.name} (${axis.kind})`);
+  if (only.length > 0) {
+    console.log(`Stripped to: ${only.join(", ")}`);
+  } else {
+    console.warn(
+      `  ! Full arrangement. A study heard against six parts is one whose axis is hard to\n` +
+        `    pick out — pass --only <instruments> with the parts the question is about.`,
+    );
+  }
 
   if (axis.kind === "written") {
     console.log(

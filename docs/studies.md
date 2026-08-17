@@ -2,7 +2,7 @@
 title: Studies — deciding how to approach a musical concept
 purpose: The third bench and its loop. How a set of attempts is fanned out, judged, and turned into a taste rule. Read before running study:new.
 audience: [claude, human]
-updated: 2026-08-15
+updated: 2026-08-16
 read_order: 11
 see_also: [taste.md, hooks.md, variety.md, voices.md]
 status: living
@@ -42,9 +42,9 @@ from it, so nothing but the axis *can* move.
 npm run study:new -- --concepts        # ~35 concepts, grouped
 npm run study:new -- --axes            # what a set may differ on
 
-# 2. fan out a set
+# 2. fan out a set — --only strips it to the parts the question is about
 npm run study:new -- --concept chorus-lift --axis register \
-  --mood "storm breaks over the ridge" --with desert-rock
+  --mood "storm breaks over the ridge" --with desert-rock --only bass,pluck,lead
 
 # 3. render it (studies are ~9 bars, so a set costs about one segment)
 npm run study:render -- --set chorus-lift/storm-breaks-over
@@ -86,6 +86,29 @@ down anywhere. `--include-unjudged` overrides that; `--yes` performs the delete.
 Unlike a composition, which is moved into `compositions/_trash/`, this is a real
 `rm`. The asymmetry is deliberate: a composition is the work and cannot be
 regenerated, a study can be.
+
+## Strip it to the question
+
+`--only <instruments>` keeps the first track of each instrument named and drops
+everything else. **Use it on every set.** A palette writes the arrangement it
+would really write — drums, pad, a rhythm comp, an arpeggio doubling it, a lead
+— and against six parts an axis is something the ear has to go hunting for
+rather than something it notices.
+
+The failure is not hypothetical and it is not a thumbs-down: a set fanned out at
+full density comes back with *every attempt approved and not one tag*, because
+each one sounded fine and none of them sounded different. That is eight renders
+and a listening session spent to learn nothing, and it is indistinguishable in
+the ledger from a genuine "all of these work".
+
+Three or four tracks is the target: the part the axis moves, whatever it has to
+relate to, and one harmonic anchor so the interval quality is audible. Drums and
+pad go unless they *are* the question. A set that needs two of one instrument
+adds the second as its varying part, which is why `--only` keeps just the first
+of each.
+
+Then say, in the handoff, what to listen for in each attempt. The bench shows
+the `approach` line; make it the sentence that tells the ear where to point.
 
 ## Knob axes and written axes
 
@@ -158,16 +181,19 @@ before the evidence is thrown away.
    only by hand-editing two things in one file.
 2. **Short.** Nine bars, the composer's `sample` form. A study you don't want to
    hear twice teaches nothing about a piece you would hear ten times.
-3. **Tag every verdict.** An untagged thumb is a preference that cannot be
+3. **Sparse.** `--only` down to the parts the axis is about. An attempt whose
+   difference is inaudible under the arrangement is an attempt that gets thumbed
+   on nothing.
+4. **Tag every verdict.** An untagged thumb is a preference that cannot be
    counted with any other.
-4. **Never edit the ledger.** The JSON is the source of truth; a hand edit there
+5. **Never edit the ledger.** The JSON is the source of truth; a hand edit there
    becomes a second one.
-5. **Re-judging replaces.** A study can be thumbed again and the new verdict
+6. **Re-judging replaces.** A study can be thumbed again and the new verdict
    overwrites the old — "what I think now" is the only useful reading of a taste
    record.
-6. **Distil, then delete.** A set that has produced its rule gets torn down with
+7. **Distil, then delete.** A set that has produced its rule gets torn down with
    `study:clean`. Leaving it invites a second verdict on a settled question.
-7. **A rule must survive its study.** No ids, no set names, no filenames in
+8. **A rule must survive its study.** No ids, no set names, no filenames in
    `taste.md` — the files it came from will not exist.
 
 ## Reading it back
