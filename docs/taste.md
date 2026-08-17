@@ -2,7 +2,7 @@
 title: Taste — the rules derived from judged studies
 purpose: What this listener actually likes, stated as rules to compose by. Read at step 3, with hooks.md. Self-contained — the studies behind it are deleted once distilled.
 audience: [claude, human]
-updated: 2026-08-16
+updated: 2026-08-17
 read_order: 12
 see_also: [studies.md, hooks.md, variety.md]
 status: living
@@ -63,6 +63,68 @@ preference used to offer.
 against two, only two leads against each other. The nearest evidence is from the
 rhythm parts, where the single unlayered part lost outright — see the layering
 rule below.
+
+### Give a theme one interval, and open every phrase with it
+
+Pick a single interval before writing notes and make it the first move of every
+phrase in the piece — the same leap, from whatever degree the phrase starts on,
+followed by a stepwise walk back down through the gap it opened. Sequencing the
+*interval* rather than the *notes* lets the tune climb across a piece while
+staying the same tune, which is what makes it recognisable at half speed under
+something else. State it once with nothing accompanying it before any
+accompaniment exists; a signature that first appears inside an arrangement is
+heard as a melody, not as a signature.
+
+**From:** a three-way direction pick on one theme — one listener, one sitting,
+not a study. Three pieces were written to be catchy by three different
+mechanisms: a singable chant cell, a riff-shaped rhythmic fingerprint, and a
+fixed melodic interval. The interval won on the melody outright, and won before
+it had any arrangement on it at all. **Unevidenced** as a general rule: the three
+were not held equal on anything else, so this records which mechanism this
+listener reached for, not that it beats the others on equal terms.
+
+### A driving ostinato needs an arc — enter late, stop dead, come back
+
+An ostinato that runs from bar one is a texture and stops being heard by bar
+eight. Give it three events instead: it **enters** partway in, under material the
+listener has already heard without it, so its arrival is the moment the piece
+changes character; it **stops dead** at the hole rather than thinning out; and it
+**returns** at full weight for the peak. One asymmetric cell repeated — 3+3+2
+sixteenths is the one that worked here — carries the whole thing, so the drive is
+a fingerprint rather than busyness.
+
+**From:** stated directly, from one accepted revision. It is the same mechanic as
+the negative-space rule below, applied to a part rather than to a section: what
+made the drive land was the two bars it was absent, not the bars it played.
+**Unevidenced** — no set has varied where an ostinato enters.
+
+### Put heavy layers under an orchestra, not beside it
+
+When a piece wants weight rather than a genre change, a distorted bass, a
+palm-muted rhythm guitar and a rock kit can double an existing orchestral figure
+at roughly a third of the gain the orchestra is carrying — around `0.2`–`0.35`
+against `0.6`–`0.8`. They should be doing the same rhythm as the low strings, not
+a part of their own. Restrict them to the loudest section: heavy layers present
+from the start make the piece a metal piece, and then the orchestra is the thing
+sitting on top of someone else's arrangement.
+
+**From:** stated directly, from one accepted revision — asked for as "a little
+metal oomph, but a bigger orchestral drive", which is the distinction the rule
+encodes. **Unevidenced.**
+
+### Pay a minor piece off in major for one bar, then take it back
+
+For a theme that wants to end unresolved without ending sad, give it a single bar
+of the parallel major at full arrangement — the tune landing on the natural third
+— and then drop straight back to minor with most of the arrangement gone. The
+major bar has to be a real payoff, the biggest hit in the piece, or the removal
+reads as the piece merely stopping. This is different from a picardy ending,
+which resolves and stays resolved; here the resolution is offered and withdrawn,
+and the last phrase is left hanging on a degree that isn't the tonic.
+
+**From:** stated directly. **Unevidenced** — one piece, and it was written for a
+brief about belonging nowhere, so how much of the verdict is the device and how
+much is the subject is untested.
 
 ## Derived rules
 

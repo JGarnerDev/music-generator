@@ -27,3 +27,6 @@ public/audio/voices/*.wav
 public/audio/voices/*.mp3
 
 tasks/
+compositions/
+manifest/
+public/*/**
