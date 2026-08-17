@@ -94,9 +94,17 @@ async function main(): Promise<void> {
   mkdirSync(OUT_DIR, { recursive: true });
   const previous = readPreviousManifest();
   const { queue, skipped } = plan(files, previous);
-  if (queue.length === 0 && skipped.length === 0) {
-    console.log("Everything is already rendered. Pass --force to render it again.");
-    return;
+  if (queue.length === 0) {
+    const nothingWrong = skipped.length === 0;
+    if (nothingWrong) {
+      console.log("Everything is already rendered. Pass --force to render it again.");
+    }
+    // Reconcile even with nothing to render: the manifest is a description of
+    // what is on disk, and an MP3 deleted by hand (a torn-down study, a losing
+    // direction) otherwise leaves a row behind that the bench offers to play and
+    // then 404s on. Returning early here was that bug.
+    writeManifest(previous, []);
+    if (nothingWrong) return;
   }
 
   let crash: Error | null = null;

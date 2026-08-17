@@ -1,6 +1,22 @@
 {
   "entries": [
     {
+      "name": "redwater-tavern-raid",
+      "file": "redwater-tavern-raid.mp3",
+      "seconds": 120.76733333333334,
+      "bytes": 2415840,
+      "isLoop": false,
+      "renderedAt": "2026-08-17T04:51:54.830Z"
+    },
+    {
+      "name": "redwater-tavern-raid.loop",
+      "file": "redwater-tavern-raid.loop.mp3",
+      "seconds": 103.78379166666667,
+      "bytes": 2076480,
+      "isLoop": true,
+      "renderedAt": "2026-08-17T04:51:14.266Z"
+    },
+    {
       "name": "redwater-unhoming",
       "file": "redwater-unhoming.mp3",
       "seconds": 14,

@@ -63,6 +63,11 @@ way:
 - **The manifest is written in a `finally`** and merged against what is actually
   on disk. A full library is tens of minutes of rendering; a crash must not
   erase the record of what already succeeded. Re-running skips finished work.
+- **A run with nothing to render still rewrites the manifest.** It is a
+  description of the audio directory, so a deleted MP3 — a torn-down study, a
+  losing direction — has to lose its row too, or the bench offers to play a file
+  that isn't there. So `npm run render -- --file <path>` with no `--force` is the
+  way to reconcile the manifest after deleting audio by hand.
 
 ## Speed, measured
 
