@@ -32,7 +32,7 @@ import {
   noteFramesToTime,
   outputToNotesPoly,
 } from "@spotify/basic-pitch";
-import { decodeWav } from "../src/utils/wav";
+import { decodeWav, isRiffWave, type PcmAudio } from "../src/utils/wav";
 import { downmixToMono, resample } from "../src/utils/resample";
 import { COMMON_TIME, type Meter } from "../src/utils/timing";
 import {
@@ -263,17 +263,39 @@ async function runDetector(): Promise<DetectedNote[]> {
   }));
 }
 
-/** Decode the WAV to the one thing the model accepts: mono, 22050 Hz, floats. */
+/**
+ * Decode the WAV to the one thing the model accepts: mono, 22050 Hz, floats.
+ *
+ * The two ways this fails need different advice, so they are told apart rather
+ * than reported as one "could not read" — a wrong container is a conversion and a
+ * wrong codec is a re-export, and neither is guessable from "not a RIFF/WAVE file".
+ */
 function readAudio(): Float32Array {
-  let audio;
-  try {
-    audio = decodeWav(readFileSync(wavPath));
-  } catch (err) {
-    fail(`could not read ${opts.file}: ${(err as Error).message}`);
-  }
+  const audio = decodeTake();
   const mono = downmixToMono(audio.channels);
   if (mono.length === 0) fail(`${opts.file} contains no audio`);
   return resample(mono, audio.sampleRate, MODEL_SAMPLE_RATE);
+}
+
+/** The recording, decoded — shared by the detector and by the bench copy. */
+function decodeTake(): PcmAudio {
+  const bytes = readFileSync(wavPath);
+  const stem = opts.file.replace(/\.[^.]*$/, "");
+  if (!isRiffWave(bytes)) {
+    fail(
+      `${opts.file} is not a WAV. Only RIFF/WAVE is decoded here — there is no mp3, m4a, FLAC or AIFF reader.\n` +
+        `Convert it first:\n  ffmpeg -i ${opts.file} -c:a pcm_s16le ${stem}.wav`,
+    );
+  }
+  try {
+    return decodeWav(bytes);
+  } catch (err) {
+    fail(
+      `could not read ${opts.file}: ${(err as Error).message}\n` +
+        "It is a WAV, but not one of the encodings this reads: PCM at 8/16/24/32-bit, or float at 32/64-bit.\n" +
+        `Re-export it as plain PCM:\n  ffmpeg -i ${opts.file} -c:a pcm_s16le ${stem}-pcm.wav`,
+    );
+  }
 }
 
 /**
@@ -444,7 +466,7 @@ function confirm(plan: EmitPlan): void {
  * fidelity, and a 30 MB WAV in `public/` would be committed forever.
  */
 function copyTakeToBench(plan: EmitPlan): void {
-  const audio = decodeWav(readFileSync(wavPath));
+  const audio = decodeTake();
   // Lame only accepts a fixed set of rates, and takes off a phone or an interface
   // land on all sorts. Anything unexpected is resampled rather than refused.
   const rate = LAME_RATES.has(audio.sampleRate) ? audio.sampleRate : 44100;

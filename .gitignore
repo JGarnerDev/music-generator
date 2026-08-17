@@ -12,6 +12,11 @@ assets/samples/*
 
 # Guitar takes are large, personal, and not the source of truth — the transcription
 # they produce is. Keep the folder and its capture rules; drop the audio.
+#
+# Only .wav can actually be transcribed (see recordings/readme.md). The other
+# formats are listed because a take *arrives* as one — a phone memo dropped in
+# here on the way to being converted is exactly the large binary this is for, and
+# it should not be committed while it waits.
 recordings/**/*.wav
 recordings/**/*.aiff
 recordings/**/*.aif

@@ -175,6 +175,12 @@ loop.
 - **Name chords.** Simultaneous notes survive as simultaneous notes, but nothing
   here calls them a chord. Detected voicings are too mushy to trust, and a wrong
   chord symbol is worse than none.
+- **Read anything but a WAV.** RIFF/WAVE only — no mp3, m4a, FLAC or AIFF
+  decoder. Inside the container, PCM at 8/16/24/32-bit and float at 32/64-bit all
+  work, at any sample rate and channel count; compressed WAVs (ADPCM, µ-law) do
+  not. Both failures print the `ffmpeg` line that fixes them, and they are told
+  apart on purpose: the wrong container is a conversion, the wrong codec is a
+  re-export.
 - **Rescue a bad take.** Reverb, delay, heavy distortion and ringing open strings
   all read as extra notes. The take's job is not to sound good, it is to be
   *legible*.

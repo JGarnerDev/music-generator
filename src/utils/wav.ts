@@ -54,6 +54,24 @@ export function encodeWav(audio: PcmAudio): Uint8Array<ArrayBuffer> {
 }
 
 /**
+ * Is this a RIFF/WAVE container at all?
+ *
+ * Separate from `decodeWav` because the two failures need different advice: a
+ * file that isn't RIFF is an mp3 or an m4a and has to be converted, while a WAV
+ * we can't read is a codec problem and has to be re-exported as PCM. Both throw
+ * the same kind of error from a decoder, and "not a RIFF/WAVE file" tells nobody
+ * what to do next.
+ *
+ * Header sniffing rather than a file extension: the extension is a claim, and a
+ * take exported by a phone is as likely to be misnamed as not.
+ */
+export function isRiffWave(bytes: Uint8Array): boolean {
+  if (bytes.byteLength < 12) return false;
+  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  return readAscii(view, 0, 4) === "RIFF" && readAscii(view, 8, 4) === "WAVE";
+}
+
+/**
  * Decode a WAV file to channel data.
  *
  * Accepts what a recording actually arrives as rather than only what we write:
@@ -67,10 +85,8 @@ export function encodeWav(audio: PcmAudio): Uint8Array<ArrayBuffer> {
  * what most 24-bit recorders write.
  */
 export function decodeWav(bytes: Uint8Array): PcmAudio {
+  if (!isRiffWave(bytes)) throw new Error("decodeWav: not a RIFF/WAVE file");
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
-  if (bytes.byteLength < 12 || readAscii(view, 0, 4) !== "RIFF" || readAscii(view, 8, 4) !== "WAVE") {
-    throw new Error("decodeWav: not a RIFF/WAVE file");
-  }
 
   let format = 0;
   let numChannels = 0;

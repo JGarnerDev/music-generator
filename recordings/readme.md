@@ -9,6 +9,17 @@ status: living
 
 # Recordings
 
+**WAV only.** There is no mp3, m4a, FLAC or AIFF reader here — a phone voice memo
+has to be converted before it can be transcribed:
+
+```bash
+ffmpeg -i take.m4a -c:a pcm_s16le recordings/limping-waltz-hook.wav
+```
+
+Inside the WAV, anything a recorder normally writes decodes: PCM at 8, 16, 24 or
+32-bit, or float at 32 or 64-bit, any sample rate, any channel count. Compressed
+WAVs (ADPCM, µ-law) do not — re-export as plain PCM with the same command.
+
 Drop guitar takes here as `<idea-slug>.wav`, then:
 
 ```bash

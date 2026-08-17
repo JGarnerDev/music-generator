@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { decodeWav, encodeWav } from "./wav";
+import { decodeWav, encodeWav, isRiffWave } from "./wav";
 
 function ascii(bytes: Uint8Array, start: number, len: number): string {
   return String.fromCharCode(...bytes.slice(start, start + len));
@@ -101,6 +101,26 @@ function buildWav(opts: {
   }
   return bytes;
 }
+
+describe("isRiffWave", () => {
+  it("recognises a file we wrote ourselves", () => {
+    expect(isRiffWave(encodeWav({ sampleRate: 44100, channels: [Float32Array.from([0, 0.5])] }))).toBe(true);
+  });
+
+  it("rejects the containers a phone or a DAW hands over instead", () => {
+    // An m4a starts with an ftyp box, an mp3 with an ID3 tag or a frame sync.
+    expect(isRiffWave(Uint8Array.from([0, 0, 0, 32, 0x66, 0x74, 0x79, 0x70, 0x4d, 0x34, 0x41, 0x20]))).toBe(false);
+    expect(isRiffWave(Uint8Array.from([0x49, 0x44, 0x33, 4, 0, 0, 0, 0, 0, 0, 0, 0]))).toBe(false);
+    expect(isRiffWave(Uint8Array.from([0x66, 0x4c, 0x61, 0x43, 0, 0, 0, 34, 0, 0, 0, 0]))).toBe(false); // fLaC
+  });
+
+  it("rejects a RIFF that is not a WAVE, and anything too short to tell", () => {
+    const avi = Uint8Array.from([0x52, 0x49, 0x46, 0x46, 0, 0, 0, 0, 0x41, 0x56, 0x49, 0x20]);
+    expect(isRiffWave(avi)).toBe(false);
+    expect(isRiffWave(Uint8Array.from([0x52, 0x49, 0x46, 0x46]))).toBe(false);
+    expect(isRiffWave(new Uint8Array(0))).toBe(false);
+  });
+});
 
 describe("decodeWav", () => {
   it("round-trips what encodeWav wrote", () => {
