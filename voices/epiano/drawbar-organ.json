@@ -1,0 +1,62 @@
+{
+  "instrument": "epiano",
+  "slug": "drawbar-organ",
+  "title": "Drawbar organ",
+  "status": "approved",
+  "tags": [
+    "organ",
+    "hammond",
+    "drawbar",
+    "leslie",
+    "chorale",
+    "gospel",
+    "soul",
+    "comping"
+  ],
+  "notes": "A tonewheel organ with no amplifier in front of it — the comping and bed half of the pair whose loud half is `lead/lord-organ`. Filed as `epiano` because it is an electric keyboard playing harmony, and because `epiano` is not allowed an `amp` block, which is exactly the difference being drawn.\n\n**It is the only keyboard here that holds a note.** `fm-rhodes` blooms and decays, `wurlitzer-reed` sits and decays, `felt-hammer` whispers and decays, `music-box` rings and decays, `clav-comb` is over in a fifth of a second. Every one of them is struck. So a keyboard part that had to *hold* a chord for four bars had to be handed to a `pad`, and a pad swells — it arrives late and it can never state a chord on the beat. This voice has an attack **and** unity sustain, which is a combination nothing else on the shelf offers: sustain 1.0, decay 0.01, and a 50 ms release, because a key on a busbar is a switch and not a hammer.\n\n**Square, and `synth` rather than `mono`.** The parent is a sawtooth into a fast filter envelope, modelling a bright string being shut off; there is nothing to shut off here. A drawbar registration is a fixed additive spectrum, so the filter and its envelope are deleted outright rather than slowed down — a tonewheel note is spectrally identical in its third second and its first millisecond, and any filter movement at all is heard as a synthesiser doing an impression. Square rather than the saw of `lord-organ` because this is the hollow classic registration (8' and 2⅔', odd harmonics) rather than all nine drawbars pulled: the two organs are meant to be tellable apart with no distortion to hide behind, and a waveform difference is the one separation the lo-fi chain cannot erode.\n\n**The Leslie is on chorale, and that is one block, not two.** `vibrato` at 0.9 Hz, depth 0.12 — the slow rotor, where `lord-organ` runs the fast one at 6.6 Hz with an amplitude `tremolo` beside it. Slow is not merely a smaller number: at chorale speed the level swing is barely audible and the pitch drift is the whole effect, which is also why the `tremolo` block is absent here (it cannot go below 2 strokes a second, and correctly so — at 0.9 it would not be a tremolo).\n\n**`breath` is the key click, at half the parent's level.** 3.6 kHz, 0.045, 2 ms follower. Same mechanism as the clavinet's tangent noise and a third of its importance: with no amp to compress it, a click as loud as the clav's reads as a fault rather than as an instrument. Take it out entirely and every chord starts from nowhere, which is the sound of a cheap organ patch.\n\n**`body` is a wooden cabinet.** The parent's −6 dB at 200 Hz is inverted: a Hammond has a genuine low end and a large box around it, so 260 Hz is lifted instead. The peak at 900 Hz and the cut at 4.2 kHz are what a rotary cabinet's small horn does to the top — without something taking the top off, an undriven square wave is a buzzer.",
+  "synth": {
+    "kind": "synth",
+    "oscillator": {
+      "type": "square"
+    },
+    "envelope": {
+      "attack": 0.004,
+      "decay": 0.01,
+      "sustain": 1,
+      "release": 0.05
+    },
+    "maxPolyphony": 8
+  },
+  "vibrato": {
+    "rate": 0.9,
+    "depth": 0.12,
+    "drift": 0.05
+  },
+  "body": [
+    {
+      "frequency": 260,
+      "q": 1,
+      "gain": 3
+    },
+    {
+      "frequency": 900,
+      "q": 1.8,
+      "gain": 4
+    },
+    {
+      "frequency": 4200,
+      "q": 0.9,
+      "gain": -8
+    }
+  ],
+  "breath": {
+    "level": 0.045,
+    "hz": 3600,
+    "q": 1.4,
+    "attack": 0.002,
+    "release": 0.03
+  },
+  "forkedFrom": "epiano/clav-comb",
+  "approvedAt": "2026-08-17",
+  "summary": "Tonewheel organ, no amp: an attack plus unity sustain. The only keyboard that states a chord on the beat and holds it, where a pad swells."
+}

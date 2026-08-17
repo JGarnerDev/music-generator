@@ -1,0 +1,97 @@
+{
+  "instrument": "lead",
+  "slug": "lord-organ",
+  "title": "Lord organ",
+  "status": "approved",
+  "tags": [
+    "organ",
+    "hammond",
+    "drawbar",
+    "leslie",
+    "hard-rock",
+    "overdrive",
+    "70s"
+  ],
+  "notes": "A tonewheel organ played through a cranked guitar stack — the Jon Lord sound, and the reason this is a `lead` rather than an `epiano`: it is the top line, it is loud, and it needs the `amp` block, which only `pluck`/`lead`/`bass` are given. An organ with no amp is a different instrument and it is on the shelf as `epiano/drawbar-organ`.\n\n**No filter envelope, and that is the fork.** Every other `lead` here is `mono` with a filter that opens and shuts — a plucked string darkening as it rings, a bow, a wah. A tonewheel organ has no such movement at all: the drawbars are a fixed additive spectrum and a key is a switch onto a busbar, so the note that arrives in millisecond one is spectrally identical to the note in second three. Making this `synth` instead of `mono` is what stops it sounding like a synthesiser imitating an organ, and the entire brightness decision is then handed to the amp, which is exactly where a real one's brightness came from.\n\n**Envelope: 3 ms in, sustain 1.0, 60 ms out.** The only voice on the shelf that sustains at unity. There is no decay stage to speak of (0.01) because there is nothing mechanical to lose energy — the wheel keeps turning whether or not the key is down. The 60 ms release is the busbar breaking contact, and it is short on purpose: an organ chord that fades is a pad, and this instrument's articulation is entirely in when the hands leave the keys.\n\n**`breath` is the key click, not air.** 4.2 kHz, level 0.06, and a 2 ms follower at both ends — the fastest on the shelf. Nine contacts closing on nine busbars a fraction out of step is a broadband tick, and on a real C3 it is the single loudest cue that the instrument is a Hammond rather than a sampled organ. Its absence is what makes cheap organ patches sound like they start from nowhere.\n\n**A Leslie is two modulations, so it uses two blocks.** `vibrato` at 6.6 Hz depth 0.2 is the Doppler shift of a horn swinging toward and away from the microphone; `tremolo` at the same rate with 0.35 depth and 120° of spread is the level change of the same swing, and the spread is the two microphones on opposite sides of the cabinet. Neither alone reads as a rotary speaker — pitch alone is a chorus pedal, level alone is a tremolo pedal. `drift` is deliberately tiny (0.04): the doc's rule that a perfectly regular vibrato is a synth tell is a rule about *hands*, and this rotor is a motor with a mass, so near-constant is the accurate answer rather than the lazy one.\n\n**`body` is the cabinet, not an instrument body.** A bump at 220 Hz for the bass rotor with a notch above it (see the revision below), a strong narrow one at 1.5 kHz for the horn throat, and a cut at 3.6 kHz — a Leslie horn is a physically small compression driver that gives up well before a guitar cab does, and that ceiling is why the sound stays thick under distortion instead of turning to fizz.\n\n**It auditions on the `keys` étude, not the `lead` one.** Ten fingers, and the thing that has to be judged is what a block chord does to the drive — five sawtooth notes into a cranked preamp intermodulate, and whether that reads as a Hammond or as mush is the entire question about this voice. The `lead` étude is a single top line, which is the one thing a Jon Lord part almost never is. Maximum polyphony is 6 so the étude's five-note held ending fits with a voice to spare.\n\n**The amp is a Major, not a lead rig.** Input 2.8 and preamp 0.72, but sag at 3:1 rather than `brown-lead`'s 6:1, because there is nothing to compress into sustain — the note already sustains at unity, and squashing it only removes the key click.\n\n**Weight after the drive, never into it — the revision this voice needed.** The first draft ran `tighten` at 110 Hz on the theory that the low drawbars belong in the preamp, which is the romantic version of what a Major does to an organ. What it actually does is intermodulate: five sawtooth notes with full low end hitting one drive stage produce sum and difference tones that are neither in the chord nor in tune, and a block chord turns to mush while a single line sounds fine. So the lows now come out *before* the preamp (`tighten` 175, higher than `brown-rhythm`'s 170) and the weight is put back *after* it, in the tone stack at **+7 low** — post-drive bass is level, pre-drive bass is distortion. The `body` block does the same trick on a smaller scale: +4 dB at 220 Hz for the Leslie's bass rotor with a −5 dB notch right above it at 330, because 300-ish is where the low-mid pile-up that reads as 'mushy' actually lives, and a hole there costs no headroom.\n\nWidth 0.4 sits between the centred guitar leads and the wide rhythm parts, because the cabinet is a stereo source and collapsing it throws the Leslie away.",
+  "probe": "keys",
+  "synth": {
+    "kind": "synth",
+    "oscillator": {
+      "type": "sawtooth"
+    },
+    "envelope": {
+      "attack": 0.003,
+      "decay": 0.01,
+      "sustain": 1,
+      "release": 0.06
+    },
+    "maxPolyphony": 6
+  },
+  "vibrato": {
+    "rate": 6.6,
+    "depth": 0.2,
+    "drift": 0.04
+  },
+  "tremolo": {
+    "rate": 6.6,
+    "depth": 0.35,
+    "spread": 120
+  },
+  "body": [
+    {
+      "frequency": 220,
+      "q": 1,
+      "gain": 4
+    },
+    {
+      "frequency": 330,
+      "q": 1.6,
+      "gain": -5
+    },
+    {
+      "frequency": 1500,
+      "q": 2.2,
+      "gain": 5
+    },
+    {
+      "frequency": 3600,
+      "q": 1,
+      "gain": -7
+    }
+  ],
+  "breath": {
+    "level": 0.06,
+    "hz": 4200,
+    "q": 1.2,
+    "attack": 0.002,
+    "release": 0.02
+  },
+  "amp": {
+    "input": 2.8,
+    "tighten": 175,
+    "sag": {
+      "threshold": -20,
+      "ratio": 3
+    },
+    "preamp": 0.72,
+    "toneStack": {
+      "low": 7,
+      "mid": 4,
+      "high": 1
+    },
+    "cab": 5000,
+    "presence": {
+      "frequency": 2600,
+      "gain": 4
+    },
+    "width": 0.4,
+    "slap": {
+      "delayTime": 0.09,
+      "wet": 0.05
+    },
+    "sum": 0.75
+  },
+  "forkedFrom": "lead/brown-lead",
+  "approvedAt": "2026-08-17",
+  "summary": "Tonewheel organ through a cranked Marshall — Jon Lord. Distorted, stereo Leslie, loud enough to solo; drawbar-organ is the clean bed."
+}

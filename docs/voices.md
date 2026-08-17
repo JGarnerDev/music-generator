@@ -275,6 +275,21 @@ year and the archive is back where it started.
   not six independent parts.
 - **The kit's levels belong to the voice, not the groove.** A pattern says where
   the hits are; how loud a hat sits under a kick is a property of the kit.
+- **Weight goes after the drive, never into it.** `tighten` is a high-pass
+  *before* the preamp and `toneStack.low` is a shelf *after* it, so "more bass"
+  and "less mush" are the same edit rather than opposing ones: raise `tighten`
+  and raise the low shelf. Low end that reaches a drive stage does not come out
+  as low end — several notes at once intermodulate into sum and difference tones
+  that are in neither the chord nor the key, which is why a voice can sound fine
+  on a single line and turn to porridge on a block chord. A `body` notch around
+  300 Hz cleans up what is left, and costs no headroom.
+- **A voice whose real texture is chords must audition on a chordal étude.** The
+  probe is the only thing anyone hears before approving, so a keyboard filed
+  under `lead` (for the `amp` block) auditioning on the single-line `lead` étude
+  cannot be judged at all — the failure it has is one that only appears when
+  five notes hit the same drive. Set `"probe": "keys"` on the preset *before* the
+  first render. Same rule in the direction [the probe section](#the-probe) states
+  it: match the étude to the part, not to the folder.
 - **Deleting a voice a song names** leaves that song unrenderable with a clear
   error rather than a silent substitution — see `voiceFor` in
   [`src/app/voices.ts`](../src/app/voices.ts). A wrong sound that renders anyway

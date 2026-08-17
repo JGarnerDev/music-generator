@@ -1,0 +1,61 @@
+{
+  "instrument": "lead",
+  "slug": "wood-flute",
+  "title": "Wood flute",
+  "status": "approved",
+  "forkedFrom": "lead/lone-whistle",
+  "tags": [
+    "flute",
+    "wind",
+    "wooden",
+    "breath",
+    "folk",
+    "pastoral",
+    "acoustic"
+  ],
+  "notes": "The only wind on the shelf that is played with two hands. `harmonica-reed` is a reed and `lone-whistle` is a mouth with no instrument at all, so a top line that wanted air rather than string or fuzz had one option and it was a lonely one. This is the pastoral answer: the same near-sine spectrum, but with a tube attached.\n\n**It is `lone-whistle` with a chest, and the chest is the whole fork.** The parent's notes name a deep cut at 600 Hz as the thing that stops it reading as a flute — 'a flute has a chest, a whistle has none at all'. So this inverts exactly that resonance: **+3 dB at 520 Hz** instead of −6 at 600. A wooden tube is a real air column with a real low formant, and putting it back is what turns whistling into an instrument being blown.\n\n**Triangle, not sine.** A flute is close to a sine but not on it — the odd harmonics that survive are what carry through an arrangement, where a pure sine disappears the moment anything else plays. It is the smallest waveform change available and it is the one difference the lo-fi chain cannot erode.\n\n**The breath is louder and wider than the whistle's, and it arrives sooner.** Level 0.13 against 0.09, Q 0.9 against 2.5, centred at 3.8 kHz. The doc's rule is that a narrow band is a whistle and a wide band is air — a whistle's noise is filtered by the same resonance that makes its pitch, while a flute's is a jet of air splitting on a sharp edge, which is broadband and only loosely related to the note. The follower's 12 ms attack (against the parent's 50) is the chiff: on a flute the consonant at the front of the note is audible before the pitch settles, and taking it out is what makes sampled flutes sound like they are fading in.\n\n**Vibrato 5.2 Hz at 0.045, drift 0.35.** Wider than the whistle's 0.03 and steadier — a flautist's vibrato is a trained diaphragm rather than a held cavity, so it is deeper and less wandering. Both of those are hand-shaped, so the drift stays well clear of zero.\n\nEnvelope: 55 ms in, 0.9 sustain, 0.28 out. Faster to speak than the whistle because a hole is uncovered rather than a mouth shaped, but still nothing that could be called struck. Polyphony 2, one player and a seam.",
+  "synth": {
+    "kind": "synth",
+    "oscillator": {
+      "type": "triangle"
+    },
+    "envelope": {
+      "attack": 0.055,
+      "decay": 0.2,
+      "sustain": 0.9,
+      "release": 0.28
+    },
+    "maxPolyphony": 2
+  },
+  "vibrato": {
+    "rate": 5.2,
+    "depth": 0.045,
+    "drift": 0.35
+  },
+  "body": [
+    {
+      "frequency": 520,
+      "q": 0.9,
+      "gain": 3
+    },
+    {
+      "frequency": 1400,
+      "q": 1.4,
+      "gain": 2
+    },
+    {
+      "frequency": 2600,
+      "q": 0.8,
+      "gain": -4
+    }
+  ],
+  "breath": {
+    "level": 0.13,
+    "hz": 3800,
+    "q": 0.9,
+    "attack": 0.012,
+    "release": 0.2
+  },
+  "approvedAt": "2026-08-17",
+  "summary": "Whistle purity with a chest at 520 Hz and loud wide air. The pastoral wind top line — two hands, unlike the harmonica or the whistle."
+}

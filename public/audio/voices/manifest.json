@@ -121,6 +121,14 @@
       "renderedAt": "2026-08-15T03:18:29.209Z"
     },
     {
+      "name": "epiano.drawbar-organ",
+      "file": "epiano.drawbar-organ.mp3",
+      "seconds": 26.857125,
+      "bytes": 538080,
+      "isLoop": false,
+      "renderedAt": "2026-08-17T20:06:31.805Z"
+    },
+    {
       "name": "epiano.fm-rhodes",
       "file": "epiano.fm-rhodes.mp3",
       "seconds": 26.857125,
@@ -135,6 +143,14 @@
       "bytes": 538080,
       "isLoop": false,
       "renderedAt": "2026-08-15T03:18:31.986Z"
+    },
+    {
+      "name": "lead.analog-square",
+      "file": "lead.analog-square.mp3",
+      "seconds": 22.461520833333335,
+      "bytes": 449760,
+      "isLoop": false,
+      "renderedAt": "2026-08-17T20:06:40.027Z"
     },
     {
       "name": "lead.brown-lead",
@@ -185,6 +201,14 @@
       "renderedAt": "2026-08-14T17:23:37.607Z"
     },
     {
+      "name": "lead.lord-organ",
+      "file": "lead.lord-organ.mp3",
+      "seconds": 26.857125,
+      "bytes": 538080,
+      "isLoop": false,
+      "renderedAt": "2026-08-17T20:13:59.502Z"
+    },
+    {
       "name": "lead.soprano-wordless",
       "file": "lead.soprano-wordless.mp3",
       "seconds": 22.461520833333335,
@@ -207,6 +231,14 @@
       "bytes": 449760,
       "isLoop": false,
       "renderedAt": "2026-08-14T16:54:04.329Z"
+    },
+    {
+      "name": "lead.wood-flute",
+      "file": "lead.wood-flute.mp3",
+      "seconds": 22.461520833333335,
+      "bytes": 449760,
+      "isLoop": false,
+      "renderedAt": "2026-08-17T20:06:48.331Z"
     },
     {
       "name": "pad.mens-choir",
@@ -319,6 +351,14 @@
       "bytes": 538080,
       "isLoop": false,
       "renderedAt": "2026-08-15T03:42:38.407Z"
+    },
+    {
+      "name": "pluck.synth-arp",
+      "file": "pluck.synth-arp.mp3",
+      "seconds": 22.461520833333335,
+      "bytes": 449760,
+      "isLoop": false,
+      "renderedAt": "2026-08-17T20:06:56.664Z"
     }
   ]
 }

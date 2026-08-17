@@ -2,7 +2,7 @@
 title: Approved voices
 purpose: Index of the instrument sounds we kept — read this before choosing voices for a new piece.
 audience: [claude, human]
-updated: 2026-08-15
+updated: 2026-08-17
 generated_by: npm run voice:approve
 ---
 
@@ -34,6 +34,7 @@ Electric piano — FM bell in the attack, warm body. The lo-fi default.
 | voice | tags | when to pick it |
 | --- | --- | --- |
 | [`epiano/clav-comb`](./epiano/clav-comb.json) | clavinet funk percussive bite short groove rhythm | Subtractive rather than FM, and the shortest release on the shelf. The only keys voice that is a rhythm instrument: funk and clav parts. |
+| [`epiano/drawbar-organ`](./epiano/drawbar-organ.json) | organ hammond drawbar leslie chorale gospel soul comping | Tonewheel organ, no amp: an attack plus unity sustain. The only keyboard that states a chord on the beat and holds it, where a pad swells. |
 | [`epiano/fm-rhodes`](./epiano/fm-rhodes.json) **default** | warm bell lo-fi | Two-operator FM Rhodes — bell in the attack over a body that decays out of the way. The lo-fi electric piano. |
 | [`epiano/wurlitzer-reed`](./epiano/wurlitzer-reed.json) | wurlitzer reed bark hollow soul blues lofi | The reed instead of fm-rhodes's tine: harmonicity 1, index 11, scooped middle. Soul and blues, where the Rhodes is too polite. |
 
@@ -75,6 +76,7 @@ Rhythm guitar: tight, fast-decaying, wide, low in the mix.
 | [`pluck/nylon-arpeggio`](./pluck/nylon-arpeggio.json) | guitar nylon classical spanish spaghetti-western arpeggio fingerstyle | Nylon-string classical guitar, no amp. The fingerpicked arpeggio bed for a western or Spanish cue while the twang rests. |
 | [`pluck/sitar-jawari`](./pluck/sitar-jawari.json) | sitar plucked buzz drone raga indian | A plucked string whose brightness never collapses — jawari buzz, no amp. Drone and raga colour, unlike any guitar here. |
 | [`pluck/steel-strum`](./pluck/steel-strum.json) | guitar steel-string acoustic dreadnought folk strum country flatpick | Steel-string dreadnought strummed: rings twice as long as the nylon, with the bridge hill it lacks. Folk, country, singer-songwriter. |
+| [`pluck/synth-arp`](./pluck/synth-arp.json) | synth arp sequenced house techno electronic sixteenths acid | Sequenced arp, amp deleted: 80 ms release keeps sixteenths separate, Q4 resonance sings over each step. House and techno. |
 
 ## lead
 
@@ -82,15 +84,18 @@ Top line guitar: compressed into sustain, mid-forward, centred, loud.
 
 | voice | tags | when to pick it |
 | --- | --- | --- |
+| [`lead/analog-square`](./lead/analog-square.json) | synth lead square analog acid house techno electronic | Square synth lead with no body, breath or vibrato at all. The machine top line for the club kits; every other lead is a player in a room. |
 | [`lead/brown-lead`](./lead/brown-lead.json) **default** | guitar lead sustain brown-sound | Compressed brown-sound solo tone: held notes sing instead of decaying, mid-forward and centred. The default rock lead. |
 | [`lead/deguello-trumpet`](./lead/deguello-trumpet.json) | trumpet brass mariachi spaghetti-western solo blare | Lone mariachi trumpet that gets brighter as it gets louder. The funeral-march top line over a western cue. |
 | [`lead/desert-twang`](./lead/desert-twang.json) | guitar lead twang surf spaghetti-western clean slapback | Bright clean single-coil twang drowning in slapback. The hard-picked surf/western hook — brown-lead inverted. |
 | [`lead/doom-fuzz`](./lead/doom-fuzz.json) | guitar lead fuzz doom sustain | Chainsaw fuzz where one note reads as a power chord. Doom and stoner leads; sits over pluck/chainsaw-chug. |
 | [`lead/harmonica-reed`](./lead/harmonica-reed.json) | harmonica harp reed spaghetti-western wail dust | Wailing cupped harmonica, rasp under 3 kHz. One held note over an empty station — the western that answers a man. |
 | [`lead/lone-whistle`](./lead/lone-whistle.json) | whistle human spaghetti-western lonely solo sine | A man whistling the tune — near-pure sine, no instrument at all. The loneliest top line in the palette. |
+| [`lead/lord-organ`](./lead/lord-organ.json) | organ hammond drawbar leslie hard-rock overdrive 70s | Tonewheel organ through a cranked Marshall — Jon Lord. Distorted, stereo Leslie, loud enough to solo; drawbar-organ is the clean bed. |
 | [`lead/soprano-wordless`](./lead/soprano-wordless.json) | voice soprano wordless spaghetti-western ecstasy soaring | Soaring wordless soprano built on formants. The line that turns a western cue into ecstasy; nothing goes above it. |
 | [`lead/string-section`](./lead/string-section.json) | strings violins section bowed unison spaghetti-western tutti | Six violins taking the tune in unison — the tutti line when a cue stops being a whistle and becomes a film. Expensive. |
 | [`lead/violin-arco`](./lead/violin-arco.json) | violin strings bowed arco solo singing | Solo bowed violin, no amp, sustain from the bow rather than a compressor. The singing top line when a guitar would be wrong. |
+| [`lead/wood-flute`](./lead/wood-flute.json) | flute wind wooden breath folk pastoral acoustic | Whistle purity with a chest at 520 Hz and loud wide air. The pastoral wind top line — two hands, unlike the harmonica or the whistle. |
 
 ## drums
 
@@ -116,6 +121,7 @@ piano/soft-triangle
   piano/music-box
 epiano/fm-rhodes
   epiano/clav-comb
+    epiano/drawbar-organ
   epiano/wurlitzer-reed
 pad/sine-halo
   pad/mens-choir
@@ -135,13 +141,17 @@ pluck/brown-rhythm
     pluck/mandolin-tremolo
     pluck/steel-strum
   pluck/sitar-jawari
+  pluck/synth-arp
 lead/brown-lead
   lead/desert-twang
   lead/doom-fuzz
+  lead/lord-organ
   lead/violin-arco
     lead/deguello-trumpet
     lead/harmonica-reed
     lead/lone-whistle
+      lead/analog-square
+      lead/wood-flute
     lead/soprano-wordless
     lead/string-section
 drums/house-kit

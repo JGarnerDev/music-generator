@@ -1,0 +1,49 @@
+{
+  "instrument": "lead",
+  "slug": "analog-square",
+  "title": "Analog square lead",
+  "status": "approved",
+  "forkedFrom": "lead/lone-whistle",
+  "tags": [
+    "synth",
+    "lead",
+    "square",
+    "analog",
+    "acid",
+    "house",
+    "techno",
+    "electronic"
+  ],
+  "notes": "The machine top line. The shelf's nine leads are six guitars and three acoustic soloists, so the club kits (`drums/club-kit`, `drums/machine-808`) and the machine low end (`bass/moog-sub`) had nothing above them that belonged to the same record — every available melody voice was a player in a room. This is the missing half: `moog-sub`'s argument, an octave and a half up and pointed at the tune.\n\n**No `body`, no `breath`, no `vibrato`, and that is the design.** Those three blocks exist to say *a physical object made this*, and nothing did. Forked from `lone-whistle` — the purest thing on the shelf — precisely so all three could be deleted rather than tuned down: the whistle is a mouth and this is a voltage, and half-modelling a mouth is what makes a synth lead sound like a bad flute. Perfectly stationary pitch is normally the loudest synth tell there is; here it is the point, and the only irregularity in the sound is the 12 cents between the two oscillators.\n\n**`fatsquare`, not saw.** The hollow odd-harmonic spectrum is the same choice `moog-sub` makes and for the same reason — it leaves the even harmonics free, which is where a saw lead and a distorted guitar collide. Two oscillators at 12 cents, because two perfectly-tuned oscillators sum to one oscillator. Not more: this is one synthesiser, not a section, and a wide supersaw spread would put it in the pad's territory.\n\n**A resonant filter envelope is the articulation.** `-24 dB` rolloff with Q at 3 — steeper and more resonant than any guitar voice here, which all sit under 1.5. Base 300 Hz opening 3.6 octaves, decaying to a 0.4 sustain in 250 ms: every note has a downward sweep in it, which is the sound of a sequenced line rather than a played one. Turn the sustain up and it flattens into an organ; take the Q past about 5 and each note whistles its own cutoff pitch over the tune.\n\n**No amp.** Not an omission — the amp's fixed power stage grits everything it touches, and grit here reads as a broken speaker rather than as drive. If this ever wants dirt it should get it from the composition's own chain, not from a guitar rig.\n\nPolyphony 3: two for the twin-lead thirds this repo writes by default, one spare so a phrase can overlap itself at the seam.",
+  "synth": {
+    "kind": "mono",
+    "oscillator": {
+      "type": "fatsquare",
+      "count": 2,
+      "spread": 12
+    },
+    "envelope": {
+      "attack": 0.006,
+      "decay": 0.2,
+      "sustain": 0.7,
+      "release": 0.15
+    },
+    "filter": {
+      "type": "lowpass",
+      "rolloff": -24,
+      "Q": 3
+    },
+    "filterEnvelope": {
+      "attack": 0.005,
+      "decay": 0.25,
+      "sustain": 0.4,
+      "release": 0.3,
+      "baseFrequency": 300,
+      "octaves": 3.6,
+      "exponent": 2
+    },
+    "maxPolyphony": 3
+  },
+  "approvedAt": "2026-08-17",
+  "summary": "Square synth lead with no body, breath or vibrato at all. The machine top line for the club kits; every other lead is a player in a room."
+}

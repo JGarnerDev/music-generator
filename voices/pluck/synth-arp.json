@@ -1,0 +1,47 @@
+{
+  "instrument": "pluck",
+  "slug": "synth-arp",
+  "title": "Synth arp",
+  "status": "approved",
+  "tags": [
+    "synth",
+    "arp",
+    "sequenced",
+    "house",
+    "techno",
+    "electronic",
+    "sixteenths",
+    "acid"
+  ],
+  "notes": "The machine rhythm part. Every `pluck` on the shelf is a guitar or a folk string — six of them through an amp or a soundhole — so an electronic piece had a kit and a sub but nothing to play the sixteenths between them. This is that part: a sequenced arpeggio voice, built to be written *for*, not strummed.\n\n**No amp, and that is the fork from `brown-rhythm`.** The parent is defined by its rig — a preamp, a tone stack, a cab at 4.4 kHz. All of it is deleted. A guitar cab on an arp is not dirt, it is a blanket: the roll-off removes precisely the top octave that makes a fast pattern legible, and the fixed power stage smears the gaps between notes, which on this instrument are the rhythm. What is left is oscillator, filter, envelope — the three things a sequencer had.\n\n**The envelope is the instrument, and it is short at every stage.** Decay 0.09, sustain 0.12, release **0.08** — the shortest release in `voices/` after `clav-comb`'s damper. The arithmetic is the point: at 124 BPM a sixteenth is 121 ms, so any release longer than that overlaps the next note and the pattern turns into a chord that never changes. The parent's 0.28 is three notes deep. Write this voice a whole note and it plays a short blip and sixteen silences, exactly like the clavinet, and for the same structural reason.\n\n**Plain `sawtooth`, not the parent's detuned pair.** A detune spread is thickness, and thickness on a fast pattern is mud — the two oscillators beat against each other at a rate unrelated to the tempo, which is audible as wobble the moment the notes get short. One oscillator also halves the cost of the densest part in the arrangement.\n\n**Q at 4, base 900 Hz, 2.8 octaves.** The highest resonance on the shelf: `moog-sub` sits at 2.4 and every guitar under 1.5. On a bass, resonance is weight; up here it is *pitch* — the filter's peak is audible as a second, sliding note on top of each step, which is what makes an acid line sound like it is playing a melody the notes do not contain. Base 900 rather than the parent's 380 because this part lives above the bass and under the lead, and anything lower puts it back in the region the sub already owns.\n\nPolyphony 4. An arp is one note at a time in principle, but the pattern's own overlap at speed needs headroom, and a two-note figure doubled at the octave is the cheapest way to make one of these sound wide.",
+  "synth": {
+    "kind": "mono",
+    "oscillator": {
+      "type": "sawtooth"
+    },
+    "envelope": {
+      "attack": 0.002,
+      "decay": 0.09,
+      "sustain": 0.12,
+      "release": 0.08
+    },
+    "filter": {
+      "type": "lowpass",
+      "rolloff": -24,
+      "Q": 4
+    },
+    "filterEnvelope": {
+      "attack": 0.002,
+      "decay": 0.06,
+      "sustain": 0.18,
+      "release": 0.1,
+      "baseFrequency": 900,
+      "octaves": 2.8,
+      "exponent": 2
+    },
+    "maxPolyphony": 4
+  },
+  "forkedFrom": "pluck/brown-rhythm",
+  "approvedAt": "2026-08-17",
+  "summary": "Sequenced arp, amp deleted: 80 ms release keeps sixteenths separate, Q4 resonance sings over each step. House and techno."
+}
