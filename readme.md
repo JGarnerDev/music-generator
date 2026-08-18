@@ -106,6 +106,13 @@ npm run typecheck  # tsc --noEmit
   [`voices/archive.md`](voices/archive.md) — `--summary` is that row, and the
   long why-it-works goes in `--notes`, which the index deliberately leaves in
   the file. Full loop: [voices](docs/voices.md).
+- **Bend a note:** a note can travel while it sounds — the blues whole-step
+  push, a sitar's meend. Add `"bend": { "semitones": 2 }` to the note; `curve`
+  picks `guitar`, `meend` or `linear`, `release` brings it home. It belongs to
+  the note, where a voice's `vibrato` belongs to the instrument and happens on
+  every note it plays. One bent note at a time per track (unbent notes on the
+  same track are unaffected), and section voices decline it. Fields, curves and
+  the reasons: [bends](docs/bends.md).
 - **Decide an approach:** a *study* is a short attempt at a musical concept
   ("guitar solo", "chorus lift") made to be judged. Fan out four that differ on
   exactly one axis — `npm run study:new -- --concept chorus-lift --axis register
@@ -153,6 +160,10 @@ npm run typecheck  # tsc --noEmit
 - [`docs/voices.md`](docs/voices.md) — designing instrument sounds: the
   fork → render → audition → approve loop, the probe études, and how a song
   names a voice.
+- [`docs/bends.md`](docs/bends.md) — bending a note's pitch while it sounds: the
+  three curves, why `at` matters, and the one-bend-at-a-time rule.
+- [`docs/sitar.md`](docs/sitar.md) — why a sitar voice playing a Western line
+  still sounds like a guitar, and the raga grammar that fixes it.
 - [`docs/looping.md`](docs/looping.md) — writing music that repeats for minutes:
   seam rules, tail-wrapped exports, section plans.
 - [`docs/library.md`](docs/library.md) — how `compositions/` is filed by kind,

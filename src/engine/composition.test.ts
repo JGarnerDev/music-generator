@@ -66,6 +66,51 @@ describe("validateComposition", () => {
     expect(issues.some((i) => i.path === "loop.endBar")).toBe(true);
   });
 
+  it("accepts a bent note", () => {
+    const notes = [{ time: "0:0", pitch: "A3", duration: "2n", bend: { semitones: 2 } }];
+    expect(validateComposition({ ...valid, tracks: [{ instrument: "lead", notes }] })).toEqual([]);
+  });
+
+  it("passes a malformed bend down to the bend validator", () => {
+    const notes = [{ time: "0:0", pitch: "A3", duration: "2n", bend: { semitones: 99 } }];
+    const issues = validateComposition({ ...valid, tracks: [{ instrument: "lead", notes }] });
+    expect(issues.some((i) => i.path === "tracks[0].notes[0].bend.semitones")).toBe(true);
+  });
+
+  it("rejects a bend on drums", () => {
+    const notes = [{ time: "0:0", pitch: "kick", duration: "8n", bend: { semitones: 2 } }];
+    const issues = validateComposition({ ...valid, tracks: [{ instrument: "drums", notes }] });
+    expect(issues.some((i) => i.path === "tracks[0].notes[0].bend")).toBe(true);
+  });
+
+  it("rejects two bent notes that overlap on one track", () => {
+    // At 72 bpm a half note runs 1.67s, so a bend on beat 1 is still sounding
+    // when the bend on beat 2 starts.
+    const notes = [
+      { time: "0:0", pitch: "A3", duration: "2n", bend: { semitones: 2 } },
+      { time: "0:1", pitch: "C4", duration: "2n", bend: { semitones: 2 } },
+    ];
+    const issues = validateComposition({ ...valid, tracks: [{ instrument: "lead", notes }] });
+    expect(issues.some((i) => i.path === "tracks[0].notes[1].bend")).toBe(true);
+  });
+
+  it("lets a bent note overlap unbent ones — they are different voices", () => {
+    const notes = [
+      { time: "0:0", pitch: "A3", duration: "1m" },
+      { time: "0:0", pitch: "C4", duration: "1m" },
+      { time: "0:1", pitch: "E4", duration: "4n", bend: { semitones: 2 } },
+    ];
+    expect(validateComposition({ ...valid, tracks: [{ instrument: "lead", notes }] })).toEqual([]);
+  });
+
+  it("counts back-to-back bends as adjacent, not overlapping", () => {
+    const notes = [
+      { time: "0:0", pitch: "A3", duration: "4n", bend: { semitones: 2 } },
+      { time: "0:1", pitch: "C4", duration: "4n", bend: { semitones: -1 } },
+    ];
+    expect(validateComposition({ ...valid, tracks: [{ instrument: "lead", notes }] })).toEqual([]);
+  });
+
   it("flags missing note fields", () => {
     const bad = {
       ...valid,

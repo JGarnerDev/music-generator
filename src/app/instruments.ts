@@ -13,6 +13,7 @@
  * which preset, what a preset may contain — live in the tested engine.
  */
 import * as Tone from "tone";
+import type { BendPoint } from "@engine/bend";
 import type { InstrumentName } from "@engine/composition";
 import type {
   AmpSpec,
@@ -38,6 +39,11 @@ export type Playable = Tone.PolySynth | Tone.Sampler | DrumKit | Section;
 export interface Voice {
   play: Playable;
   output: { connect(destination: Tone.InputNode): unknown };
+  /**
+   * Where notes carrying a `bend` go, when the track asked for one and the
+   * preset can provide it. Absent means play them straight — see `BendVoice`.
+   */
+  bend?: BendVoice;
 }
 
 /**
@@ -50,9 +56,10 @@ export interface Voice {
  * `graph.ts`: distortion belongs to the guitar, not to the drums that would be
  * ruined by it.
  */
-export function createVoice(name: InstrumentName, slug?: string): Voice {
+export function createVoice(name: InstrumentName, slug?: string, wantsBend = false): Voice {
   const preset = voiceFor(name, slug);
   const play = createInstrument(preset);
+  const bend = wantsBend ? bendVoiceFor(preset) : undefined;
   // Signal order is the instrument being modelled, top to bottom: the string
   // moves (synth), its pitch is not still (vibrato), the bow may be reversing
   // several times a second (tremolo), the box it is mounted on rings at its own
@@ -63,11 +70,56 @@ export function createVoice(name: InstrumentName, slug?: string): Voice {
   // it arrives here as a finished output: running the shared blocks over it
   // again would put one vibrato and one body across the whole desk, which is
   // exactly the thing a section exists to avoid.
-  const acoustic = play instanceof Section ? play.output : acousticChain(play, preset);
+  //
+  // A bending voice joins *before* that chain, at a summing gain, so it is the
+  // same instrument all the way down: the same vibrato hand, the same box, the
+  // same amp. Hanging it off the end instead would give the one note anybody is
+  // listening to a different tone from the phrase it belongs to. The gain only
+  // exists on tracks that bend, so every other piece builds the graph it always
+  // did, node for node.
+  const head = bend ? sum(play, bend) : play;
+  const acoustic = play instanceof Section ? play.output : acousticChain(head, preset);
   if (preset.amp) {
-    return { play, output: guitarAmp(acoustic, preset.amp) };
+    return { play, bend, output: guitarAmp(acoustic, preset.amp) };
   }
-  return { play, output: acoustic };
+  return { play, bend, output: acoustic };
+}
+
+/** The polyphonic voice and the bending one, into one node the chain can start from. */
+function sum(play: Playable, bend: BendVoice): Tone.ToneAudioNode {
+  const head = new Tone.Gain(1);
+  (play as unknown as Tone.ToneAudioNode).connect(head);
+  bend.connect(head);
+  return head;
+}
+
+/**
+ * The bending voice a preset can support, or nothing.
+ *
+ * Two presets can't have one. **Drums** have no pitch to bend — a kit piece is a
+ * name, not a note. **Sections** are the harder no: a desk is many players with
+ * their own chains, and one bend across all of them is either one hand moving
+ * six instruments or six hands moving in lockstep, and neither is a thing that
+ * happens. A section that needs a bent line wants that line written on its own
+ * track with a solo voice, which is also how it would be played.
+ *
+ * Both cases warn rather than throw. The piece is already written and the render
+ * is already running; a straight note is a worse performance, where a failed
+ * render is no performance.
+ */
+function bendVoiceFor(preset: VoicePreset): BendVoice | undefined {
+  if (!preset.synth) {
+    console.warn(`voice "${preset.slug}" has no synth to bend — bends ignored`);
+    return undefined;
+  }
+  if (preset.section) {
+    console.warn(
+      `voice "${preset.slug}" is a section — bends ignored. ` +
+        `Write the bent line on its own track with a solo voice.`,
+    );
+    return undefined;
+  }
+  return new BendVoice(preset.synth);
 }
 
 /**
@@ -401,7 +453,13 @@ export class Section {
  * collapses fat stacks to a single saw and the preset does not get a vote, since
  * the point of an audition is to be fast. See `quality.ts` for the measurements.
  */
-function polySynth(spec: SynthSpec, detune?: number): Tone.PolySynth {
+/**
+ * The preset's synth settings as Tone options, negotiated with the quality
+ * profile. Shared by the polyphonic build and the monophonic bending voice, so
+ * a bent note is the same instrument as the notes around it rather than a
+ * near-miss that drifts every time one of them is tuned.
+ */
+function synthOptions(spec: SynthSpec, detune?: number): Record<string, unknown> {
   const quality = getQuality();
   // A fat oscillator runs `count` oscillators per allocated voice, continuously,
   // whether or not the voice is currently sounding — the dominant cost in a
@@ -412,10 +470,6 @@ function polySynth(spec: SynthSpec, detune?: number): Tone.PolySynth {
   const oscillator = fat
     ? { ...spec.oscillator, count: quality.singleOscillator ? 1 : (spec.oscillator.count ?? 3) }
     : { ...spec.oscillator };
-  // The preset's oscillator type is a free string on purpose — every Tone
-  // waveform name is fair game while designing a sound — so this cast is where
-  // untyped JSON meets Tone's unions. A name Tone doesn't know fails loudly at
-  // render time, which is the moment you are listening anyway.
   const options: Record<string, unknown> = { oscillator, envelope: spec.envelope };
   // Cents off concert pitch, for one player in a section. Left off entirely
   // otherwise, so a solo voice builds exactly the synth it always did.
@@ -424,8 +478,16 @@ function polySynth(spec: SynthSpec, detune?: number): Tone.PolySynth {
   if (spec.filterEnvelope) options.filterEnvelope = spec.filterEnvelope;
   if (spec.harmonicity !== undefined) options.harmonicity = spec.harmonicity;
   if (spec.modulationIndex !== undefined) options.modulationIndex = spec.modulationIndex;
+  return options;
+}
 
-  const synth = build(spec.kind, options);
+function polySynth(spec: SynthSpec, detune?: number): Tone.PolySynth {
+  const quality = getQuality();
+  // The preset's oscillator type is a free string on purpose — every Tone
+  // waveform name is fair game while designing a sound — so the cast inside
+  // `build` is where untyped JSON meets Tone's unions. A name Tone doesn't know
+  // fails loudly at render time, which is the moment you are listening anyway.
+  const synth = build(spec.kind, synthOptions(spec, detune));
   // PolySynth allocates up to `maxPolyphony` voices per track and each one runs
   // continuously once allocated, sounding or not — so a cap is both musical (a
   // guitar has six strings; a dozen ringing notes stopped sounding like one) and,
@@ -456,5 +518,78 @@ function build(kind: SynthSpec["kind"], options: Record<string, unknown>): Tone.
       return new Tone.PolySynth(Tone.MonoSynth, options as unknown as Partial<Tone.MonoSynthOptions>);
     case "synth":
       return new Tone.PolySynth(Tone.Synth, options as unknown as Partial<Tone.SynthOptions>);
+  }
+}
+
+/** The single-voice twin of `build`, for the one instrument that has to be bendable. */
+function buildMono(kind: SynthSpec["kind"], options: Record<string, unknown>): Bendable {
+  switch (kind) {
+    case "fm":
+      return new Tone.FMSynth(options as unknown as Partial<Tone.FMSynthOptions>);
+    case "mono":
+      return new Tone.MonoSynth(options as unknown as Partial<Tone.MonoSynthOptions>);
+    case "synth":
+      return new Tone.Synth(options as unknown as Partial<Tone.SynthOptions>);
+  }
+}
+
+/** A Tone voice with a detune signal of its own — which is what a bend automates. */
+type Bendable = Tone.Synth | Tone.MonoSynth | Tone.FMSynth;
+
+/**
+ * The one voice on a track that can change pitch while it sounds.
+ *
+ * **Why a second synth rather than bending the track's synth.** A bend is an
+ * automation curve on a detune signal, and `PolySynth` has no detune signal to
+ * automate — it allocates voices privately and `set({detune})` reaches all of
+ * them, immediately, with no way to schedule it. Even if it could be scheduled,
+ * every note the track happened to be sounding would bend along with the one
+ * that asked. So bent notes are routed here instead: one monophonic voice built
+ * from the same preset, summed into the same chain, whose detune belongs to
+ * whatever note it is currently playing. Chords, held pads and unbent melody on
+ * the same track keep going through the PolySynth, untouched.
+ *
+ * The cost is one extra voice per bending track, which is the price of one more
+ * note of polyphony — and only tracks that actually bend pay it.
+ *
+ * The limit that follows is that this voice plays one note at a time, so two
+ * bent notes may not overlap. `validateComposition` enforces it, because the
+ * failure is audible as a strange bend rather than as an obvious break.
+ */
+export class BendVoice {
+  readonly synth: Bendable;
+
+  constructor(spec: SynthSpec) {
+    this.synth = buildMono(spec.kind, synthOptions(spec));
+  }
+
+  connect(destination: Tone.InputNode): this {
+    this.synth.connect(destination);
+    return this;
+  }
+
+  /**
+   * Play one note with its pitch travelling.
+   *
+   * The detune signal is cancelled and re-anchored at the attack rather than
+   * ramped on from wherever it was: the previous note left it parked at its own
+   * target, and a ramp from there would start this note out of tune and slide
+   * it in. `points` always opens at 0 cents for the same reason — see
+   * [`@engine/bend`](../engine/bend.ts).
+   */
+  play(
+    pitch: string,
+    duration: Tone.Unit.Time,
+    time: number,
+    velocity: number,
+    points: readonly BendPoint[],
+  ): void {
+    const detune = this.synth.detune;
+    detune.cancelScheduledValues(time);
+    for (const [i, point] of points.entries()) {
+      if (i === 0) detune.setValueAtTime(point.cents, time);
+      else detune.linearRampToValueAtTime(point.cents, time + point.time);
+    }
+    this.synth.triggerAttackRelease(pitch, duration, time, velocity);
   }
 }

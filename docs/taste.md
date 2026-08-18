@@ -280,6 +280,62 @@ rhythm part and a lead. The unlayered control down; locked octave double,
 sustained drone and alternating double all up. **Provisional** — one set, and
 the three winners were not separated from each other.
 
+### Bend notes — but never on a straight line
+
+A phrase whose notes all hold their written pitch lost outright to the same
+phrase with three bends in it, so this is a gesture worth reaching for rather
+than an ornament to use once a piece. What also lost was the `linear` curve: a
+constant rate of travel reads as a setting, not as a hand. Use `guitar` (fast
+off the mark, settling in) or `meend` (slow at both ends); both won, and nothing
+so far separates them from each other.
+
+**From:** `bend-curve` × `gesture` — untagged, 4 attempts with the notes,
+widths and timings identical so only the shape of the travel moved. Guitar and
+meend up; linear down; the no-bends control down. **Provisional** — one set, one
+phrase, one instrument, and with no tags this says the straight line lost, not
+why.
+
+### Bend a half step
+
+Set `semitones` to 1 and leave it there. The whole tone — the standard guitar
+push, and the one that lands on a chord tone — lost, and the minor third lost
+with it. The ache of a note that barely leaves where it started beat both wider
+readings, which is the opposite of the default worth knowing about: a bend here
+is a note being coloured, not a note being replaced by another note.
+
+**From:** `bend-width` × `gesture` — untagged, over one phrase with the bend
+positions and curve held so only the distance moved. One semitone up; two down;
+three down. **Provisional**, and weaker than the others: the widest attempt was
+never judged, so the shape of this is "narrow beat the two next widths", not a
+tested floor or ceiling. Worth re-running before it hardens.
+
+### Don't open a phrase with a bend — bend a note the line has already reached
+
+A bend on the first note of a phrase lost. Every other position won: the long
+note mid-phrase where the line has stopped moving, the peak, and the final held
+arrival. The distinction is that a bend is heard as something happening *to* a
+note the ear has already accepted, so it needs a note that has been established
+— and the first note of a phrase establishes nothing yet. Put the gesture where
+the line has settled, climbed to, or landed.
+
+**From:** `bend-placement` × `gesture` — untagged, 4 attempts each carrying one
+identical bend in a different position, everything else held. Held settle, peak
+and arrival all up; the entry down. **Provisional** — one set, one phrase.
+
+### Bend up to about half of a phrase's long notes, never all of them
+
+Counting only the sustained notes — the ones long enough to travel — one, two
+and four out of seven all won. Bending all seven lost. So this is a loose
+ceiling rather than a precise ratio: the line has to have somewhere it stands
+still, and once nothing is allowed to simply be a pitch the gesture stops
+meaning anything. Note that a single bend in eight bars won as well as four did,
+so sparse is safe; density is the thing that has a limit, not a target.
+
+**From:** `bend-density` × `gesture` — untagged, 4 attempts over one phrase with
+the same bend applied to a growing subset of its long notes. One, two and four
+up; all seven down. **Provisional** — one set, and the three winners were not
+separated from each other.
+
 ## Worth studying next
 
 Ordered by how much a verdict would change:
@@ -308,6 +364,13 @@ Ordered by how much a verdict would change:
 - `groove-feel` × `figure`, a second tempo — the gallop losing may be about
   subdivision or about speed, and one tempo cannot tell those apart.
 
-Three sets ran untagged and produced three provisional rules on direction alone.
+- `bend-width` × `gesture`, finished and in a second mood — the narrow-wins
+  result is the newest and the least supported, and its widest attempt was never
+  heard, so there is currently no evidence about where the far end is.
+- `bend-curve` × `gesture` on a sitar rather than a guitar — guitar and meend
+  tied, and the instrument they were played on is the obvious reason a
+  slow-at-both-ends glide had nothing to distinguish it.
+
+Seven sets ran untagged and produced seven provisional rules on direction alone.
 The cheapest gain available now is not a new concept: it is re-running any of
 those three with tags on, which turns "this won" into "this won because".

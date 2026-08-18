@@ -94,6 +94,19 @@ render the probe, audition at `/voices.html`, approve — and it is
 Approved voices are forked, never edited, and an approval needs a `--summary`
 so the new voice gets an archive row.
 
+**A note can bend.** `"bend": { "semitones": 2 }` on a note travels its pitch
+while it sounds — `curve` is `guitar` (fast, settling), `meend` (slow, wide,
+sitar) or `linear`; `release` brings it back. This is the *note's* gesture; a
+voice's `vibrato` is the *instrument's* and happens on every note. Reach for it
+on a lead line or a sitar phrase rather than adding chromatic grace notes, which
+read as a trill. One bent note at a time per track — unbent notes on that track
+are unaffected — and section voices decline it. [`docs/bends.md`](./docs/bends.md).
+
+**A sitar is not a guitar with a different tone.** If a part is for
+`pluck/sitar-jawari`, read [`docs/sitar.md`](./docs/sitar.md) before writing
+notes. The tone is already right; what makes it *not* a sitar is a moving
+harmony underneath, a scale used identically in both directions, and no chikari.
+
 **If the question is *how to approach* something** — "how should a guitar solo
 go", "what makes a hook land" — that is not a piece, it is a **study**. Fan out
 four attempts that differ on exactly one axis and let the user thumb them:

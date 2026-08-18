@@ -7,7 +7,8 @@
  */
 // Relative, not `@utils/timing`: `vite.config.ts` pulls this module in through
 // its dev plugins, and config is loaded before the resolve aliases exist.
-import { validateMeter } from "../utils/timing";
+import { barsBeatsToSeconds, notationToSeconds, validateMeter } from "../utils/timing";
+import { validateBend, type BendSpec } from "./bend";
 
 export interface Note {
   /** Transport time, "bars:beats:sixteenths" (Tone.js format), e.g. "0:0" or "1:2:2". */
@@ -18,6 +19,16 @@ export interface Note {
   duration: string;
   /** 0..1. Defaults to 0.7 at play time when omitted. */
   velocity?: number;
+  /**
+   * Bend the pitch across the note — a struck string pushed sharp, a sitar
+   * meend. `pitch` stays what was written; this says where it travels. See
+   * [`./bend`](./bend.ts) and [`docs/bends.md`](../../docs/bends.md).
+   *
+   * Bent notes on a track are played by one extra monophonic voice, so two of
+   * them may not overlap. Not available on `drums` (a kit piece has no pitch to
+   * bend) or on section voices (a desk of players is not one bending hand).
+   */
+  bend?: BendSpec;
 }
 
 /**
@@ -251,10 +262,70 @@ export function validateComposition(input: unknown): ValidationIssue[] {
       if (n.velocity !== undefined && !isUnit(n.velocity)) {
         push(`${nb}.velocity`, "must be a number in 0..1");
       }
+      if (n.bend !== undefined) {
+        // A kit piece names a drum, not a pitch, so there is nothing to bend to.
+        if (isDrums) push(`${nb}.bend`, "drums have no pitch to bend");
+        else validateBend(n.bend, `${nb}.bend`, push);
+      }
     });
+    validateBendOverlap(t.notes as Record<string, unknown>[], base, c, push);
   });
 
   return issues;
+}
+
+/**
+ * Two bent notes on one track may not overlap.
+ *
+ * A bend is a signal ramp on one voice's detune, and a track gets exactly one
+ * bending voice — so two bent notes sounding at once are one string being asked
+ * to travel to two places, and what you hear is the second bend dragging the
+ * first note with it. Unbent notes are not in the argument: they go to the
+ * track's ordinary polyphonic synth and are untouched by any of this, which is
+ * why a bent lead line over held chords on the *same* track is fine.
+ *
+ * Checked here rather than left to the ear because the failure sounds like a
+ * bad bend rather than like a rule being broken.
+ */
+function validateBendOverlap(
+  notes: Record<string, unknown>[],
+  base: string,
+  comp: Record<string, unknown>,
+  push: (path: string, message: string) => void,
+): void {
+  if (typeof comp.bpm !== "number" || !(comp.bpm > 0)) return;
+  const meter = Array.isArray(comp.meter) ? (comp.meter as [number, number]) : undefined;
+
+  const spans: { index: number; start: number; end: number }[] = [];
+  notes.forEach((n, i) => {
+    if (n.bend === undefined) return;
+    if (typeof n.time !== "string" || typeof n.duration !== "string") return;
+    try {
+      const start = barsBeatsToSeconds(n.time, comp.bpm as number, meter);
+      spans.push({
+        index: i,
+        start,
+        end: start + notationToSeconds(n.duration, comp.bpm as number, meter),
+      });
+    } catch {
+      // An unparseable time or duration is already an issue of its own; there is
+      // nothing useful to say about whether it overlaps.
+    }
+  });
+
+  spans.sort((a, b) => a.start - b.start);
+  for (let i = 1; i < spans.length; i++) {
+    const prev = spans[i - 1]!;
+    const cur = spans[i]!;
+    // A hair of tolerance: a note ending exactly where the next begins is
+    // adjacent, not overlapping, and float seconds don't land on the nose.
+    if (cur.start < prev.end - 1e-6) {
+      push(
+        `${base}.notes[${cur.index}].bend`,
+        `overlaps the bent note at index ${prev.index} — one track bends one note at a time`,
+      );
+    }
+  }
 }
 
 /**

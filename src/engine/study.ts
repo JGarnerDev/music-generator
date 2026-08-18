@@ -150,6 +150,34 @@ export const CONCEPTS: readonly Concept[] = [
     blurb: "The silence in a top line. How long a lead can stop before the piece sags.",
     axes: ["density", "phrasing", "entry"],
   },
+  {
+    slug: "bend-placement",
+    title: "Bend placement",
+    group: "melody",
+    blurb: "Which note of a phrase bends and which stay straight. The arrival, the approach, or the peak.",
+    axes: ["gesture", "phrasing", "contour"],
+  },
+  {
+    slug: "bend-width",
+    title: "Bend width",
+    group: "melody",
+    blurb: "How far a bend travels: a half step's ache, a whole tone, a third, or a sitar's fifth.",
+    axes: ["gesture", "note-choice"],
+  },
+  {
+    slug: "bend-curve",
+    title: "Bend curve",
+    group: "melody",
+    blurb: "The shape of the travel on identical notes — settling, slow at both ends, or mechanical.",
+    axes: ["gesture", "tone"],
+  },
+  {
+    slug: "bend-density",
+    title: "Bend density",
+    group: "melody",
+    blurb: "How many notes of a phrase bend before the line stops standing still anywhere.",
+    axes: ["gesture", "density", "phrasing"],
+  },
 
   // ── harmony ───────────────────────────────────────────────────────────────
   {
@@ -469,6 +497,11 @@ export const STUDY_AXES: readonly StudyAxis[] = [
     kind: "written",
     blurb: "Which voices play the parts, and how they are balanced.",
   },
+  {
+    name: "gesture",
+    kind: "written",
+    blurb: "How a note moves while it sounds: which notes bend, how far, and in what shape.",
+  },
 ];
 
 const AXES_BY_NAME: ReadonlyMap<string, StudyAxis> = new Map(STUDY_AXES.map((a) => [a.name, a]));
@@ -488,7 +521,7 @@ export function isAxisName(value: unknown): value is string {
  * shelf of twenty stays scannable while you are still holding the sound in your
  * head.
  */
-export const TAG_FACETS = ["shape", "memory", "surprise", "space", "feel", "tone"] as const;
+export const TAG_FACETS = ["shape", "memory", "surprise", "space", "feel", "pitch", "tone"] as const;
 
 export type TagFacet = (typeof TAG_FACETS)[number];
 
@@ -532,6 +565,14 @@ export const VERDICT_TAGS: readonly VerdictTag[] = [
   { name: "drags", facet: "feel", blurb: "Slower than the material wants." },
   { name: "rushes", facet: "feel", blurb: "Faster than the material can carry." },
   { name: "doesnt-resolve", facet: "feel", blurb: "Withholds and never pays off." },
+
+  // Pitch that moves *within* notes — bends, and whatever else is added that
+  // travels. Separate from `feel` (which is about where notes land) because a
+  // line can be rhythmically perfect and still slide around like a bad singer.
+  { name: "sings", facet: "pitch", blurb: "The pitch moves like a hand on a string, not like a setting." },
+  { name: "mechanical", facet: "pitch", blurb: "It travels, but it reads as automation — no player in it." },
+  { name: "seasick", facet: "pitch", blurb: "Too much moving. Nothing stands still long enough to be a note." },
+  { name: "undersold", facet: "pitch", blurb: "The gesture is there and too small or too quick to register." },
 
   { name: "right-tone", facet: "tone", blurb: "The voice is the reason this works." },
   { name: "wrong-tone", facet: "tone", blurb: "Right notes, wrong instrument for them." },

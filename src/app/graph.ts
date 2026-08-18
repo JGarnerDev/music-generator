@@ -13,7 +13,9 @@
 import * as Tone from "tone";
 import type { Composition, LoFiSettings } from "@engine/composition";
 import { isDry, signalChain } from "@engine/signal";
+import { bendAutomation } from "@engine/bend";
 import { impulseResponse } from "@utils/impulse";
+import { notationToSeconds } from "@utils/timing";
 import { buildEffects } from "./effects";
 import { createVoice } from "./instruments";
 
@@ -109,7 +111,10 @@ export function scheduleComposition(comp: Composition): void {
   for (const track of comp.tracks) {
     // `track.voice` names one of the instrument's presets in `voices/`; omitted
     // means its default, so a piece written before voices existed is unchanged.
-    const voice = createVoice(track.instrument, track.voice);
+    // Whether any note bends decides whether this track builds a second voice
+    // at all, so it has to be known before the instrument is made.
+    const bends = track.notes.some((n) => n.bend !== undefined);
+    const voice = createVoice(track.instrument, track.voice, bends);
     const trackGain = new Tone.Gain(track.gain ?? 1);
 
     // The track's own signal chain, from the timbre that shaped it. This is
@@ -136,15 +141,27 @@ export function scheduleComposition(comp: Composition): void {
     // thing the palette is about.
     trackGain.connect(isDry(track.fx ?? []) ? dryInput : chainInput);
 
+    // The bend curve is computed here, once per note, rather than in the
+    // scheduling callback: it needs the note's length in seconds, which is a
+    // tempo question the transport can answer now and shouldn't be re-asked
+    // every time the note comes round.
     const events = track.notes.map((n) => ({
       time: n.time,
       pitch: n.pitch,
       duration: n.duration,
       velocity: n.velocity ?? 0.7,
+      bend:
+        n.bend && voice.bend
+          ? bendAutomation(n.bend, notationToSeconds(n.duration, comp.bpm, comp.meter))
+          : undefined,
     }));
 
     new Tone.Part((time, ev) => {
-      voice.play.triggerAttackRelease(ev.pitch, ev.duration, time, ev.velocity);
+      // A bent note is played by the track's one bending voice; everything else
+      // by its polyphonic synth. Both are summed into the same chain, so this
+      // is a routing decision and not a tonal one.
+      if (ev.bend && voice.bend) voice.bend.play(ev.pitch, ev.duration, time, ev.velocity, ev.bend);
+      else voice.play.triggerAttackRelease(ev.pitch, ev.duration, time, ev.velocity);
     }, events).start(0);
   }
 }

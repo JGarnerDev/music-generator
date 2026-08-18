@@ -120,7 +120,7 @@ composer already turns. The four attempts differ for real the moment they are
 written, and they render immediately.
 
 **Written axes** — `phrasing`, `contour`, `density`, `note-choice`, `entry`,
-`resolution`, `interplay`, `tone` — are judgements no field encodes. The fan-out
+`resolution`, `interplay`, `tone`, `gesture` — are judgements no field encodes. The fan-out
 can only scaffold them: it writes the shared backing four times and marks each
 file `"draft": true`. Nothing renders while that flag is set, because four
 identical files would produce four verdicts about nothing.
