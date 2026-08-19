@@ -9,6 +9,14 @@
       "renderedAt": "2026-08-19T15:39:59.017Z"
     },
     {
+      "name": "redwater-asher",
+      "file": "redwater-asher.mp3",
+      "seconds": 17.333333333333332,
+      "bytes": 347520,
+      "isLoop": false,
+      "renderedAt": "2026-08-19T17:58:55.740Z"
+    },
+    {
       "name": "redwater-golden-lioness-scene",
       "file": "redwater-golden-lioness-scene.mp3",
       "seconds": 152.98164583333335,
@@ -31,6 +39,14 @@
       "bytes": 240960,
       "isLoop": false,
       "renderedAt": "2026-08-17T15:56:32.699Z"
+    },
+    {
+      "name": "redwater-sable-wren",
+      "file": "redwater-sable-wren.mp3",
+      "seconds": 15.4285625,
+      "bytes": 309120,
+      "isLoop": false,
+      "renderedAt": "2026-08-19T17:58:36.337Z"
     },
     {
       "name": "redwater-tavern-raid",
