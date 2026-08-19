@@ -2,7 +2,7 @@
 title: Taste — the rules derived from judged studies
 purpose: What this listener actually likes, stated as rules to compose by. Read at step 3, with hooks.md. Self-contained — the studies behind it are deleted once distilled.
 audience: [claude, human]
-updated: 2026-08-17
+updated: 2026-08-19
 read_order: 12
 see_also: [studies.md, hooks.md, variety.md]
 status: living
@@ -335,6 +335,33 @@ so sparse is safe; density is the thing that has a limit, not a target.
 the same bend applied to a growing subset of its long notes. One, two and four
 up; all seven down. **Provisional** — one set, and the three winners were not
 separated from each other.
+
+### Bend only a note that nothing else is sounding against
+
+A bend belongs to a line that is alone at that moment. If a second voice is
+harmonising the note, leave it straight — including when the twin bends with it
+at the same width, which is the fix that *sounds* correct on paper and still
+came back rejected. A pair travelling in lockstep does not read as one
+expressive hand; it reads as the whole harmony going out of tune, because the
+ear tracks the chord, not the finger. So the placements that survive are the
+bare ones: an opening statement before the twin enters, a line the arrangement
+has dropped out from under, a last note the twin has fallen silent for. This
+narrows the placement rule above rather than replacing it — settle, peak and
+arrival are all still good positions, but only while the note is unaccompanied.
+
+Two consequences worth stating, because both are otherwise reasons to reach for
+a bend and neither survives: choosing a **section voice** for the twin already
+means no bend (a desk of players silently ignores one), and a section twin over
+a bent solo is the *un*-matched case, which is worse still. And in a locked
+guitar pair — harmonised leads in thirds, a doubled octave — there is no bare
+moment at all, so those pieces get no bends anywhere.
+
+**From:** stated directly, over three revisions of two-voice pieces. First a
+non-bending twin over a bent lead was rejected for opening the interval
+mid-note; the lockstep fix was then also rejected; a bend on a bare line with
+only an open-fifth pad under it was kept in the same sitting. **Unevidenced** as
+a study — no set has varied accompaniment against a fixed bend — but the
+direction has now been reported three times and once against its own fix.
 
 ## Worth studying next
 

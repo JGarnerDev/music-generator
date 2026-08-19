@@ -4,7 +4,8 @@
   "campaign": "redwater",
   "cues": [
     {
-      "entry": "loops/redwater-tavern-raid"
+      "entry": "loops/redwater-tavern-raid",
+      "loop": true
     },
     {
       "entry": "leitmotifs/redwater-lioness-motif"

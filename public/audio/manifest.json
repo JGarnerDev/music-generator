@@ -17,6 +17,14 @@
       "renderedAt": "2026-08-19T17:58:55.740Z"
     },
     {
+      "name": "redwater-enter-battle",
+      "file": "redwater-enter-battle.mp3",
+      "seconds": 11.2,
+      "bytes": 224640,
+      "isLoop": false,
+      "renderedAt": "2026-08-19T21:11:33.523Z"
+    },
+    {
       "name": "redwater-golden-lioness-scene",
       "file": "redwater-golden-lioness-scene.mp3",
       "seconds": 152.98164583333335,
@@ -47,6 +55,22 @@
       "bytes": 309120,
       "isLoop": false,
       "renderedAt": "2026-08-19T17:58:36.337Z"
+    },
+    {
+      "name": "redwater-sting-failure",
+      "file": "redwater-sting-failure.mp3",
+      "seconds": 14,
+      "bytes": 280800,
+      "isLoop": false,
+      "renderedAt": "2026-08-19T21:11:15.125Z"
+    },
+    {
+      "name": "redwater-sting-victory",
+      "file": "redwater-sting-victory.mp3",
+      "seconds": 11.5,
+      "bytes": 230880,
+      "isLoop": false,
+      "renderedAt": "2026-08-19T21:11:23.151Z"
     },
     {
       "name": "redwater-tavern-raid",
