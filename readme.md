@@ -45,6 +45,7 @@ loose musical ideas into something you're pumped about.
 | `voices/<instrument>/*.json` | Instrument sounds, several per instrument | Folder = instrument. Approved ones get a row in [`voices/archive.md`](voices/archive.md); the `notes` inside each file are its design record. Process in [voices](docs/voices.md) |
 | `studies/<concept>/*.json` | Attempts at a musical *concept*, to be thumbed up or down | Folder = concept. **Scratch** — deleted once distilled into [`docs/taste.md`](docs/taste.md), which is the permanent record. Verdicts queue in the generated `studies/ledger.md`. Process in [studies](docs/studies.md) |
 | `plans/*.json` | Section plans for long/looping pieces | Expanded by `npm run song:build`; see [looping](docs/looping.md) |
+| `sessions/*.json` | Running orders for a game night — ordered cues into the library | Played from `/session.html`; written by `npm run session:new`. See [sessions](docs/sessions.md) |
 | `recordings/*.wav` | Guitar takes — "make the hook sound like *this*" | Audio gitignored, the `.notes.json` transcription beside it is committed. Capture rules: [`recordings/readme.md`](recordings/readme.md); the loop: [transcribe](docs/transcribe.md) |
 | `scripts/*.ts` | Deterministic CLI chores | commander, named flags. `render.ts` is the big one: see [rendering](docs/rendering.md) |
 | `src/dev/` | Dev-server middleware, render harness, render profiler | Never in the built bundle |
@@ -55,7 +56,7 @@ loose musical ideas into something you're pumped about.
 
 ```bash
 npm install
-npm run dev        # three benches: / compositions · /voices.html · /studies.html
+npm run dev        # four pages: / compositions · /voices.html · /studies.html · /session.html
 npm run render -- --all   # render every composition to public/audio/
 npm test           # vitest (engine + utils)
 npm run typecheck  # tsc --noEmit
@@ -73,6 +74,11 @@ npm run typecheck  # tsc --noEmit
     prints which words chose what. Override with `--figure` / `--register` /
     `--tempo`; ask for a longer piece with `--form song`, which adds an intro and
     a B section with its own harmony. See [knobs](docs/knobs.md).
+- **Play a game:** file the campaign's pieces with `"campaign": "<slug>"`, then
+  build tonight's running order — `npm run session:new -- --name "Session 14"
+  --campaign redwater --cues <ids>` — and open `/session.html`. Number keys fire
+  cues, the bar scrubs, and the header counts anything that has not been
+  rendered. See [sessions](docs/sessions.md).
 - **Quote a theme:** `npm run motif:quote -- --into <composition> --motif <slug>
   --at-bar <n>` writes a leitmotif into another piece, transposed into its key.
   See [library](docs/library.md).

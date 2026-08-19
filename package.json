@@ -21,6 +21,7 @@
     "composition:validate": "tsx scripts/validate-composition.ts",
     "motif:quote": "tsx scripts/quote-motif.ts",
     "compositions:organize": "tsx scripts/organize-compositions.ts",
+    "session:new": "tsx scripts/new-session.ts",
     "voice:new": "tsx scripts/new-voice.ts",
     "voice:find": "tsx scripts/find-voice.ts",
     "voice:render": "tsx scripts/render-voices.ts",

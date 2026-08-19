@@ -157,8 +157,19 @@ export interface Composition {
   loop?: LoopSettings;
   /** Palette slugs this piece drew from, for provenance. */
   palettes?: string[];
-  /** Free-form labels for finding it again in the bench (scene, campaign, character). */
+  /** Free-form labels for finding it again in the bench (scene, character, instrument). */
   tags?: string[];
+  /**
+   * Campaign slug this piece belongs to, e.g. `"redwater"` — the shelf the
+   * session page's archive tab is filtered by.
+   *
+   * Deliberately its own field rather than a convention over `tags`: at the
+   * table you filter by campaign *first* and everything else second, and a
+   * tag that has to be spelled right in every file is a tag that will one day
+   * be spelled wrong and quietly hide a cue. Absent = not filed under any
+   * campaign; it still shows in the archive's "All" shelf.
+   */
+  campaign?: string;
   /**
    * Slugs of the `compositions/leitmotifs/*` themes this piece quotes. Opera
    * logic: a motif is written once and recurs wherever its character or idea
@@ -205,6 +216,9 @@ export function validateComposition(input: unknown): ValidationIssue[] {
   if (c.loop !== undefined) validateLoop(c.loop, push);
   for (const field of ["palettes", "tags", "motifs"] as const) {
     if (c[field] !== undefined) validateSlugList(c[field], field, push);
+  }
+  if (c.campaign !== undefined && (typeof c.campaign !== "string" || c.campaign.trim() === "")) {
+    push("campaign", "must be a non-empty string");
   }
 
   if (!Array.isArray(c.tracks) || c.tracks.length === 0) {

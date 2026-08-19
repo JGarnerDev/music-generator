@@ -1,0 +1,19 @@
+{
+  "name": "session-1-redwater",
+  "title": "Session 1 — Redwater",
+  "campaign": "redwater",
+  "cues": [
+    {
+      "entry": "loops/redwater-tavern-raid"
+    },
+    {
+      "entry": "leitmotifs/redwater-lioness-motif"
+    },
+    {
+      "entry": "loops/redwater-golden-lioness-scene"
+    },
+    {
+      "entry": "leitmotifs/redwater-unhoming"
+    }
+  ]
+}

@@ -23,3 +23,19 @@ export const VOICE_FORK_ENDPOINT = "/__voices/fork";
  * rewrites `studies/ledger.md`. `{ id, clear: true }` takes the verdict back.
  */
 export const STUDY_VERDICT_ENDPOINT = "/__studies/verdict";
+
+/**
+ * GET → `{ sessions: SessionPlan[] }`, every plan in `sessions/`.
+ *
+ * Fetched rather than globbed, unlike the composition library: a glob would put
+ * session files under the live-reload watcher, and saving a running order
+ * mid-game would reload the page — which stops the audio. See
+ * [`./live-library-rules`](./live-library-rules.ts).
+ */
+export const SESSION_LIST_ENDPOINT = "/__sessions/list";
+
+/** POST a `SessionPlan` → writes `sessions/<name>.json`. Dev server only. */
+export const SESSION_SAVE_ENDPOINT = "/__sessions/save";
+
+/** POST `{ name }` → deletes `sessions/<name>.json`. Dev server only. */
+export const SESSION_DELETE_ENDPOINT = "/__sessions/delete";

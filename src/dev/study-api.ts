@@ -12,8 +12,9 @@
  * `study-store.ts` — that guard is what keeps a crafted request inside
  * `studies/`.
  */
-import type { Plugin, ViteDevServer } from "vite";
+import type { Plugin } from "vite";
 import { STUDY_VERDICT_ENDPOINT } from "./endpoints";
+import { postRoute } from "./http";
 import { judge, unjudge } from "./study-ops";
 
 /**
@@ -27,7 +28,7 @@ export function studyApi(root?: string): Plugin {
     name: "music-generator:study-api",
     apply: "serve",
     configureServer(server) {
-      route(server, STUDY_VERDICT_ENDPOINT, (body) => {
+      postRoute(server, STUDY_VERDICT_ENDPOINT, '{ "id": "hook/dust-a", "thumb": "up" }', (body) => {
         const id = String(body.id ?? "");
         if (body.clear === true) {
           const cleared = unjudge(id, { root });
@@ -47,54 +48,7 @@ export function studyApi(root?: string): Plugin {
           `  ${result.id} → ${verdict.thumb}${verdict.tags.length ? ` (${verdict.tags.join(", ")})` : ""}`,
         );
         return { id: result.id, verdict };
-      });
+      }, MAX_BODY_BYTES);
     },
   };
-}
-
-type Body = Record<string, unknown>;
-type Responder = {
-  statusCode: number;
-  setHeader(k: string, v: string): void;
-  end(body: string): void;
-};
-
-/** POST-only JSON route: parse the body, run `handle`, answer with what it returns. */
-function route(server: ViteDevServer, path: string, handle: (body: Body) => unknown): void {
-  server.middlewares.use(path, (req, res) => {
-    if (req.method !== "POST") return send(res, 405, { error: `use POST, not ${req.method}` });
-    readJsonBody(req)
-      .then((body) => send(res, 200, handle(body)))
-      .catch((err: Error) => send(res, 400, { error: err.message }));
-  });
-}
-
-interface IncomingLike {
-  method?: string;
-  on: NodeJS.EventEmitter["on"];
-}
-
-async function readJsonBody(req: IncomingLike): Promise<Body> {
-  const chunks: Buffer[] = [];
-  let size = 0;
-  await new Promise<void>((ok, fail) => {
-    req.on("data", (chunk: Buffer) => {
-      size += chunk.length;
-      if (size > MAX_BODY_BYTES) return fail(new Error("request body too large"));
-      chunks.push(chunk);
-    });
-    req.on("end", () => ok());
-    req.on("error", fail);
-  });
-  try {
-    return JSON.parse(Buffer.concat(chunks).toString("utf8")) as Body;
-  } catch {
-    throw new Error('body must be JSON, e.g. { "id": "hook/dust-a", "thumb": "up" }');
-  }
-}
-
-function send(res: Responder, status: number, body: unknown): void {
-  res.statusCode = status;
-  res.setHeader("content-type", "application/json");
-  res.end(JSON.stringify(body));
 }

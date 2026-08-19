@@ -36,4 +36,10 @@ describe("reloadReason", () => {
       expect(reloadReason(path), path).toBeNull();
     }
   });
+
+  it("never reloads for a session plan", () => {
+    // Saving a running order must not reload the page: the session board writes
+    // on every click, and a reload would stop the cue that is playing.
+    expect(reloadReason("sessions/session-14.json")).toBeNull();
+  });
 });

@@ -29,5 +29,10 @@ export function reloadReason(relativePath: string): ReloadReason {
   if (path.startsWith("voices/") && path.endsWith(".json")) return "library";
   if (path.startsWith("studies/") && path.endsWith(".json")) return "library";
   if (path.startsWith("public/audio/") && AUDIO_FILE.test(path)) return "audio";
+
+  // `sessions/` is deliberately absent. The session board saves its running
+  // order on every click, and a reload stops playback — the one thing that must
+  // never happen mid-game. It reads its plans over the dev API instead of a
+  // glob, so nothing here needs to invalidate. See `src/dev/session-api.ts`.
   return null;
 }

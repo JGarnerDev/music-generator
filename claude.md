@@ -150,6 +150,21 @@ correction takes `--requantize`** — the model runs once per take and everythin
 after is re-derived in seconds. Never re-run it just to try another tempo. Full
 loop, flags and the four things it cannot do: [`docs/transcribe.md`](./docs/transcribe.md).
 
+**If the user is prepping a D&D night** — "make me a playlist for session 14",
+"what should play when the ambush starts" — the deliverable is a **session
+plan**, not a pile of loose pieces. File each piece with `"campaign": "<slug>"`,
+then write the running order:
+
+```bash
+npm run session:new -- --name "Session 14" --campaign redwater --cues loops/tavern-raid,leitmotifs/lioness-motif
+```
+
+Cues are library ids (`<kind>/<slug>`) and may name pieces you have not composed
+yet — the board shows those as missing cues, which is the to-do list. **Render
+every cue before you hand it over**: the board plays files, so an unrendered cue
+is silence at the table. Then tell the user to open `/session.html`.
+[`docs/sessions.md`](./docs/sessions.md).
+
 **If it's for a game** (anything that plays under a scene on repeat), it needs a
 loop, not a song: write a `plans/<name>.json` and
 `npm run song:build -- --plan plans/<name>.json` instead of hand-writing notes,

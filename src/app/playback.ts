@@ -13,6 +13,7 @@
  * the user listens is racing a deadline it will eventually lose.
  */
 import * as Tone from "tone";
+import { dbToFraction, fractionToDb } from "@utils/volume";
 
 let player: Tone.Player | null = null;
 /**
@@ -66,9 +67,18 @@ export async function playFile(url: string, opts: PlayFileOptions = {}): Promise
   player = loaded.toDestination();
   if (!loop && opts.onEnded) {
     const ended = opts.onEnded;
-    // `onstop` fires on an explicit stop too, so only report a natural end.
+    /*
+     * `onstop` fires on an explicit stop too — and *asynchronously*, which the
+     * `pausing` flag alone cannot cover: a pause or a seek has already put the
+     * flag back and restarted the player by the time this callback lands, and
+     * reporting "finished" then would blank the transport mid-cue. So the test
+     * is also whether anything is sounding now: a stop with a live source after
+     * it was ours, not the end of the piece.
+     */
     player.onstop = () => {
-      if (token === generation && !pausing) ended();
+      if (token !== generation || pausing || paused) return;
+      if (player?.state === "started") return;
+      ended();
     };
   }
   offset = 0;
@@ -106,7 +116,76 @@ export function resumePlayback(): boolean {
 
 export function playbackState(): PlaybackState {
   if (!player) return "stopped";
-  return paused ? "paused" : "playing";
+  if (paused) return "paused";
+  // A one-shot that reaches its end leaves the player loaded but silent: nothing
+  // calls back into here to clear it, so "is a source running" is the only
+  // honest answer to whether we are playing.
+  return player.state === "started" ? "playing" : "stopped";
+}
+
+/**
+ * How long the loaded file is, in seconds — 0 when nothing is loaded.
+ *
+ * Only known once the buffer has decoded, which is why a scrub bar has to render
+ * disabled before the first play rather than not render at all: the length of a
+ * piece is not knowable from the composition JSON the page already has.
+ */
+export function durationSeconds(): number {
+  return player?.buffer.duration ?? 0;
+}
+
+/** Where we are in the file, in seconds. Wraps with the loop, like the sound does. */
+export function positionSeconds(): number {
+  if (!player) return 0;
+  const duration = player.buffer.duration;
+  if (duration <= 0) return 0;
+  const elapsed = paused ? offset : offset + (Tone.now() - startedAt);
+  return elapsed % duration;
+}
+
+/**
+ * Jump to a point in the file and keep the previous play/pause state.
+ *
+ * `Tone.Player` cannot seek — it can only start at an offset — so this is a stop
+ * and a restart, the same trick `pausePlayback` uses. The generation token is
+ * deliberately *not* bumped: this is the same play continuing somewhere else, and
+ * bumping it would make the in-flight `onstop` report a natural end.
+ *
+ * Returns false when there is nothing loaded to seek.
+ */
+export function seekTo(seconds: number): boolean {
+  if (!player) return false;
+  const duration = player.buffer.duration;
+  if (duration <= 0) return false;
+  const target = Math.min(Math.max(seconds, 0), Math.max(duration - 0.01, 0));
+
+  const wasPlaying = !paused;
+  pausing = true; // the stop below is a seek, not the end of the piece
+  player.stop();
+  pausing = false;
+  offset = target;
+  if (wasPlaying) {
+    startedAt = Tone.now();
+    player.start(undefined, offset);
+  }
+  return true;
+}
+
+/**
+ * Set the output level from a 0–1 fader position.
+ *
+ * Applied to the destination rather than to the player, so it survives every
+ * stop, seek and cue change — at a table you set the room's level once and it
+ * stays where you put it. Safe before any audio has been started: reading the
+ * destination does not resume a suspended context.
+ */
+export function setVolume(fraction: number): void {
+  Tone.getDestination().volume.value = fractionToDb(fraction);
+}
+
+/** The current fader position, 0–1. */
+export function getVolume(): number {
+  return dbToFraction(Tone.getDestination().volume.value);
 }
 
 export function stopPlayback(): void {

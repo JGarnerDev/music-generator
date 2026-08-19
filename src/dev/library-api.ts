@@ -12,9 +12,11 @@ import { existsSync, mkdirSync, renameSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import type { Plugin } from "vite";
 import { TRASH_ENDPOINT } from "./endpoints";
+import { readJsonBody, send } from "./http";
 import { resolveTrashMove } from "./trash";
 
 const MAX_BODY_BYTES = 4096;
+const EXAMPLE_BODY = '{ "path": "compositions/<kind>/<name>.json" }';
 
 export function libraryApi(compositionsDir = resolve(process.cwd(), "compositions")): Plugin {
   return {
@@ -25,7 +27,7 @@ export function libraryApi(compositionsDir = resolve(process.cwd(), "composition
         if (req.method !== "POST") {
           return send(res, 405, { error: `use POST, not ${req.method}` });
         }
-        readJsonBody(req)
+        readJsonBody(req, EXAMPLE_BODY, MAX_BODY_BYTES)
           .then((body) => {
             const move = resolveTrashMove(compositionsDir, String(body.path ?? ""), {
               exists: existsSync,
@@ -42,31 +44,4 @@ export function libraryApi(compositionsDir = resolve(process.cwd(), "composition
       });
     },
   };
-}
-
-/** Body is a few bytes of JSON; anything larger is a client bug (or worse). */
-async function readJsonBody(req: { on: NodeJS.EventEmitter["on"] }): Promise<{ path?: unknown }> {
-  const chunks: Buffer[] = [];
-  let size = 0;
-  await new Promise<void>((ok, fail) => {
-    req.on("data", (chunk: Buffer) => {
-      size += chunk.length;
-      if (size > MAX_BODY_BYTES) return fail(new Error("request body too large"));
-      chunks.push(chunk);
-    });
-    req.on("end", () => ok());
-    req.on("error", fail);
-  });
-  const raw = Buffer.concat(chunks).toString("utf8");
-  try {
-    return JSON.parse(raw) as { path?: unknown };
-  } catch {
-    throw new Error("body must be JSON: { path: \"compositions/<kind>/<name>.json\" }");
-  }
-}
-
-function send(res: { statusCode: number; setHeader: (k: string, v: string) => void; end: (body: string) => void }, status: number, body: unknown): void {
-  res.statusCode = status;
-  res.setHeader("content-type", "application/json");
-  res.end(JSON.stringify(body));
 }

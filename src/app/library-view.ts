@@ -8,6 +8,7 @@
  * rather than innerHTML: names and tags come out of JSON files, so they never get
  * parsed as markup.
  */
+import { cell, iconButton, span } from "./dom";
 import {
   COMPOSITION_KINDS,
   KIND_BLURBS,
@@ -144,38 +145,4 @@ function emptyMessage(state: LibraryViewState): string {
   if (state.query.trim() !== "") return `Nothing matches “${state.query.trim()}”.`;
   if (state.kind === null) return "No compositions yet — run npm run compose.";
   return `Nothing in compositions/${state.kind}/ yet.`;
-}
-
-function cell(className: string, ...children: (Node | string)[]): HTMLTableCellElement {
-  const td = document.createElement("td");
-  td.className = className;
-  td.append(...children);
-  return td;
-}
-
-function span(className: string, text: string): HTMLSpanElement {
-  const el = document.createElement("span");
-  if (className) el.className = className;
-  el.textContent = text;
-  return el;
-}
-
-/** Row buttons stop propagation so clicking one doesn't also fire the row's select. */
-function iconButton(
-  glyph: string,
-  label: string,
-  danger: boolean,
-  onClick: () => void,
-): HTMLButtonElement {
-  const button = document.createElement("button");
-  button.type = "button";
-  button.className = danger ? "icon danger" : "icon";
-  button.textContent = glyph;
-  button.title = label;
-  button.setAttribute("aria-label", label);
-  button.addEventListener("click", (event) => {
-    event.stopPropagation();
-    onClick();
-  });
-  return button;
 }
