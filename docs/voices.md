@@ -253,7 +253,7 @@ year and the archive is back where it started.
 | `src/engine/voice-library.ts` | Filing, default resolution, approve/fork rules, archive markdown — tested. |
 | `src/engine/voice-distance.ts` | Which differences between two voices survive the lo-fi chain — pure, tested. |
 | `src/engine/probe.ts` | The études — tested. |
-| `src/app/instruments.ts`, `drums.ts` | Preset → Tone nodes. The amp's block order lives here, because that is the instrument. |
+| `src/app/audio/instruments.ts`, `drums.ts` | Preset → Tone nodes. The amp's block order lives here, because that is the instrument. |
 | `src/app/voices.ts` | The bundled registry the graph resolves against. |
 | `src/dev/voice-store.ts`, `voice-ops.ts`, `voice-api.ts` | Reading/writing `voices/`, the three operations, and the bench's buttons. |
 | `scripts/new-voice.ts`, `render-voices.ts`, `approve-voice.ts` | The three commands that change files. |

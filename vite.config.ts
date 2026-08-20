@@ -1,5 +1,6 @@
 /// <reference types="vitest/config" />
 import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
 import { resolve } from "node:path";
 import { libraryApi } from "./src/dev/library-api";
 import { liveLibrary } from "./src/dev/live-library";
@@ -9,6 +10,10 @@ import { voiceApi } from "./src/dev/voice-api";
 
 export default defineConfig({
   plugins: [
+    // JSX + Fast Refresh. Pinned to plugin-react v5 — v6 requires Vite 8.
+    // `render.html` has no React on it and is unaffected: the plugin only
+    // transforms files that contain JSX.
+    react(),
     // Dev-only: lets the bench's delete button move a composition into _trash.
     libraryApi(resolve(__dirname, "compositions")),
     // Dev-only: Approve / Fork in the voices bench, writing voices/ + the archive.

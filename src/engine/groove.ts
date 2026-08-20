@@ -19,7 +19,7 @@
  * grid under a shuffled kit flams on every off-beat. See `parts.ts`.
  *
  * Pure and deterministic → unit tested. Nothing here touches audio; the kit that
- * makes the sounds lives in `src/app/drums.ts`.
+ * makes the sounds lives in `src/app/audio/drums.ts`.
  */
 import { type Note, type DrumPiece, isDrumPiece } from "./composition";
 import { FILL_NAMES, fillBars, fillPatterns, isFillName, type FillRef } from "./fill";

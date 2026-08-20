@@ -44,7 +44,7 @@ program
   .option("--bitrate <kbps>", "MP3 bitrate", "160")
   .option(
     "--audition",
-    "render at audition quality — ~2.3x faster, 22 kHz, thinner guitars (see src/app/quality.ts)",
+    "render at audition quality — ~2.3x faster, 22 kHz, thinner guitars (see src/app/audio/quality.ts)",
   )
   .option("--jobs <n>", "pieces to render in parallel", String(defaultJobs()))
   .option("--force", "re-render pieces that already have audio")

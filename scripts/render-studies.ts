@@ -44,7 +44,7 @@ program
   .option("--all", "render every study under studies/")
   .option("--wav", "also write full-quality WAVs (gitignored)")
   .option("--bitrate <kbps>", "MP3 bitrate", "160")
-  .option("--audition", "render at audition quality — faster, thinner (see src/app/quality.ts)")
+  .option("--audition", "render at audition quality — faster, thinner (see src/app/audio/quality.ts)")
   .option("--jobs <n>", "studies to render in parallel", String(defaultJobs()))
   .option("--force", "re-render studies that already have audio")
   .parse(process.argv);

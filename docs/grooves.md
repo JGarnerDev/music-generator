@@ -80,7 +80,7 @@ all, so it plays perfectly straight and the palette looks like it did nothing.
    shared, because a bass on its own grid under a shuffled kit flams on every
    off-beat. This is why `--with funk` changes the chords' *feel* without funk
    having to describe it twice.
-4. [`src/app/drums.ts`](../src/app/drums.ts) plays it. Per-piece levels live
+4. [`src/app/audio/drums.ts`](../src/app/audio/drums.ts) plays it. Per-piece levels live
    there, not in the pattern: a groove says *where* the hits are and how they're
    accented, while how loud a hat sits under a kick is a property of the kit.
 

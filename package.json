@@ -38,6 +38,8 @@
     "@tensorflow/tfjs": "^3.21.0",
     "commander": "^15.0.0",
     "gray-matter": "^4.0.3",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
     "smplr": "^1.0.0",
     "tonal": "^6.4.3",
     "tone": "^15.1.22",
@@ -46,6 +48,9 @@
   "devDependencies": {
     "@breezystack/lamejs": "^1.2.7",
     "@types/node": "^24.0.0",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.4",
+    "@vitejs/plugin-react": "^5.2.0",
     "playwright": "^1.62.1",
     "tsx": "^4.23.12",
     "typescript": "^5.7.0",

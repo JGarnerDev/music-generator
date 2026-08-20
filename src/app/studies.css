@@ -1,0 +1,323 @@
+/* Border-box everywhere: the body's padding has to live *inside* its
+   100vh, or the page overflows by exactly that padding. */
+*, *::before, *::after { box-sizing: border-box; }
+:root {
+  color-scheme: dark;
+  --bg: #14121a;
+  --panel: #2a2440;
+  --panel-hi: #362e52;
+  --line: #443a66;
+  --ink: #e8e4f0;
+  --accent: #b6a6e6;
+  --up: #8fd3a6;
+  --down: #e08a8a;
+  --draft: #e0c07a;
+}
+/*
+ * Same discipline as the other two benches, and here it matters most: you
+ * are A/B-ing four attempts that differ on one axis, and if the Play
+ * button or the thumb moves between them you lose the comparison you came
+ * for. Every block is a fixed size; the table takes the slack.
+ */
+body {
+  font-family: ui-monospace, "Cascadia Code", monospace;
+  background: var(--bg);
+  color: var(--ink);
+  display: grid;
+  justify-content: center;
+  align-content: start;
+  min-height: 100vh;
+  margin: 0;
+  padding: 2rem 0 1.5rem;
+}
+main {
+  width: min(720px, 94vw);
+  height: calc(100vh - 3.5rem);
+  min-height: 46rem;
+  max-height: 60rem;
+  display: grid;
+  grid-template-rows:
+    auto auto auto auto /* title · tabs · blurb · filters */
+    minmax(5rem, 1fr) /* study table — absorbs the slack */
+    auto auto auto /* selected · approach · set strip */
+    auto auto auto auto auto; /* transport · tags · note · verdict · status */
+  gap: 0.6rem;
+}
+h1 {
+  font-size: 1.1rem;
+  color: var(--accent);
+  letter-spacing: 0.02em;
+  margin: 0;
+  height: 1.4rem;
+  line-height: 1.4rem;
+}
+h1 a { color: inherit; opacity: 0.45; text-decoration: none; font-size: 0.8rem; float: right; margin-left: 0.8rem; }
+h1 a:hover { opacity: 0.9; }
+.row { display: flex; gap: 0.6rem; }
+
+/* ── Group tabs ───────────────────────────────────────────────────── */
+#tabs {
+  display: flex;
+  gap: 0.3rem;
+  flex-wrap: wrap;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 0.4rem;
+}
+.tab {
+  /* Equal shares, not content-sized: a count going 9 → 10 must not resize tabs. */
+  flex: 1 1 0;
+  min-width: 0;
+  padding: 0.4rem 0.3rem;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  color: var(--ink);
+  opacity: 0.6;
+  font: inherit;
+  font-size: 0.76rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.tab:hover { opacity: 0.9; background: var(--panel); }
+.tab[aria-selected="true"] {
+  opacity: 1;
+  background: var(--panel);
+  border-color: var(--line);
+  color: var(--accent);
+}
+.tab .count { opacity: 0.55; margin-left: 0.3rem; }
+#blurb {
+  font-size: 0.78rem;
+  opacity: 0.5;
+  margin: 0;
+  height: 1.1rem;
+  line-height: 1.1rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+#filters { display: flex; gap: 0.8rem; align-items: center; height: 2rem; }
+#search {
+  flex: 1 1 0;
+  min-width: 0;
+  padding: 0.35rem 0.6rem;
+  background: var(--panel);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  font: inherit;
+  font-size: 0.8rem;
+}
+
+/* ── Study table ──────────────────────────────────────────────────── */
+#listWrap {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  min-height: 0;
+  overflow-y: scroll; /* always on, so 1 row and 20 rows are the same box */
+}
+#listWrap::-webkit-scrollbar { width: 10px; }
+#listWrap::-webkit-scrollbar-thumb { background: var(--line); border-radius: 999px; }
+table#studies { width: 100%; table-layout: fixed; border-collapse: collapse; font-size: 0.82rem; }
+#studies tr { border-bottom: 1px solid #241f38; cursor: pointer; }
+#studies tr:last-child { border-bottom: none; }
+#studies tr:hover { background: #1d1a2b; }
+#studies tr[aria-selected="true"] { background: var(--panel); }
+#studies td {
+  height: 2.1rem;
+  padding: 0 0.5rem;
+  vertical-align: middle;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.col-play { width: 2.7rem; }
+.col-name { width: 34%; }
+.col-verdict { width: 5rem; }
+/* Wide enough for the button plus its padding: the shared `td` rule clips
+   with an ellipsis, and a play button one pixel too wide renders a stray
+   dot beside every row. */
+td.cell-play { text-align: center; padding: 0; overflow: visible; }
+td.cell-name { font-weight: 600; }
+td.cell-name .concept { opacity: 0.4; font-weight: 400; font-size: 0.72rem; margin-left: 0.4rem; }
+td.cell-variant { opacity: 0.75; }
+td.cell-variant .axis { opacity: 0.5; font-size: 0.72rem; margin-right: 0.35rem; }
+.chip {
+  display: inline-block;
+  padding: 0.05rem 0.45rem;
+  line-height: 1.35;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-size: 0.7rem;
+  opacity: 0.85;
+}
+.chip.up { border-color: var(--up); color: var(--up); }
+.chip.down { border-color: var(--down); color: var(--down); }
+.chip.draft { border-color: var(--draft); color: var(--draft); }
+.chip.broken { border-color: var(--down); color: var(--down); }
+.icon {
+  flex: none;
+  padding: 0.2rem 0.4rem;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  opacity: 0.7;
+}
+.icon:hover { background: var(--panel-hi); opacity: 1; }
+#empty { padding: 1.2rem 0.6rem; text-align: center; opacity: 0.45; font-size: 0.85rem; }
+
+/* ── The attempt under the needle ─────────────────────────────────── */
+#selected {
+  opacity: 0.9;
+  font-size: 0.95rem;
+  height: 1.3rem;
+  line-height: 1.3rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* Two lines, always: the approach line plus what is held constant. */
+#approach {
+  height: 2.4em;
+  line-height: 1.2em;
+  white-space: pre-line;
+  overflow: hidden;
+  opacity: 0.62;
+  font-size: 0.78rem;
+  border-left: 2px solid var(--line);
+  padding-left: 0.6rem;
+}
+/*
+ * The set strip: this attempt's siblings, which are the only thing its
+ * thumb means anything against. Fixed height so switching between them
+ * never moves the transport.
+ */
+#set {
+  display: flex;
+  gap: 0.35rem;
+  align-items: center;
+  height: 1.8rem;
+  overflow-x: auto;
+  font-size: 0.75rem;
+}
+#set .sib {
+  padding: 0.2rem 0.55rem;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.75rem;
+  opacity: 0.65;
+  cursor: pointer;
+  white-space: nowrap;
+}
+#set .sib:hover { background: var(--panel); opacity: 1; }
+#set .sib[aria-current="true"] { background: var(--panel); border-color: var(--accent); color: var(--accent); opacity: 1; }
+#set .sib.up { border-color: var(--up); }
+#set .sib.down { border-color: var(--down); }
+#set .label { opacity: 0.4; margin-right: 0.2rem; }
+
+button {
+  flex: 1 1 0;
+  min-width: 0;
+  height: 2.5rem;
+  padding: 0 0.7rem;
+  background: var(--panel);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  font: inherit;
+  font-size: 0.88rem;
+  cursor: pointer;
+}
+button:hover:not(:disabled) { background: var(--panel-hi); }
+button:disabled { opacity: 0.4; cursor: not-allowed; }
+#up { border-color: var(--up); color: var(--up); }
+#down { border-color: var(--down); color: var(--down); }
+#clear { flex: 0 0 6rem; opacity: 0.7; }
+
+/*
+ * The tag shelf. Fixed height with its own scroll: it is twenty-odd chips
+ * and it must not grow the page when a facet is longer, because the thumb
+ * buttons under it are where your hand already is.
+ */
+#tags {
+  /* Four of the six facets visible at rest, the rest one scroll away. Fixed
+     so a longer facet cannot push the thumb buttons out from under your
+     hand mid-comparison. */
+  height: 9.5rem;
+  overflow-y: auto;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 0.4rem 0.5rem;
+}
+#tags::-webkit-scrollbar { width: 8px; }
+#tags::-webkit-scrollbar-thumb { background: var(--line); border-radius: 999px; }
+.facet { display: flex; align-items: baseline; gap: 0.4rem; margin-bottom: 0.25rem; flex-wrap: wrap; }
+.facet > .facet-name {
+  width: 4.6rem;
+  flex: none;
+  opacity: 0.4;
+  font-size: 0.7rem;
+  text-align: right;
+}
+.tagchip {
+  padding: 0.1rem 0.5rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.7rem;
+  opacity: 0.55;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.tagchip:hover { opacity: 0.95; background: var(--panel); }
+.tagchip[aria-pressed="true"] {
+  opacity: 1;
+  background: var(--panel);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+#note {
+  width: 100%;
+  height: 2.4rem;
+  padding: 0.4rem 0.6rem;
+  background: var(--panel);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  font: inherit;
+  font-size: 0.8rem;
+  resize: none;
+}
+.check {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.78rem;
+  opacity: 0.8;
+  cursor: pointer;
+  white-space: nowrap;
+}
+/* Two lines reserved: status runs from "Playing" to a full render hint. */
+#status {
+  height: 2.6em;
+  line-height: 1.3em;
+  overflow: hidden;
+  opacity: 0.7;
+  font-size: 0.82rem;
+}
+
+/*
+ * The only rule that is not a verbatim move out of studies.html's <style>.
+ * Same reason as bench.css and voices.css: body is a grid that sizes <main> as a
+ * direct child, so React's mount node has to disappear from layout.
+ */
+#root { display: contents; }

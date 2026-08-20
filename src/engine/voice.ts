@@ -12,7 +12,7 @@
  * with where the file actually lives.
  *
  * This module is the contract only — types plus validation, pure and tested.
- * `src/app/instruments.ts` turns a preset into Tone nodes;
+ * `src/app/audio/instruments.ts` turns a preset into Tone nodes;
  * [`./voice-library`](./voice-library.ts) organises a folder of them.
  */
 import { INSTRUMENT_NAMES, type InstrumentName, type ValidationIssue } from "./composition";
@@ -80,7 +80,7 @@ export interface SynthSpec {
  * A guitar amp, block by block, in signal order:
  * tighten → sag → preamp → tone stack → power amp → cab → width → slap echo.
  * The order is the instrument; the same blocks rearranged are a different one.
- * `src/app/instruments.ts` documents why each block is where it is.
+ * `src/app/audio/instruments.ts` documents why each block is where it is.
  */
 export interface AmpSpec {
   /** Gain into the preamp — more here is more saturation, not more volume. */
@@ -214,7 +214,7 @@ export interface BreathSpec {
  * players is eight times the polyphony, which is the dominant render cost per
  * `quality.ts`. That is the honest price of the effect, and rendering is offline
  * with no deadline to miss. `src/engine/section.ts` decides who differs by how
- * much; `src/app/instruments.ts` builds the nodes.
+ * much; `src/app/audio/instruments.ts` builds the nodes.
  *
  * Because every player is a real detuned instrument, the per-player oscillator
  * should be a plain waveform rather than a `fat` one — the spread is already

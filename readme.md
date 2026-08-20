@@ -40,7 +40,7 @@ loose musical ideas into something you're pumped about.
 | `palettes/<kind>/*.md` | Intent → music: `emotion`, `genre`, `timbre`, `space`, `era` | Per-kind schema; see [palette-authoring](docs/palette-authoring.md) |
 | `src/engine/` | Pure music brains | tonal, theory, arrange, validation — **tested** |
 | `src/utils/` | Promoted general helpers | rng, timing, wav, mp3, loop seams — **tested** |
-| `src/app/` | Browser player + the audio graph | Tone.js glue, thin, not unit-tested. The graph runs only under `npm run render`; the app itself just plays files |
+| `src/app/` | Browser player + the audio graph | React (`pages/`, `components/`, `hooks/`) over `audio/` — Tone.js glue, thin, not unit-tested. The graph runs only under `npm run render`; the app itself just plays files |
 | `compositions/<kind>/*.json` | Song specs (the Claude↔app contract) | Kind = folder = tab: `leitmotifs`, `segments`, `loops`, `songs`. See [library](docs/library.md); shape in `src/engine/composition.ts` |
 | `voices/<instrument>/*.json` | Instrument sounds, several per instrument | Folder = instrument. Approved ones get a row in [`voices/archive.md`](voices/archive.md); the `notes` inside each file are its design record. Process in [voices](docs/voices.md) |
 | `studies/<concept>/*.json` | Attempts at a musical *concept*, to be thumbed up or down | Folder = concept. **Scratch** — deleted once distilled into [`docs/taste.md`](docs/taste.md), which is the permanent record. Verdicts queue in the generated `studies/ledger.md`. Process in [studies](docs/studies.md) |

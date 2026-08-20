@@ -81,6 +81,20 @@ export function inferKind(comp: Composition): CompositionKind {
   return comp.loop ? "loops" : "segments";
 }
 
+/**
+ * A path as it would be typed at the repo root: `compositions/loops/x.json`.
+ *
+ * Vite's glob keys are relative to the module that globbed them, so the same
+ * file arrives as `../../compositions/…` from `src/app` and `../../../` from
+ * `src/app/pages`. How deep a component sits is not something a path *shown to
+ * the user* may depend on — this one ends up in
+ * `npm run render -- --file <path>` and in the delete endpoint's body, and both
+ * of those are answered from the repo root.
+ */
+export function repoPath(path: string): string {
+  return path.replace(/^(?:\.{1,2}[\\/])+/, "");
+}
+
 /** Filename without directories or the `.json` extension. */
 export function slugFromPath(path: string): string {
   return (path.split(/[\\/]/).pop() ?? path).replace(/\.json$/i, "");
@@ -108,7 +122,7 @@ export function buildLibrary(files: Record<string, Composition>): LibraryEntry[]
         id: `${kind}/${slug}`,
         kind,
         slug,
-        path,
+        path: repoPath(path),
         composition,
         tags: tagsOf(composition),
         motifs: composition.motifs ?? [],
@@ -218,4 +232,36 @@ export function danglingMotifs(entries: readonly LibraryEntry[]): { entry: Libra
   return entries.flatMap((entry) =>
     entry.motifs.filter((m) => !known.has(m)).map((motif) => ({ entry, motif })),
   );
+}
+
+/** One tag pill in the library table. `motif` pills are accented. */
+export interface ChipLabel {
+  text: string;
+  motif: boolean;
+}
+
+/**
+ * The pills for one row: the piece's own tags, then the leitmotifs it quotes,
+ * then — for a leitmotif — how many pieces quote *it*.
+ *
+ * Labels rather than nodes, so the table and its hover title come from one list
+ * and cannot disagree about what the row says.
+ */
+export function chipLabels(entry: LibraryEntry, quotedBy: number): ChipLabel[] {
+  const chips: ChipLabel[] = entry.tags.map((text) => ({ text, motif: false }));
+  for (const motif of entry.motifs) chips.push({ text: `♪ ${motif}`, motif: true });
+  if (entry.kind === "leitmotifs" && quotedBy > 0) {
+    chips.push({ text: `♪ quoted ×${quotedBy}`, motif: true });
+  }
+  return chips;
+}
+
+/**
+ * What the table says when it has no rows. Three different nothings: the filter
+ * excluded everything, the library is empty, or this one folder is.
+ */
+export function emptyMessage(kind: CompositionKind | null, query: string): string {
+  if (query.trim() !== "") return `Nothing matches “${query.trim()}”.`;
+  if (kind === null) return "No compositions yet — run npm run compose.";
+  return `Nothing in compositions/${kind}/ yet.`;
 }

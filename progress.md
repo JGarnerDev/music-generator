@@ -2,7 +2,7 @@
 title: Progress & Roadmap
 purpose: Prioritized backlog of what to build. Living doc — check items off, reorder as reality shifts.
 audience: [claude, human]
-updated: 2026-08-15
+updated: 2026-08-20
 read_order: 2
 see_also: [readme.md, docs/vision.md]
 status: living
@@ -69,14 +69,19 @@ recording in the bench. See [`docs/transcribe.md`](./docs/transcribe.md).
 Below the music work by decision (2026-08-14): the product is the music, and a
 better-hosted player does not make a loop sound less like the last loop.
 
+React landed 2026-08-20 — all four benches, `components/` `hooks/` `pages/` over
+`src/app/audio/`, every page diffed against the version it replaced. The split
+below is now the next step and is a smaller job than it was: what has to move is
+already four entry points, four stylesheets and three folders.
+
 - [ ] **Split the web app into its own deployable folder.** Composition happens
       through Claude in the repo; the app only needs to *play and export*. Carve
       `src/app` (+ its entry/HTML/build config) into a self-contained package so
       it deploys without the generation toolchain (`scripts/`, palette loader,
-      `src/engine`'s authoring path) riding along.
-- [ ] **Migrate the app to React.** Adopt a practical `components/` `hooks/`
-      `helpers/` layout inside the app package. Keep audio glue thin — engine
-      logic still belongs in `src/engine`/`src/utils` with tests.
+      `src/engine`'s authoring path) riding along. The dev-server APIs in
+      `src/dev` are the seam to cut on: the deployed app has no session, voice,
+      study or trash endpoint, and every write button already greys out on
+      `useApi().canEdit`.
 - [ ] **Host on Cloudflare.** Deploy the split app (Pages/Workers) so it's usable
       from a phone, not just `npm run dev` on the desktop.
 

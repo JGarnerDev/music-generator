@@ -1,0 +1,239 @@
+/* Border-box everywhere: the body's padding has to live *inside* its
+   100vh, or the page overflows by exactly that padding. */
+*, *::before, *::after { box-sizing: border-box; }
+:root {
+  color-scheme: dark;
+  --bg: #14121a;
+  --panel: #2a2440;
+  --panel-hi: #362e52;
+  --line: #443a66;
+  --ink: #e8e4f0;
+  --accent: #b6a6e6;
+}
+/*
+ * Every block below is a fixed size. The bench is a workshop tool you use
+ * with your eyes in one place — switching tabs, filtering, or selecting a
+ * piece with a longer name must never move the Play button. So: the page
+ * is top-anchored (not centred, which would re-centre as content grows),
+ * the table is a fixed height with a permanent scrollbar gutter, and every
+ * text line that varies is clamped to one line.
+ */
+body {
+  font-family: ui-monospace, "Cascadia Code", monospace;
+  background: var(--bg);
+  color: var(--ink);
+  display: grid;
+  justify-content: center;
+  align-content: start;
+  min-height: 100vh;
+  margin: 0;
+  padding: 2rem 0 1.5rem;
+}
+/*
+ * One screenful, no page scrollbar: main is exactly the viewport minus the
+ * body padding, laid out as fixed rows with the library table taking the
+ * slack (`1fr`). Everything below the table therefore sits at the same
+ * place for a given window size, whatever the table contains.
+ */
+main {
+  width: min(680px, 92vw);
+  height: calc(100vh - 3.5rem);
+  min-height: 38rem; /* below this the page scrolls rather than crush the controls */
+  max-height: 50rem; /* on a tall monitor, stop stretching the table */
+  display: grid;
+  grid-template-rows:
+    auto auto auto auto /* title · tabs · blurb · search */
+    minmax(6.6rem, 1fr) /* library table — absorbs the slack */
+    auto auto auto auto auto auto; /* piece · drop · transport · export · loop · status */
+  gap: 0.7rem;
+}
+h1 {
+  font-size: 1.1rem;
+  color: var(--accent);
+  letter-spacing: 0.02em;
+  margin: 0;
+  height: 1.4rem;
+  line-height: 1.4rem;
+}
+h1 a { color: inherit; opacity: 0.45; text-decoration: none; font-size: 0.8rem; float: right; margin-left: 0.8rem; }
+h1 a:hover { opacity: 0.9; }
+.row { display: flex; gap: 0.6rem; }
+
+/* ── Library: tabs + scrollable table ─────────────────────────────── */
+#tabs {
+  display: flex;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 0.4rem;
+}
+.tab {
+  /* Equal shares, not content-sized: a count going 9 → 10 must not resize tabs. */
+  flex: 1 1 0;
+  min-width: 0;
+  padding: 0.45rem 0.6rem;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  color: var(--ink);
+  opacity: 0.6;
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.tab:hover { opacity: 0.9; background: var(--panel); }
+.tab[aria-selected="true"] {
+  opacity: 1;
+  background: var(--panel);
+  border-color: var(--line);
+  color: var(--accent);
+}
+.tab .count { opacity: 0.55; margin-left: 0.35rem; }
+#kindBlurb {
+  font-size: 0.78rem;
+  opacity: 0.5;
+  margin: 0;
+  height: 1.1rem;
+  line-height: 1.1rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+#search {
+  width: 100%;
+  padding: 0.5rem 0.7rem;
+  background: var(--panel);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  font: inherit;
+  font-size: 0.85rem;
+}
+#libraryWrap {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  /* Sized by the grid row above; always-on scrollbar so 1 row and 40 rows
+     give the table the exact same box (no width jump when it fills). */
+  min-height: 0;
+  overflow-y: scroll;
+}
+#libraryWrap::-webkit-scrollbar { width: 10px; }
+#libraryWrap::-webkit-scrollbar-thumb { background: var(--line); border-radius: 999px; }
+table#library {
+  width: 100%;
+  table-layout: fixed; /* column widths come from the cols below, not the content */
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+#library tr { border-bottom: 1px solid #241f38; cursor: pointer; }
+#library tr:last-child { border-bottom: none; }
+#library tr:hover { background: #1d1a2b; }
+#library tr[aria-selected="true"] { background: var(--panel); }
+#library td {
+  height: 2.2rem;
+  padding: 0 0.5rem;
+  vertical-align: middle;
+  /* One line per cell — a long name or a fourth tag clips, never reflows. */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.col-play, .col-delete { width: 2.4rem; }
+.col-name { width: 48%; }
+td.cell-play, td.cell-delete { text-align: center; padding: 0; }
+td.cell-name { font-weight: 600; }
+td.cell-name .kind { opacity: 0.4; font-weight: 400; font-size: 0.75rem; margin-left: 0.4rem; }
+td.cell-tags { opacity: 0.75; }
+.chip {
+  display: inline-block;
+  padding: 0.05rem 0.4rem;
+  margin: 0 0.2rem 0 0;
+  line-height: 1.35;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-size: 0.7rem;
+  opacity: 0.85;
+}
+.chip.motif { border-color: var(--accent); color: var(--accent); }
+.icon {
+  flex: none;
+  padding: 0.25rem 0.45rem;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  opacity: 0.7;
+}
+.icon:hover { background: var(--panel-hi); opacity: 1; }
+.icon.danger:hover { background: #4a2233; color: #ffb4c4; }
+#empty { padding: 1.2rem 0.6rem; text-align: center; opacity: 0.45; font-size: 0.85rem; }
+
+/* ── Bench: the selected piece ────────────────────────────────────── */
+#title {
+  opacity: 0.85;
+  font-size: 0.95rem;
+  height: 1.3rem;
+  line-height: 1.3rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+#drop {
+  border: 1px dashed var(--line);
+  border-radius: 8px;
+  height: 3rem;
+  display: grid;
+  place-content: center;
+  text-align: center;
+  font-size: 0.85rem;
+  opacity: 0.6;
+  cursor: pointer;
+}
+#drop.over { border-color: var(--accent); opacity: 1; background: #221d33; }
+button {
+  flex: 1 1 0;
+  min-width: 0;
+  height: 2.9rem;
+  padding: 0 1rem;
+  background: var(--panel);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  font: inherit;
+  cursor: pointer;
+}
+button:hover:not(:disabled) { background: var(--panel-hi); }
+button:disabled { opacity: 0.4; cursor: not-allowed; }
+/*
+ * Two lines reserved, always: status messages run from "Playing…" to a
+ * full validation error, and the box must not resize under either.
+ */
+#status {
+  height: 2.6em;
+  line-height: 1.3em;
+  overflow: hidden;
+  opacity: 0.7;
+  font-size: 0.9rem;
+}
+.check {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  height: 1.4rem;
+  font-size: 0.85rem;
+  opacity: 0.8;
+  cursor: pointer;
+}
+.check.disabled { opacity: 0.35; cursor: not-allowed; }
+
+/*
+ * The only rule that is not a verbatim move out of index.html's <style>.
+ * React needs a mount node, and body is a grid whose sizing assumes <main> is a
+ * direct child of it — `display: contents` makes the wrapper vanish from layout
+ * so every rule above still applies to exactly the box it was written for.
+ */
+#root { display: contents; }

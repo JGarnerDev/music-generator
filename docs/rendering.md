@@ -118,7 +118,7 @@ Two traps that bit along the way and are still live if you touch this code:
   (`OfflineContext.js`). A hidden tab throttles timers to 1/second, and to
   ~1/minute after five minutes — a render in a background tab crawls or never
   finishes. Rendering `false` (synchronous) instead freezes the page and starves
-  the event loop Playwright needs. `src/app/render.ts` documents the tradeoff.
+  the event loop Playwright needs. `src/app/audio/render.ts` documents the tradeoff.
 - **`Tone.Reverb` generates its impulse response asynchronously, from its
   constructor, in a nested offline context, seeded from `Math.random`** — so it
   can be empty when the render starts and it differs run to run. Replaced with
@@ -133,10 +133,10 @@ Two traps that bit along the way and are still live if you touch this code:
 | `src/dev/render-harness.ts` | Vite + Playwright + the job queue. Shared with `render-voices.ts`. |
 | `scripts/render-voices.ts` | The same pipeline for voice probes → `public/audio/voices/`. See [voices](./voices.md). |
 | `src/dev/render-page.ts` + `render.html` | The page the browser runs. Dev-only, never bundled. |
-| `src/app/render.ts` | Offline render → PCM. The only place audio is synthesised. |
-| `src/app/graph.ts`, `instruments.ts` | The Tone graph. Runs only under the render script now. Instrument tone comes from `voices/` — see [voices](./voices.md). |
-| `src/app/quality.ts` | Export vs audition profiles, with the measurements behind each knob. |
+| `src/app/audio/render.ts` | Offline render → PCM. The only place audio is synthesised. |
+| `src/app/audio/graph.ts`, `instruments.ts` | The Tone graph. Runs only under the render script now. Instrument tone comes from `voices/` — see [voices](./voices.md). |
+| `src/app/audio/quality.ts` | Export vs audition profiles, with the measurements behind each knob. |
 | `src/engine/manifest.ts` | Manifest shape, indexing, merge — tested. |
 | `src/utils/mp3.ts` | Float PCM → MP3 (`@breezystack/lamejs`; the published `lamejs` is broken) — tested. |
-| `src/app/playback.ts` | Load a URL, play it. ~60 lines. |
+| `src/app/audio/playback.ts` | Load a URL, play it. ~60 lines. |
 | `bench.html` + `src/dev/bench.ts` | Render profiler. Reach for this before optimising. |

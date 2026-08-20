@@ -119,6 +119,6 @@ usually a section voice silently declining it — check the render's warnings.
 |---|---|
 | [`src/engine/bend.ts`](../src/engine/bend.ts) | The curves and the automation points. Pure, tested. |
 | [`src/engine/composition.ts`](../src/engine/composition.ts) | `Note.bend`, and the overlap rule. |
-| [`src/app/instruments.ts`](../src/app/instruments.ts) | `BendVoice` — why it is a second synth and not the track's. |
-| [`src/app/graph.ts`](../src/app/graph.ts) | Routing bent notes to it. |
+| [`src/app/audio/instruments.ts`](../src/app/audio/instruments.ts) | `BendVoice` — why it is a second synth and not the track's. |
+| [`src/app/audio/graph.ts`](../src/app/audio/graph.ts) | Routing bent notes to it. |
 | `compositions/segments/string-bend-probe.json` | Every curve, in one short piece. |

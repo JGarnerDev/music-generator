@@ -16,8 +16,8 @@
  * Dev-only — `render.html` is not an entry point of `vite build`.
  */
 import type { Composition } from "@engine/composition";
-import { renderComposition } from "@app/render";
-import { AUDITION_QUALITY, EXPORT_QUALITY } from "@app/quality";
+import { renderComposition } from "@app/audio/render";
+import { AUDITION_QUALITY, EXPORT_QUALITY } from "@app/audio/quality";
 
 /** Slice size for handing PCM back to node. Big enough to be few, small enough to be safe. */
 const CHUNK_SAMPLES = 1 << 20; // 1M floats ≈ 4 MB

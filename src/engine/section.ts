@@ -5,7 +5,7 @@
  * A section reads as many players because no two of them agree, so this module's
  * whole job is deciding *how* they disagree. It is pure and seeded from the
  * voice's own slug: the same voice always produces the same desk, which is what
- * lets a render be repeated and a plan be tested. `src/app/instruments.ts` turns
+ * lets a render be repeated and a plan be tested. `src/app/audio/instruments.ts` turns
  * one of these plans into one player's worth of Tone nodes.
  *
  * The shape of the disagreement matters more than its size:

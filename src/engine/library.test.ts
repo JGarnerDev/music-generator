@@ -1,8 +1,10 @@
 import { describe, it, expect } from "vitest";
 import {
   buildLibrary,
+  chipLabels,
   countsByKind,
   danglingMotifs,
+  emptyMessage,
   entriesOfKind,
   inferKind,
   kindFromPath,
@@ -10,6 +12,7 @@ import {
   neighboursOf,
   searchEntries,
   tagsOf,
+  type LibraryEntry,
 } from "./library";
 import type { Composition } from "./composition";
 
@@ -64,6 +67,21 @@ describe("buildLibrary", () => {
       "loops/camp",
       "loops/stray",
     ]);
+  });
+
+  // The path is printed as `npm run render -- --file <path>` and posted to the
+  // delete endpoint, so it has to be what you would type at the repo root — not
+  // however far up the page that globbed it happens to sit.
+  it("normalises Vite's module-relative glob keys to repo-relative paths", () => {
+    const fromPages = buildLibrary({
+      "../../../compositions/loops/camp.json": comp({ name: "camp" }),
+    });
+    expect(fromPages[0]?.path).toBe("compositions/loops/camp.json");
+    expect(fromPages[0]?.id).toBe("loops/camp");
+  });
+
+  it("leaves a path that is already repo-relative alone", () => {
+    expect(entries.map((e) => e.path)).toContain("compositions/loops/camp.json");
   });
 
   it("leaves trashed files out of the library", () => {
@@ -158,5 +176,45 @@ describe("neighboursOf", () => {
   it("says which fields matched, so there is something to change", () => {
     const [first] = neighboursOf({ key: "D minor", bpm: 152 }, shelf);
     expect(first!.shared).toEqual(["key", "tempo", "meter"]);
+  });
+});
+
+describe("chipLabels", () => {
+  const entry = (over: Partial<LibraryEntry> = {}): LibraryEntry => ({
+    id: "segments/piece",
+    kind: "segments",
+    slug: "piece",
+    path: "compositions/segments/piece.json",
+    composition: comp(),
+    tags: [],
+    motifs: [],
+    ...over,
+  });
+
+  it("lists tags first, then quoted motifs", () => {
+    expect(chipLabels(entry({ tags: ["dusty", "tense"], motifs: ["lioness"] }), 0)).toEqual([
+      { text: "dusty", motif: false },
+      { text: "tense", motif: false },
+      { text: "♪ lioness", motif: true },
+    ]);
+  });
+
+  it("counts quoters, but only for a leitmotif", () => {
+    expect(chipLabels(entry({ kind: "leitmotifs" }), 3)).toEqual([
+      { text: "♪ quoted ×3", motif: true },
+    ]);
+    expect(chipLabels(entry({ kind: "segments" }), 3)).toEqual([]);
+    expect(chipLabels(entry({ kind: "leitmotifs" }), 0)).toEqual([]);
+  });
+});
+
+describe("emptyMessage", () => {
+  it("blames the filter when there is one", () => {
+    expect(emptyMessage("loops", "  sitar ")).toBe("Nothing matches “sitar”.");
+  });
+
+  it("names the folder, or the whole library on the All tab", () => {
+    expect(emptyMessage("loops", "")).toBe("Nothing in compositions/loops/ yet.");
+    expect(emptyMessage(null, "")).toBe("No compositions yet — run npm run compose.");
   });
 });

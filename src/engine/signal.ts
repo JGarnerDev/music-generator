@@ -12,7 +12,7 @@
  * This is the missing half: token → a declarative `EffectSpec`, in the order the
  * author wrote them, per track. **Order is the instrument** — sag before drive is
  * a valve amp browning out, drive before sag is a compressor on a fuzz pedal, and
- * they do not sound alike. `src/app/effects.ts` builds Tone nodes from these
+ * they do not sound alike. `src/app/audio/effects.ts` builds Tone nodes from these
  * specs; keeping the decisions here means the chain is pure and testable and the
  * browser file stays thin.
  *
@@ -22,7 +22,7 @@
  * them so a CLI can say which words are currently only words.
  */
 
-/** One effect in a chain, as data. `src/app/effects.ts` turns these into nodes. */
+/** One effect in a chain, as data. `src/app/audio/effects.ts` turns these into nodes. */
 export type EffectSpec =
   /** Waveshaping distortion — the amount is Tone's 0..1 curve parameter. */
   | { kind: "distortion"; amount: number }

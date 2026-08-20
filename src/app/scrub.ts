@@ -1,7 +1,7 @@
 /**
  * The scrub bar: where we are in the cue, and a click to move there.
  *
- * DOM + rAF glue over [`./playback`](./playback.ts), which owns the actual
+ * DOM + rAF glue over [`./audio/playback`](./audio/playback.ts), which owns the actual
  * seeking. Kept apart from the session page because it is a transport widget,
  * not a session concept — the composition bench can mount the same one.
  *
@@ -10,7 +10,7 @@
  * `positionSeconds()` is both simpler and always right.
  */
 import { formatClock } from "@utils/clock";
-import { durationSeconds, playbackState, positionSeconds, seekTo } from "./playback";
+import { durationSeconds, playbackState, positionSeconds, seekTo } from "./audio/playback";
 
 export interface ScrubBar {
   /** Begin following playback. Idempotent. */

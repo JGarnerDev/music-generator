@@ -27,7 +27,7 @@ import type {
 import { planSection, sectionGain, type PlayerPlan } from "@engine/section";
 import { getQuality } from "./quality";
 import { DrumKit } from "./drums";
-import { voiceFor } from "./voices";
+import { voiceFor } from "../voices";
 
 export type Playable = Tone.PolySynth | Tone.Sampler | DrumKit | Section;
 

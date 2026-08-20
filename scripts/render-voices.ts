@@ -44,7 +44,7 @@ program
   .option("--all", "render every voice under voices/")
   .option("--wav", "also write full-quality WAVs (gitignored)")
   .option("--bitrate <kbps>", "MP3 bitrate", "160")
-  .option("--audition", "render at audition quality — faster, thinner (see src/app/quality.ts)")
+  .option("--audition", "render at audition quality — faster, thinner (see src/app/audio/quality.ts)")
   .option("--jobs <n>", "voices to render in parallel", String(defaultJobs()))
   .option("--force", "re-render voices that already have audio")
   .parse(process.argv);

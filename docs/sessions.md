@@ -4,7 +4,7 @@ purpose: Running orders for a game — how a session plan is written, what the t
 audience: [claude, human]
 updated: 2026-08-19
 read_order: 6
-see_also: [library.md, looping.md, ../src/engine/session.ts, ../src/app/session-main.ts]
+see_also: [library.md, looping.md, ../src/engine/session.ts, ../src/app/pages/Session.tsx]
 status: living
 ---
 

@@ -473,7 +473,7 @@ function buildComposition(plan: Plan): Composition {
   // that is doubled at the fifth *and* reinforced by the bass an octave down, so
   // matching their gains buries it — it has to sit above the rhythm part, not
   // level with it. It also plays the `lead` voice rather than `pluck`: a
-  // different rig, not the same rig louder (see `src/app/instruments.ts`).
+  // different rig, not the same rig louder (see `src/app/audio/instruments.ts`).
   const tracks: Track[] = (
     [
       { instrument: "drums", gain: 0.85, notes: voices.drums },

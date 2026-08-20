@@ -17,13 +17,13 @@
  */
 import * as Tone from "tone";
 import type { Composition } from "@engine/composition";
-import { scheduleComposition } from "@app/graph";
+import { scheduleComposition } from "@app/audio/graph";
 import {
   AUDITION_QUALITY,
   EXPORT_QUALITY,
   withQuality,
   type RenderQuality,
-} from "@app/quality";
+} from "@app/audio/quality";
 // The subjects are whatever loops exist, not two named files. Naming them was a
 // static import, so clearing `compositions/` broke `npm run typecheck` — a
 // profiler is a tool, and a tool that stops compiling when the library it
