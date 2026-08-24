@@ -1,0 +1,84 @@
+{
+  "instrument": "piano",
+  "slug": "salon-grand",
+  "title": "Salon grand",
+  "status": "approved",
+  "tags": [
+    "piano",
+    "grand",
+    "pedal",
+    "sustain",
+    "bloom",
+    "nocturne",
+    "romantic",
+    "dreamy",
+    "chopin",
+    "salon",
+    "expressive",
+    "wide"
+  ],
+  "notes": "A pedalled salon grand — the piano a nocturne is played on. Its parent\n`piano/felt-hammer` is the same room with the lid down and a cloth over the strings;\nthis one takes the cloth out, opens the lid, and holds the damper pedal.\n\n**The felt comes off, and that is one number.** The parent's brief says it outright:\n\"drop it to a piano's usual 2-3 ms and the felt is gone no matter what the filter does\".\nSo attack is 3 ms, four times faster, which is the largest single ratio in the fork and\ntherefore the separation that survives the lo-fi chain by itself. Everything below is\nconsequence.\n\n**The pedal is the design.** Release 4.2 s against the parent's 1.8. A nocturne's left\nhand is a wide arpeggio spanning a tenth, played once per bar at 60-76 bpm, and it is\n*meant* to still be sounding when the next one starts - that overlap is the harmony, not\na smear. Decay 2.6 s to a 0.035 sustain: a longer string with less holding it up, because\na grand's note is nearly all tail. The parent decays in 1.4 s to 0.06, which is right for\na quiet upright and stops ringing before a slow bar is over.\n\n**Polyphony 14, not 8.** With a 4.2 s release, six arpeggio notes a bar at 63 bpm leaves\nroughly twenty notes alive at once. Eight steals voices mid-phrase and the bass of the\narpeggio - the note the ear is holding the chord by - is the oldest and so the first to\ngo. 14 is the cheapest number that survives a pedalled bar; it is not a section voice, so\nthe cost is linear in notes rather than multiplied.\n\n**The hammer hill goes back.** The parent's most characteristic resonance is a -5 dB notch\nat 3.2 kHz, the *absence* of hammer contact noise. Here it is +4 dB at 3.1 kHz - the\nstruck-string edge that lets a melody note carry over its own pedalled accompaniment.\nDoing this by boost is against the usual advice in docs/voices.md, so it is not carrying\nthe separation: the envelope ratios are. It is a 9 dB swing on the parent's signature\nband, which is enough to make the two unmistakable next to each other.\n\nThe rest of the box is a bigger one: 90 Hz case air (an upright's is 120 - a grand's is\nlonger and lower), 240 Hz soundboard, and a -4 dB notch at 780 Hz where the parent had a\n+2 plate mode. That notch is the \"open lid\" - a real grand has less mid honk than an\nupright, and per the docs a hole is more reliable contrast than a peak.\n\n**`breath` moves from the mechanism to the hammer.** The parent's is 900 Hz at level 0.06\nwith a 4 ms follower: key bed, damper lift, a quiet room. This is 1900 Hz at 0.03 with a\n1.5 ms follower - felt-on-wire contact, half as loud and twice as high, because on an open\ngrand the string wins and the click is only the leading edge. Breath centre is an axis the\nlo-fi chain does not erode, so this is a second real separation after the envelopes.\n\n**`vibrato` is still not vibrato.** Rate 1.2 Hz, depth 0.0045 - the parent's slow unison\nbeat, slightly faster and wider. A grand's three strings per note are further apart and\nunder more tension than an upright's, so they beat quicker. Still far below the threshold\nof hearing it as modulation; it exists only so the pitch is not perfectly stationary.\n\n**What this voice is not for.** Anything close, small or asleep - that is the parent, and\nthis one will sound stagey doing it. It also should not be asked to play block chords\nbelow C3 with the pedal down: 90 Hz case air plus a 4.2 s release plus a fifth in the bass\nis mud, and the fix is the voicing (wide, low root, nothing else under C3) rather than the\npreset.",
+  "synth": {
+    "kind": "mono",
+    "oscillator": {
+      "type": "triangle"
+    },
+    "envelope": {
+      "attack": 0.003,
+      "decay": 2.6,
+      "sustain": 0.035,
+      "release": 4.2
+    },
+    "filter": {
+      "type": "lowpass",
+      "rolloff": -12,
+      "Q": 0.8
+    },
+    "filterEnvelope": {
+      "attack": 0.004,
+      "decay": 1.6,
+      "sustain": 0.12,
+      "release": 3,
+      "baseFrequency": 420,
+      "octaves": 3.4,
+      "exponent": 1.5
+    },
+    "maxPolyphony": 14
+  },
+  "vibrato": {
+    "rate": 1.2,
+    "depth": 0.0045,
+    "drift": 0.9
+  },
+  "body": [
+    {
+      "frequency": 90,
+      "q": 3,
+      "gain": 6
+    },
+    {
+      "frequency": 240,
+      "q": 2.5,
+      "gain": 3
+    },
+    {
+      "frequency": 780,
+      "q": 2,
+      "gain": -4
+    },
+    {
+      "frequency": 3100,
+      "q": 1,
+      "gain": 4
+    }
+  ],
+  "breath": {
+    "level": 0.03,
+    "hz": 1900,
+    "q": 1.4,
+    "attack": 0.0015
+  },
+  "forkedFrom": "piano/felt-hammer",
+  "approvedAt": "2026-08-23",
+  "summary": "Pedalled salon grand: 3 ms strike, 4.2 s release, hammer hill back at 3.1 kHz. The nocturne piano, for arpeggios that ring into each other."
+}

@@ -289,6 +289,22 @@
       "renderedAt": "2026-08-15T03:18:16.189Z"
     },
     {
+      "name": "piano.salon-grand",
+      "file": "piano.salon-grand.mp3",
+      "seconds": 26.857125,
+      "bytes": 538080,
+      "isLoop": false,
+      "renderedAt": "2026-08-23T22:51:38.552Z"
+    },
+    {
+      "name": "piano.salon-unison",
+      "file": "piano.salon-unison.mp3",
+      "seconds": 26.857125,
+      "bytes": 538080,
+      "isLoop": false,
+      "renderedAt": "2026-08-23T22:56:56.764Z"
+    },
+    {
       "name": "piano.soft-triangle",
       "file": "piano.soft-triangle.mp3",
       "seconds": 26.857125,

@@ -1,0 +1,93 @@
+{
+  "instrument": "piano",
+  "slug": "salon-unison",
+  "title": "Salon unison",
+  "status": "approved",
+  "tags": [
+    "piano",
+    "grand",
+    "pedal",
+    "sustain",
+    "unison",
+    "strings",
+    "beating",
+    "nocturne",
+    "romantic",
+    "dreamy",
+    "chopin",
+    "acoustic",
+    "organic"
+  ],
+  "notes": "Three strings, one hammer. The parent `piano/salon-grand` got the envelope of a\npedalled grand right and still read as a synthesiser; this is the fork that says why.\n\n**A piano note is not one string.** It is two or three, tuned to the same pitch and\ntherefore never quite at it, struck by a single hammer and coupled to a single\nsoundboard. The beating between them is not an ornament on the sound - at any moment\nafter the strike it is most of what you are hearing, because the fundamentals drift in\nand out of phase over seconds while the partials have already gone. Every voice on this\nshelf approximated it with `vibrato`, which is one LFO for the whole track: every note of\na chord beats at the same rate, in phase, forever. That is audibly a modulation pedal and\nnot a piano, and it is the reason the parent sounded stagey on the held chord.\n\n`section` is the only block here that produces real decorrelation, so it is the right\ntool even though it was written for string desks. Three players, each a complete copy of\nthe voice - own detune, own onset, own box, own vibrato phase - summed. What it is\nmodelling is a unison, not an ensemble, and every number is set against that:\n\n- **`detune: 4`, not the 14 a string section uses.** Dealt across three players that is\n  about -2 / 0 / +2 cents. A piano tuner's unison is within a couple of cents and the\n  slow shimmer is exactly that residue; at 14 the same block is a honky-tonk, which is a\n  real instrument but not this one.\n- **`timing: 0.002`, near zero.** A desk of players arrives over 35 ms. Three strings\n  under one hammer arrive together. The 2 ms that is left widens the strike just enough\n  that the onset is a thump rather than a click, and the envelope attack came down from\n  3 ms to 2 to pay for it.\n- **`seats: 0.15`.** Three strings of one note are in one place. A soundboard does radiate\n  wide, so not zero, but a piano spread across a stage is a synth patch.\n- **`bodyVary: 0.06`, low.** Here the analogy to a string section genuinely breaks: two\n  violins are two boxes, three strings are one board. What varies is how each string\n  couples to it, which is small - but not nothing, and it is what stops the three copies\n  being one copy at three times the gain.\n- **`vibratoVary: 0.5`, high.** The whole point. Each string beats at its own rate now, so\n  a chord no longer pulses as a unit.\n- **`effortVary: 0.05`.** One hammer, near-equal contact.\n\n**The filter envelope got steeper, not just longer.** Decay 1.6 s to 0.9, sustain 0.12 to\n0.06, octaves 3.4 to 4.0, exponent 2. On a struck string the top partials are gone inside\na second while the fundamental rings for ten, so the tone has to collapse much faster than\nthe note does. The parent swept slowly enough that the note stayed bright most of its\nlength, which is the \"tone that never changes across its own length\" that\n`instruments.ts` names as the toy-like failure.\n\n**The cost, stated plainly.** Three players at polyphony 8 is 24 running voices against\nthe parent's 14, so this renders about three times slower and steals voices on a dense\npedalled bar where the parent would not. Polyphony came down from 14 to 8 to part-pay for\nit, which means roughly eight notes alive per player instead of fourteen: enough for a\nleft-hand arpeggio plus a melody, not enough for a pedalled run that never lifts. If a\npiece needs that, the answer is to write the pedal lift in rather than to raise the\nnumber.\n\n**Still missing, and not fixable in a preset.** Velocity moves level only. On a real piano\nit moves the *spectrum* - a note at 0.25 is nearly a sine, at 0.95 it is clangy - and\n`triggerAttackRelease` has no route to timbre. Bars 4 and 5 of the keys etude test exactly\nthis and no voice on this shelf can pass them. Fixing it is a change to `instruments.ts`,\nnot to a JSON.",
+  "synth": {
+    "kind": "mono",
+    "oscillator": {
+      "type": "triangle"
+    },
+    "envelope": {
+      "attack": 0.002,
+      "decay": 2.6,
+      "sustain": 0.035,
+      "release": 4.2
+    },
+    "filter": {
+      "type": "lowpass",
+      "rolloff": -12,
+      "Q": 0.8
+    },
+    "filterEnvelope": {
+      "attack": 0.003,
+      "decay": 0.9,
+      "sustain": 0.06,
+      "release": 3,
+      "baseFrequency": 420,
+      "octaves": 4,
+      "exponent": 2
+    },
+    "maxPolyphony": 8
+  },
+  "vibrato": {
+    "rate": 1.2,
+    "depth": 0.0045,
+    "drift": 0.9
+  },
+  "body": [
+    {
+      "frequency": 90,
+      "q": 3,
+      "gain": 6
+    },
+    {
+      "frequency": 240,
+      "q": 2.5,
+      "gain": 3
+    },
+    {
+      "frequency": 780,
+      "q": 2,
+      "gain": -4
+    },
+    {
+      "frequency": 3100,
+      "q": 1,
+      "gain": 4
+    }
+  ],
+  "breath": {
+    "level": 0.03,
+    "hz": 1900,
+    "q": 1.4,
+    "attack": 0.0015
+  },
+  "forkedFrom": "piano/salon-grand",
+  "section": {
+    "players": 3,
+    "detune": 4,
+    "timing": 0.002,
+    "seats": 0.15,
+    "bodyVary": 0.06,
+    "vibratoVary": 0.5,
+    "effortVary": 0.05
+  },
+  "approvedAt": "2026-08-24"
+}

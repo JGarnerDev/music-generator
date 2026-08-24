@@ -2,7 +2,7 @@
 title: Approved voices
 purpose: Index of the instrument sounds we kept — read this before choosing voices for a new piece.
 audience: [claude, human]
-updated: 2026-08-17
+updated: 2026-08-24
 generated_by: npm run voice:approve
 ---
 
@@ -25,6 +25,8 @@ Struck keys. Carries a melody or a chord bed without asking for attention.
 | --- | --- | --- |
 | [`piano/felt-hammer`](./piano/felt-hammer.json) | piano felt soft intimate close ballad lonely | Felt strip over the strings: 12 ms attack, no hammer hill, mechanism noise at 900 Hz. The intimate close piano for ballads and lonely cues. |
 | [`piano/music-box`](./piano/music-box.json) | music-box bell metal toy childlike eerie lullaby nostalgic | Inharmonic FM at 3.5:1, zero sustain, no low end at all. Lullabies, doll's houses and villains, never an ordinary piano part. |
+| [`piano/salon-grand`](./piano/salon-grand.json) | piano grand pedal sustain bloom nocturne romantic dreamy chopin salon expressive wide | Pedalled salon grand: 3 ms strike, 4.2 s release, hammer hill back at 3.1 kHz. The nocturne piano, for arpeggios that ring into each other. |
+| [`piano/salon-unison`](./piano/salon-unison.json) | piano grand pedal sustain unison strings beating nocturne romantic dreamy chopin acoustic organic | Three strings, one hammer. |
 | [`piano/soft-triangle`](./piano/soft-triangle.json) **default** | warm neutral lo-fi | Triangle wave, quick attack, long release, so a chord bed blooms rather than clatters. The house piano, not a real one. |
 
 ## epiano
@@ -118,6 +120,8 @@ Who was forked from whom. Read the parent's `notes` before forking a child.
 ```
 piano/soft-triangle
   piano/felt-hammer
+    piano/salon-grand
+      piano/salon-unison
   piano/music-box
 epiano/fm-rhodes
   epiano/clav-comb
