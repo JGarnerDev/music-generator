@@ -1,0 +1,181 @@
+/* Border-box everywhere: the body's padding has to live *inside* its
+   100vh, or the page overflows by exactly that padding. */
+*, *::before, *::after { box-sizing: border-box; }
+:root {
+  color-scheme: dark;
+  --bg: #14121a;
+  --panel: #2a2440;
+  --panel-hi: #362e52;
+  --line: #443a66;
+  --ink: #e8e4f0;
+  --accent: #b6a6e6;
+  --recording: #e07a7a;
+  --armed: #e0c07a;
+  --lit: #b6a6e6;
+}
+/*
+ * Wider than the other benches, and for once the width is the feature: this
+ * page is a keyboard, and a keyboard drawn narrow is a row of slivers nobody
+ * can find middle C on.
+ *
+ * Nothing above the piano may change height. The status line grows and shrinks
+ * as you play, and every pixel it moves would move the keys under your fingers
+ * mid-phrase — so the piano's block is fixed and the summary at the bottom is
+ * the only thing that scrolls.
+ */
+body {
+  font-family: ui-monospace, "Cascadia Code", monospace;
+  background: var(--bg);
+  color: var(--ink);
+  display: grid;
+  justify-content: center;
+  align-content: start;
+  min-height: 100vh;
+  margin: 0;
+  padding: 2rem 0 1.5rem;
+}
+main {
+  width: min(900px, 94vw);
+  display: grid;
+  grid-template-rows:
+    auto auto auto auto /* title · tabs · voice · state */
+    auto auto /* piano · legend */
+    auto auto /* controls · transport */
+    minmax(8rem, 1fr) auto; /* summary · status */
+  gap: 0.7rem;
+}
+h1 {
+  font-size: 1.1rem;
+  color: var(--accent);
+  letter-spacing: 0.02em;
+  margin: 0;
+  height: 1.4rem;
+  line-height: 1.4rem;
+}
+h1 a { color: inherit; opacity: 0.45; text-decoration: none; font-size: 0.8rem; float: right; margin-left: 0.8rem; }
+h1 a:hover { opacity: 0.9; }
+.row { display: flex; gap: 0.6rem; align-items: center; }
+
+button, select, input {
+  font: inherit;
+  color: var(--ink);
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 0.3rem 0.6rem;
+}
+button { cursor: pointer; }
+button:hover:not(:disabled) { background: var(--panel-hi); }
+button:disabled { opacity: 0.4; cursor: default; }
+button.recording { border-color: var(--recording); color: var(--recording); }
+button.armed { border-color: var(--armed); color: var(--armed); }
+button.on { border-color: var(--accent); color: var(--accent); }
+/* Held, not toggled: the accent is on while the pitch is actually travelling. */
+button.bending { background: var(--accent); color: #1a1526; border-color: var(--accent); }
+
+#voicePick label { opacity: 0.6; font-size: 0.85rem; }
+#voicePick select { flex: 1; }
+#state { margin: 0; font-size: 0.85rem; opacity: 0.75; height: 1.2rem; }
+
+/* ── The keyboard ─────────────────────────────────────────────────── */
+/*
+ * White keys are a flex row of equal shares; black keys are absolutely
+ * positioned over them at a percentage the component computes, because their
+ * spacing is irregular by nature — two, then three — and that irregularity is
+ * what makes a keyboard readable without reading the labels.
+ */
+#piano {
+  position: relative;
+  height: 9rem;
+  user-select: none;
+  touch-action: none; /* a drag across the keys plays them, it does not scroll */
+}
+#piano .whites { display: flex; height: 100%; gap: 2px; }
+.key {
+  border: 1px solid var(--line);
+  border-radius: 0 0 4px 4px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  padding-bottom: 0.35rem;
+  gap: 0.15rem;
+  cursor: pointer;
+}
+.key.white {
+  flex: 1;
+  background: #d8d4e4;
+  color: #221c33;
+}
+.key.black {
+  position: absolute;
+  top: 0;
+  height: 60%;
+  background: #1c1828;
+  color: #cfc8e4;
+  border-color: #000;
+  /* The left edge the component sets is the *boundary* between two whites, so
+     the key has to straddle it rather than start at it. */
+  transform: translateX(-50%);
+  z-index: 2;
+}
+/* Out of the take's key signature. Faint on purpose: it is a hint while you
+   look for a note, and nothing at all once you are playing. */
+.key.white.outside { background: #c6c0d6; }
+.key.black.outside { background: #262032; }
+.key.down { background: var(--lit); color: #1a1526; box-shadow: 0 0 12px var(--lit); }
+.key.black.down { background: #8c78d0; color: #efeaff; }
+.cap { font-size: 0.8rem; font-weight: 700; }
+.pitch { font-size: 0.6rem; opacity: 0.5; }
+.key.black .pitch { display: none; } /* no room, and the cap is what you need */
+
+#legend { margin: 0; font-size: 0.75rem; opacity: 0.5; text-align: center; }
+
+/* ── The controls a hand uses ─────────────────────────────────────── */
+/*
+ * Octave, bend, click. Everything here moves while you are playing, which is
+ * exactly what earns it a place on screen — the settings that used to sit in
+ * this row were all things you decide once, and deciding them was being asked
+ * at the moment an idea was leaving somebody's hands.
+ */
+#controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.4rem;
+  align-items: center;
+}
+#controls .group { display: flex; align-items: center; gap: 0.35rem; }
+#controls .what { font-size: 0.78rem; opacity: 0.55; }
+#controls .value { min-width: 1.2rem; text-align: center; font-weight: 700; }
+#controls input[type="number"] { width: 4.5rem; }
+/* Square, so − and + are a pair rather than two words of different length. */
+#controls .group button { min-width: 2.1rem; text-align: center; }
+
+#transport input { width: 10rem; }
+#transport .what { font-size: 0.78rem; opacity: 0.55; margin-left: 0.6rem; }
+
+/* ── The read-back ────────────────────────────────────────────────── */
+/*
+ * The summary is the whole point of the page: it is what a composer reads
+ * instead of hearing the take. So it gets the space, it keeps its own
+ * scrollbar, and it never wraps — the bar grid is columnar and a wrapped line
+ * destroys the alignment that makes it readable.
+ */
+#summary {
+  margin: 0;
+  padding: 0.7rem 0.9rem;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  font-size: 0.8rem;
+  line-height: 1.45;
+  overflow: auto;
+  white-space: pre;
+  min-height: 8rem;
+}
+#status {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--accent);
+  min-height: 2.4rem;
+}

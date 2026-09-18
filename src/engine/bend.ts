@@ -75,7 +75,17 @@ export interface BendPoint {
 }
 
 const DEFAULT_AT = 0.15;
-const DEFAULT_OVER = 0.3;
+/**
+ * How much of a note one travel takes when the bend does not say.
+ *
+ * Exported because a bend written by a *hand* has to fit inside the note it
+ * landed on, and the fitting arithmetic — `at + travels * over <= 1` — needs
+ * the same number validation will check it against. A capture that carried its
+ * own copy of 0.3 would pass its own tests and fail `validateComposition` the
+ * first time this default moved.
+ */
+export const DEFAULT_BEND_OVER = 0.3;
+const DEFAULT_OVER = DEFAULT_BEND_OVER;
 const DEFAULT_CURVE: BendCurve = "guitar";
 
 /**
@@ -99,6 +109,20 @@ const CURVES: Record<BendCurve, (t: number) => number> = {
   meend: (t) => t * t * (3 - 2 * t),
   linear: (t) => t,
 };
+
+/**
+ * The easing one curve applies, as a plain 0..1 → 0..1 function.
+ *
+ * Exported so the keys bench can bend a *live* note with the same shapes the
+ * renderer uses. A pitch wheel has no note length to plan against — it is being
+ * pushed by a hand in real time — so it cannot use `bendAutomation`, but it must
+ * not invent its own feel either: a bend that travels differently under the
+ * fingers than it does in the render is a take that sounds wrong the first time
+ * you hear it back, for no reason anybody would find.
+ */
+export function bendCurve(curve: BendCurve = DEFAULT_CURVE): (t: number) => number {
+  return CURVES[curve];
+}
 
 /**
  * A bend spec + how long the note actually is → the points to hang on a detune

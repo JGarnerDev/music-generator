@@ -239,6 +239,7 @@ export function Session() {
         music-generator · session board
         <a href="/">bench →</a>
         <a href="/voices.html">voices →</a>
+        <a href="/keys.html">keys →</a>
       </h1>
 
       <div id="pickerRow">

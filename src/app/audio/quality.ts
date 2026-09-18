@@ -74,6 +74,35 @@ export const AUDITION_QUALITY: RenderQuality = {
   oversample: "2x",
 };
 
+/**
+ * The keyboard profile: a graph that has to meet a deadline it cannot miss.
+ *
+ * Every other profile here trades quality for *wall-clock* — a render that
+ * takes twelve minutes still sounds like what it rendered. This one trades it
+ * for a 5 ms buffer: a realtime graph that overruns does not come out late, it
+ * comes out with a hole in it, and that is the failure
+ * [`docs/rendering.md`](../../../docs/rendering.md) rejected live synthesis
+ * over.
+ *
+ * What is cut is chosen by what that document measured. `maxPolyphony` is the
+ * floor on the cost of a voice — every allocated slot runs whether or not it is
+ * sounding — and ten fingers cannot use sixteen of them, so eight is free.
+ * `maxPlayers` is nominally 1, but a section is refused outright before it
+ * reaches here (see `@engine/keys-bench`); it is set anyway so that a future
+ * caller that forgets cannot seat eight synths under one key. Oversampling
+ * stays on for the same reason it stays on everywhere: 0.6%.
+ *
+ * `sampleRate` is null because a live context's rate belongs to the hardware.
+ */
+export const LIVE_QUALITY: RenderQuality = {
+  name: "live",
+  sampleRate: null,
+  singleOscillator: true,
+  maxPolyphony: 8,
+  maxPlayers: 1,
+  oversample: "2x",
+};
+
 let active: RenderQuality = EXPORT_QUALITY;
 
 export function getQuality(): RenderQuality {

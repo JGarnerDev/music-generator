@@ -184,6 +184,7 @@ export function Studies() {
         <a href="/index.html">compositions →</a>
         <a href="/session.html">session →</a>
         <a href="/voices.html">voices →</a>
+        <a href="/keys.html">keys →</a>
       </h1>
 
       <GroupTabs entries={entries} group={group} onPick={setGroup} />

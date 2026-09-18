@@ -46,6 +46,7 @@ loose musical ideas into something you're pumped about.
 | `studies/<concept>/*.json` | Attempts at a musical *concept*, to be thumbed up or down | Folder = concept. **Scratch** — deleted once distilled into [`docs/taste.md`](docs/taste.md), which is the permanent record. Verdicts queue in the generated `studies/ledger.md`. Process in [studies](docs/studies.md) |
 | `plans/*.json` | Section plans for long/looping pieces | Expanded by `npm run song:build`; see [looping](docs/looping.md) |
 | `sessions/*.json` | Running orders for a game night — ordered cues into the library | Played from `/session.html`; written by `npm run session:new`. See [sessions](docs/sessions.md) |
+| `recordings/keys/*.take.json` | Keyboard takes — a phrase played at `/keys.html` | Committed (they *are* the notes). Loop: [keys](docs/keys.md) |
 | `recordings/*.wav` | Guitar takes — "make the hook sound like *this*" | Audio gitignored, the `.notes.json` transcription beside it is committed. Capture rules: [`recordings/readme.md`](recordings/readme.md); the loop: [transcribe](docs/transcribe.md) |
 | `scripts/*.ts` | Deterministic CLI chores | commander, named flags. `render.ts` is the big one: see [rendering](docs/rendering.md) |
 | `src/dev/` | Dev-server middleware, render harness, render profiler | Never in the built bundle |
@@ -56,7 +57,7 @@ loose musical ideas into something you're pumped about.
 
 ```bash
 npm install
-npm run dev        # four pages: / compositions · /voices.html · /studies.html · /session.html
+npm run dev        # five pages: / compositions · /voices.html · /studies.html · /session.html · /keys.html
 npm run render -- --all   # render every composition to public/audio/
 npm test           # vitest (engine + utils)
 npm run typecheck  # tsc --noEmit
@@ -119,6 +120,22 @@ npm run typecheck  # tsc --noEmit
   every note it plays. One bent note at a time per track (unbent notes on the
   same track are unaffected), and section voices decline it. Fields, curves and
   the reasons: [bends](docs/bends.md).
+- **Play an idea in:** the phrase is in the user's hands, not in words. Open
+  `/keys.html` and play the computer keyboard — the page is an instrument on
+  load, with no Start button, because the first keypress is itself the gesture a
+  browser needs before it will make a sound. `Z` is middle C, the row above is
+  the black notes, `Q` starts the octave up, and holding `F` or `K` bends a
+  whole step (recorded onto the note that was sounding). Hit Record; stopping
+  prints the take as scale degrees and a rhythm lane; Save writes
+  `recordings/keys/<name>.take.json`, and **that path is the handoff**. Read it
+  with `npm run take:read -- --file <path>`, or `--emit <slug>` to write it
+  straight into `compositions/leitmotifs/`. **Turn the click on and set its
+  tempo before playing** — it runs free, it is never recorded, and recording
+  waits for its next downbeat, so the bars you were already playing over are the
+  count-in. The take asks only for a name: the key is inferred from the notes
+  and the grid is re-readable afterwards. The one page here that synthesises,
+  and why that does not contradict [rendering](docs/rendering.md):
+  [keys](docs/keys.md).
 - **Decide an approach:** a *study* is a short attempt at a musical concept
   ("guitar solo", "chorus lift") made to be judged. Fan out four that differ on
   exactly one axis — `npm run study:new -- --concept chorus-lift --axis register
@@ -189,6 +206,10 @@ npm run typecheck  # tsc --noEmit
   rather than defaulted.
 - [`docs/taste.md`](docs/taste.md) — what those verdicts added up to. The rules
   this listener's music is written by. Read at step 3, with hooks.md.
+- [`docs/keys.md`](docs/keys.md) — the computer keyboard as an instrument: the
+  play → record → hand-over loop, the three settings that decide what a take
+  means, what it refuses to play, and why this page is allowed to synthesise
+  when nothing else is.
 - [`docs/transcribe.md`](docs/transcribe.md) — a recorded guitar take becomes
   notes: the record → read → emit → confirm loop, literal vs shape, and the four
   things it cannot do.

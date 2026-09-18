@@ -133,6 +133,31 @@ axes (`phrasing`, `contour`, `note-choice`, …) come out scaffolded and
 part yourself before they render. Rules and the whole loop:
 [`docs/studies.md`](./docs/studies.md).
 
+**If the user plays you something on the keyboard** — "I want the hook to go
+like this" and a `recordings/keys/<name>.take.json` — that is a performance, and
+it is exact: the pitches are the keys pressed, the rhythm is when they were
+pressed. Read it, don't guess at it:
+
+```bash
+npm run take:read -- --list
+npm run take:read -- --file recordings/keys/<name>.take.json
+npm run take:read -- --file recordings/keys/<name>.take.json --emit <slug>   # → compositions/leitmotifs/
+```
+
+The printed summary is the whole interface, same as a transcription. `--grid`
+re-reads coarser for free; **finer is impossible** — the snap already happened.
+`--emit` writes the notes, it does not render them, and moving the take to
+another instrument drops the voice it was played with.
+
+The take's **key is inferred**, not stated — right about the notes, and able to
+pick the wrong end of a relative pair. The summary names the alternative; take
+it with `--key <key>` rather than arguing with the degrees. A held bend is
+recorded onto the note that was sounding, so `bend` in an emitted piece is
+something the user *played* — see [`docs/bends.md`](./docs/bends.md). If they
+want to *record* one, point them at `/keys.html` — it plays on load, no start
+step — and tell them to turn the click on first, since recording starts on its
+next downbeat and its tempo is the take's grid. [`docs/keys.md`](./docs/keys.md).
+
 **If the user hands you a recording** — "I want the hook to sound like this" —
 that is not a composing problem, it is a transcription. You cannot hear it, so
 the CLI's printed summary is the only thing you will ever know about the take:

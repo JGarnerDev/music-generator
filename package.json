@@ -16,6 +16,7 @@
     "figures": "tsx scripts/figures.ts",
     "render": "tsx scripts/render.ts",
     "transcribe": "tsx scripts/transcribe.ts",
+    "take:read": "tsx scripts/take.ts",
     "palette:new": "tsx scripts/new-palette.ts",
     "palette:tree": "tsx scripts/palette-tree.ts",
     "composition:validate": "tsx scripts/validate-composition.ts",

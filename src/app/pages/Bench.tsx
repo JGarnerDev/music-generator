@@ -183,6 +183,7 @@ export function Bench() {
         <a href="/session.html">session →</a>
         <a href="/voices.html">voices →</a>
         <a href="/studies.html">studies →</a>
+        <a href="/keys.html">keys →</a>
       </h1>
 
       <KindTabs entries={entries} kind={kind} onPick={setKind} />

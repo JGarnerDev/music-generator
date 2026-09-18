@@ -15,10 +15,17 @@ export interface InstrumentTabsProps {
   entries: readonly VoiceEntry[];
   /** null = the "All" tab. */
   instrument: InstrumentName | null;
+  /**
+   * Which shelves to show. Defaults to every instrument — the voice bench wants
+   * all of them even when one is empty, because an empty shelf there is a
+   * to-do. The keys bench passes a shorter list: it cannot play drums at all,
+   * and a tab that can only ever be empty is a dead end with a count on it.
+   */
+  names?: readonly InstrumentName[];
   onPick(instrument: InstrumentName | null): void;
 }
 
-export function InstrumentTabs({ entries, instrument, onPick }: InstrumentTabsProps) {
+export function InstrumentTabs({ entries, instrument, names = VOICE_INSTRUMENTS, onPick }: InstrumentTabsProps) {
   const counts = countsByInstrument(entries);
   return (
     <Tabs
@@ -27,7 +34,7 @@ export function InstrumentTabs({ entries, instrument, onPick }: InstrumentTabsPr
       onPick={onPick}
       items={[
         { value: null, label: "All", count: entries.length },
-        ...VOICE_INSTRUMENTS.map((name) => ({ value: name, label: name, count: counts[name] })),
+        ...names.map((name) => ({ value: name, label: name, count: counts[name] })),
       ]}
     />
   );

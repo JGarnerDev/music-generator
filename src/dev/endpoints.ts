@@ -39,3 +39,14 @@ export const SESSION_SAVE_ENDPOINT = "/__sessions/save";
 
 /** POST `{ name }` → deletes `sessions/<name>.json`. Dev server only. */
 export const SESSION_DELETE_ENDPOINT = "/__sessions/delete";
+
+/**
+ * POST `{ take }` → writes `recordings/keys/<name>.take.json`. Dev server only.
+ *
+ * Deliberately not globbed into the app the way compositions and voices are: a
+ * take is written *while* the page is being played, and a glob would put it
+ * under the live-reload watcher — saving one would reload the tab and stop the
+ * audio mid-session. See [`./live-library-rules`](./live-library-rules.ts),
+ * where `sessions/` is absent for the same reason.
+ */
+export const TAKE_SAVE_ENDPOINT = "/__takes/save";

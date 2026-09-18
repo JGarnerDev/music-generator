@@ -6,6 +6,7 @@ import { libraryApi } from "./src/dev/library-api";
 import { liveLibrary } from "./src/dev/live-library";
 import { sessionApi } from "./src/dev/session-api";
 import { studyApi } from "./src/dev/study-api";
+import { takeApi } from "./src/dev/take-api";
 import { voiceApi } from "./src/dev/voice-api";
 
 export default defineConfig({
@@ -22,20 +23,23 @@ export default defineConfig({
     studyApi(resolve(__dirname, "studies")),
     // Dev-only: reading and writing the running orders the session board plays from.
     sessionApi(resolve(__dirname, "sessions")),
+    // Dev-only: the keys bench saving a keyboard take it just recorded.
+    takeApi(resolve(__dirname, "recordings/keys")),
     // Dev-only: a new composition / voice / render reaches the open tab without
     // a restart. Vite alone does not — see the plugin's header.
     liveLibrary(__dirname),
   ],
   build: {
-    // Four pages: the composition, voice and studies benches, plus the session
-    // board. `render.html` is deliberately absent — it is dev-only machinery for
-    // `npm run render`.
+    // Five pages: the composition, voice, studies and keys benches, plus the
+    // session board. `render.html` is deliberately absent — it is dev-only
+    // machinery for `npm run render`.
     rollupOptions: {
       input: {
         main: resolve(__dirname, "index.html"),
         voices: resolve(__dirname, "voices.html"),
         studies: resolve(__dirname, "studies.html"),
         session: resolve(__dirname, "session.html"),
+        keys: resolve(__dirname, "keys.html"),
       },
     },
   },

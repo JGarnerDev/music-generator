@@ -150,6 +150,7 @@ export function Voices() {
         <a href="/index.html">compositions →</a>
         <a href="/session.html">session →</a>
         <a href="/studies.html">studies →</a>
+        <a href="/keys.html">keys →</a>
       </h1>
 
       <InstrumentTabs entries={entries} instrument={instrument} onPick={setInstrument} />
