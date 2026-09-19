@@ -161,6 +161,63 @@ button.bending { background: var(--accent); color: #1a1526; border-color: var(--
 .pitch { font-size: 0.6rem; opacity: 0.5; }
 .key.black .pitch { display: none; } /* no room, and the cap is what you need */
 
+/* ── The hamburger ────────────────────────────────────────────────── */
+/*
+ * The settings that are not controls. It is a *panel*, not a dropdown: the
+ * choices carry a line of explanation each, because "small speaker" means
+ * nothing until it says what it does to the sound and what it does not do to
+ * the renders.
+ *
+ * Absolutely positioned so opening it never reflows the row above the
+ * keyboard — the one thing this page will not do is move the keys under a
+ * playing hand.
+ */
+.menu { position: relative; flex: 0 0 auto; }
+.menu .hamburger {
+  min-width: 2.4rem;
+  line-height: 1;
+  font-size: 1.05rem;
+  padding: 0.3rem 0.55rem;
+}
+.menu .hamburger.on { border-color: var(--accent); color: var(--accent); }
+.menu .panel {
+  position: absolute;
+  top: calc(100% + 0.4rem);
+  left: 0;
+  z-index: 10;
+  width: min(20rem, 82vw);
+  display: grid;
+  gap: 0.3rem;
+  padding: 0.6rem;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+}
+.menu .heading {
+  margin: 0 0 0.1rem;
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.5;
+}
+.menu .choice {
+  display: grid;
+  gap: 0.15rem;
+  text-align: left;
+  padding: 0.5rem 0.6rem;
+  background: transparent;
+  border-color: transparent;
+}
+.menu .choice:hover:not(:disabled) { background: var(--panel-hi); }
+.menu .choice .label { font-size: 0.86rem; font-weight: 700; }
+.menu .choice .summary { font-size: 0.7rem; opacity: 0.6; line-height: 1.35; white-space: normal; }
+.menu .choice.picked {
+  border-color: var(--accent);
+  background: var(--panel-hi);
+}
+.menu .choice.picked .label { color: var(--accent); }
+
 /* ── The kit ──────────────────────────────────────────────────────── */
 /*
  * The other instrument this page can be. A piano is drawn irregular because
@@ -248,6 +305,8 @@ button.bending { background: var(--accent); color: #1a1526; border-color: var(--
 @media (max-width: 760px) {
   body { padding: 0.6rem 0 max(0.8rem, env(safe-area-inset-bottom)); }
   main { width: 96vw; gap: 0.4rem; }
+  /* Wide enough to read a sentence on, and still inside the screen. */
+  .menu .panel { width: min(22rem, 88vw); }
   .key .pitch { font-size: 0.5rem; }
   /* Two columns of thumb-sized pads beats four of slivers. */
   #pads { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.4rem; }

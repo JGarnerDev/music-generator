@@ -30,6 +30,13 @@
  * [`@engine/pads`](../../engine/pads.ts); the keyboard's letter keys become the
  * pad grid while one is loaded.
  *
+ * **The monitor is the one setting that hides.** What the page is being heard
+ * *on* is not something a hand reaches for mid-phrase, so it sits behind the
+ * hamburger rather than beside the octave — and it is remembered per device,
+ * because the speakers are a property of the device and not of the music. It
+ * corrects nothing but the monitoring path: see
+ * [`@engine/monitor`](../../engine/monitor.ts).
+ *
  * The take is derived rather than stored, so a second reading costs nothing:
  * rename it, change the tempo, and the same presses are re-read through
  * [`buildTake`](../../engine/take.ts). That is `transcribe --requantize`, by
@@ -39,11 +46,14 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { pianoKeys, scalePitchClasses, shiftOctave } from "@engine/keys";
 import { playability } from "@engine/keys-bench";
 import { guessKey } from "@engine/key-guess";
+import { defaultMonitor, isMonitorId, type MonitorId } from "@engine/monitor";
 import { drumPads, padPlayable } from "@engine/pads";
 import { type VoiceEntry } from "@engine/voice-library";
 import { DrumPads } from "../components/DrumPads";
+import { KeysMenu } from "../components/KeysMenu";
 import { PianoKeys } from "../components/PianoKeys";
 import { useKeyboardSynth } from "../hooks/useKeyboardSynth";
+import { COARSE_POINTER, useMediaQuery } from "../hooks/useMediaQuery";
 import { VOICE_LIBRARY } from "../voices";
 
 /**
@@ -59,8 +69,42 @@ const PLAYABLE = VOICE_LIBRARY.filter(
 );
 const FIRST = PLAYABLE.find((entry) => entry.preset.default) ?? PLAYABLE[0];
 
+/**
+ * The monitor, remembered per browser.
+ *
+ * Per device rather than in a file, for the reason the session board's fader is:
+ * the same instrument played on a phone and through headphones wants different
+ * monitoring, and neither answer belongs to the music.
+ */
+const MONITOR_KEY = "music-generator.keys.monitor";
+
+function storedMonitor(): MonitorId | null {
+  try {
+    const held = window.localStorage.getItem(MONITOR_KEY);
+    return isMonitorId(held) ? held : null;
+  } catch {
+    // Private browsing or a locked-down profile: fall back to the device default.
+    return null;
+  }
+}
+
+function rememberMonitor(id: MonitorId): void {
+  try {
+    window.localStorage.setItem(MONITOR_KEY, id);
+  } catch {
+    // It still applies, it just does not survive a reload. Not worth a message
+    // in the middle of playing something.
+  }
+}
+
 export function Keys() {
   const [voiceId, setVoiceId] = useState<string | null>(FIRST?.id ?? null);
+  const coarsePointer = useMediaQuery(COARSE_POINTER);
+  // Read once: what is stored, else what this device should start at. A phone
+  // that has never been told starts corrected, because the first thing it would
+  // otherwise play is the problem the correction exists for.
+  const [monitor, setMonitor] = useState<MonitorId | null>(() => storedMonitor());
+  const chosen = monitor ?? defaultMonitor(coarsePointer);
 
   const selected = PLAYABLE.find((entry) => entry.id === voiceId) ?? null;
 
@@ -78,6 +122,13 @@ export function Keys() {
 
   const keys = useMemo(() => pianoKeys(synth.octave), [synth.octave]);
 
+  // After `use`, not before: loading a voice rebuilds the chain the monitor
+  // hangs off, so the correction has to be re-applied to the graph that exists
+  // now rather than the one that did when the toggle was moved.
+  useEffect(() => {
+    synth.setMonitor(chosen);
+  }, [synth, chosen, selected?.id]);
+
   useEffect(() => {
     if (!selected) return;
     try {
@@ -91,6 +142,14 @@ export function Keys() {
   return (
     <main>
       <div className="row" id="topControls">
+        <KeysMenu
+          monitor={chosen}
+          onMonitor={(id) => {
+            setMonitor(id);
+            rememberMonitor(id);
+          }}
+        />
+
         <div id="voicePick">
           <label htmlFor="voice">voice</label>
           <select

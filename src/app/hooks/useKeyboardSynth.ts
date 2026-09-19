@@ -15,6 +15,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { DrumPiece, InstrumentName } from "@engine/composition";
 import { BEND_SEMITONES, DEFAULT_OCTAVE, bendDirection, midiForCode, shiftOctave } from "@engine/keys";
+import type { MonitorId } from "@engine/monitor";
 import { padForCode, type DrumPad } from "@engine/pads";
 import { DEFAULT_VELOCITY, stepVelocity, type BendGesture, type KeyPress } from "@engine/take";
 import { LiveKeyboard } from "../audio/live";
@@ -37,6 +38,12 @@ export interface KeyboardSynth {
   setVelocity(velocity: number): void;
   /** Load a voice under the hands. Throws for a preset the keyboard cannot play. */
   use(instrument: InstrumentName, slug?: string): void;
+  /**
+   * Which monitor correction is in the chain — a property of the speakers in
+   * front of the player, not of the sound. See
+   * [`@engine/monitor`](../../engine/monitor.ts).
+   */
+  setMonitor(id: MonitorId): void;
   /** Start a note. Also how a pointer on the drawn keyboard plays one. */
   press(midi: number): void;
   /**
@@ -318,6 +325,10 @@ export function useKeyboardSynth(options: KeyboardSynthOptions): KeyboardSynth {
     keyboard.current?.use(instrument, slug);
   }, []);
 
+  const setMonitor = useCallback((id: MonitorId) => {
+    keyboard.current?.setMonitor(id);
+  }, []);
+
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent): void => {
       const target = event.target as HTMLElement | null;
@@ -435,6 +446,7 @@ export function useKeyboardSynth(options: KeyboardSynthOptions): KeyboardSynth {
     setOctave,
     setVelocity,
     use,
+    setMonitor,
     press,
     release,
     wake,

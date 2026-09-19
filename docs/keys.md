@@ -191,6 +191,41 @@ since there are no keys.
 still written as a groove ([grooves](./grooves.md)), because a take is
 [pitches on a grid](#reading-a-take) and a kit has no pitches.
 
+## The monitor (☰)
+
+A kit's kick and toms are the **loudest** pieces in it — measured on
+`drums/house-kit` at velocity 0.8, the kick sits ~9 dB over the snare and ~20 dB
+over the hat, at the peak and in the average, and every kit on the shelf is the
+same shape. On a phone they are the quietest things you can hear, because ~77%
+of a kick's energy is at 40–150 Hz and a small driver radiates almost nothing
+down there. It still *tries*: the excursion spent on a fundamental nobody hears
+is excursion that distorts the part they would have.
+
+So the hamburger holds one setting, and it is about the speakers rather than the
+sound:
+
+| Monitor | What it does |
+|---|---|
+| **Flat** | The wire. What the piece will sound like when it is rendered. |
+| **Small speaker** | Highpass at 110 Hz, +6 dB at 240 Hz, +5 dB at 3 kHz, trimmed back under unity. |
+
+Measured through the live chain, small speaker puts the kick and toms up 1.7 and
+2.7 dB in the band a small speaker passes, **2.9 dB up against the hats** — the
+balance that was wrong — and 5.7 dB down in the sub the speaker could not make
+anyway. The 240 Hz push is the region an ear reconstructs a missing fundamental
+from; the 3 kHz lift is the beater the low end was carrying.
+
+**It is monitoring only.** It lives between the instrument and the speakers in
+[`live.ts`](../src/app/audio/live.ts) and touches nothing that gets written to
+disk: the same take, rendered, sounds exactly as it would have. Nothing else in
+this project corrects for a playback device, and nothing else should — a
+rendered file EQ'd for a phone is a file that is wrong everywhere else.
+
+It starts on where the pointer is coarse (a finger means a phone) and off
+everywhere else (headphones on a laptop are already a full-range monitor), and
+it is remembered per browser, like the session board's fader — the speakers
+belong to the device, not to the music.
+
 ## What it will not play
 
 **Section voices.** A desk of eight players is eight synths of polyphony behind
@@ -311,6 +346,7 @@ CLI, like every other note in this project.
 |---|---|
 | `src/engine/keys.ts` | The layout, the drawn keyboard, the bend keys — pure, tested. |
 | `src/engine/pads.ts` | Which pads a kit draws, in what order, under which keys — pure, tested. |
+| `src/engine/monitor.ts` | The monitor profiles and their filter curves — pure, tested. Live only; renders never see them. |
 | `src/engine/take.ts` | Presses → notes → the take file, bends attached to the notes that were sounding. The back half is `transcribe`'s. |
 | `src/engine/key-guess.ts` | What key that was in, and the relative it might be instead. |
 | `src/engine/keys-bench.ts` | What the page says, and which voices it will play. |
@@ -318,6 +354,7 @@ CLI, like every other note in this project.
 | `src/app/audio/metronome.ts` | The click and the count-in. |
 | `src/app/hooks/useKeyboardSynth.ts` | Key events → notes and the press log. |
 | `src/app/components/DrumPads.tsx` | The drawn kit: the grid, the flash, the drag across pads. |
+| `src/app/components/KeysMenu.tsx` | The hamburger — the settings that are not controls. |
 | `src/app/pages/Keys.tsx` + `keys.css` | The page. |
 | `src/dev/take-api.ts` + `take-store.ts` | Saving a take. Dev server only. |
 | `src/engine/take-shelf.ts` | Takes held on the device, where there is no server to save to. |

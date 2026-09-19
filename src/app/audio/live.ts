@@ -28,6 +28,7 @@
 import * as Tone from "tone";
 import { bendCurve } from "@engine/bend";
 import type { DrumPiece, InstrumentName } from "@engine/composition";
+import { monitorProfile, type MonitorId } from "@engine/monitor";
 import { midiToPitch } from "@engine/theory";
 import { DrumKit } from "./drums";
 import { createVoice, type Voice } from "./instruments";
@@ -118,6 +119,9 @@ export class LiveKeyboard {
   private voice: Voice | null = null;
   private master: Tone.Gain | null = null;
   private limiter: Tone.Limiter | null = null;
+  /** The monitor correction, if any: filters plus a trim, between master and limiter. */
+  private monitorNodes: Tone.ToneAudioNode[] = [];
+  private monitorId: MonitorId = "flat";
   /** Sounding pitches, oldest first — insertion order is the stealing order. */
   private readonly held = new Map<number, string>();
   /** Where the pitch wheel is, in cents, and the timer walking it there. */
@@ -172,9 +176,69 @@ export class LiveKeyboard {
     this.limiter = new Tone.Limiter(-1);
     this.master = new Tone.Gain(1);
     this.voice.output.connect(this.master);
-    this.master.connect(this.limiter);
     this.limiter.connect(Tone.getDestination());
+    this.wireMonitor();
     this.current = { instrument, slug };
+  }
+
+  /**
+   * Which monitor to play through — see [`@engine/monitor`](../../engine/monitor.ts).
+   *
+   * Remembered on the instance rather than read per note, because it is a
+   * property of the room and changes about as often as the room does. Setting
+   * it while a voice is loaded rebuilds the few nodes between the master and
+   * the limiter, which is cheap and inaudible: nothing sounding passes through
+   * a node that is being disposed, because the reconnection happens in the same
+   * synchronous block.
+   */
+  setMonitor(id: MonitorId): void {
+    if (id === this.monitorId) return;
+    this.monitorId = id;
+    this.wireMonitor();
+  }
+
+  get monitor(): MonitorId {
+    return this.monitorId;
+  }
+
+  /**
+   * Put the monitor chain between the master and the limiter.
+   *
+   * In that order for a reason: the correction is the last thing that shapes
+   * the sound and the limiter is the last thing that *guards* it, so a boost
+   * that pushes a kick past full scale is caught rather than clipped. Flat
+   * builds nothing at all — a profile with no stages is a wire, and a wire is
+   * better spelled as an absence of nodes than as a chain of neutral ones.
+   */
+  private wireMonitor(): void {
+    const master = this.master;
+    const limiter = this.limiter;
+    for (const node of this.monitorNodes) node.dispose();
+    this.monitorNodes = [];
+    if (!master || !limiter) return;
+    master.disconnect();
+
+    const profile = monitorProfile(this.monitorId);
+    let tail: Tone.ToneAudioNode = master;
+    for (const stage of profile.stages) {
+      const filter = new Tone.Filter({
+        type: stage.type,
+        frequency: stage.hz,
+        Q: stage.q ?? 1,
+        gain: stage.gain ?? 0,
+        ...(stage.rolloff ? { rolloff: stage.rolloff } : {}),
+      });
+      tail.connect(filter);
+      this.monitorNodes.push(filter);
+      tail = filter;
+    }
+    if (profile.trim !== 1) {
+      const trim = new Tone.Gain(profile.trim);
+      tail.connect(trim);
+      this.monitorNodes.push(trim);
+      tail = trim;
+    }
+    tail.connect(limiter);
   }
 
   /** Master level, 0..1. */
@@ -304,6 +368,8 @@ export class LiveKeyboard {
   dispose(): void {
     this.panic();
     this.endBendTravel();
+    for (const node of this.monitorNodes) node.dispose();
+    this.monitorNodes = [];
     this.master?.dispose();
     this.limiter?.dispose();
     const play = this.voice?.play as { dispose?: () => void } | undefined;
