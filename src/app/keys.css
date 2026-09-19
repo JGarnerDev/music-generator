@@ -161,6 +161,58 @@ button.bending { background: var(--accent); color: #1a1526; border-color: var(--
 .pitch { font-size: 0.6rem; opacity: 0.5; }
 .key.black .pitch { display: none; } /* no room, and the cap is what you need */
 
+/* ── The kit ──────────────────────────────────────────────────────── */
+/*
+ * The other instrument this page can be. A piano is drawn irregular because
+ * pitch is; a kit has no order to be irregular about, so it is a plain grid of
+ * equal squares — the shape a drum machine has had since the 808, and the
+ * reason the kick is where you left it when you change kits.
+ *
+ * It fills the same block the piano does, so swapping voices does not move
+ * anything above it.
+ */
+#pads {
+  display: grid;
+  grid-template-columns: repeat(var(--pad-columns, 4), minmax(0, 1fr));
+  gap: 0.5rem;
+  height: 100%;
+  min-height: 15rem;
+  align-content: stretch;
+  touch-action: none; /* a drag across the pads plays them, it does not scroll */
+  user-select: none;
+}
+.pad {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: flex-start;
+  min-height: 3.5rem;
+  padding: 0.5rem 0.6rem;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--panel);
+  cursor: pointer;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none; /* a long press is another hit, not a context menu */
+  /* Off fast, on instantly: a pad that fades *in* reads as latency in the
+     instrument, which is the one thing the live path is trying not to have. */
+  transition: background 140ms ease-out, box-shadow 140ms ease-out;
+}
+.pad:hover { background: var(--panel-hi); }
+.pad .piece { font-size: 0.82rem; letter-spacing: 0.02em; }
+.pad .cap { font-size: 0.6rem; opacity: 0.45; align-self: flex-end; }
+.pad.lit {
+  background: var(--lit);
+  color: #1a1526;
+  border-color: var(--lit);
+  box-shadow: 0 0 14px var(--lit);
+  transition: none;
+}
+.pad.lit .cap { opacity: 0.6; }
+
 /* ── The controls a hand uses ─────────────────────────────────────── */
 /*
  * Octave, bend, click. Everything here moves while you are playing, which is
@@ -197,6 +249,9 @@ button.bending { background: var(--accent); color: #1a1526; border-color: var(--
   body { padding: 0.6rem 0 max(0.8rem, env(safe-area-inset-bottom)); }
   main { width: 96vw; gap: 0.4rem; }
   .key .pitch { font-size: 0.5rem; }
+  /* Two columns of thumb-sized pads beats four of slivers. */
+  #pads { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.4rem; }
+  .pad .piece { font-size: 0.75rem; }
   #controls { gap: 0.4rem 0.8rem; }
 }
 
@@ -211,12 +266,16 @@ button.bending { background: var(--accent); color: #1a1526; border-color: var(--
   .key .pitch { font-size: 0.62rem; opacity: 0.8; }
   .key.black .pitch { display: none; }
   .key { padding-bottom: 0.5rem; }
+  /* The cap says which letter key strikes this pad. There is no letter key. */
+  .pad .cap { display: none; }
+  .pad { min-height: 3.75rem; justify-content: center; align-items: center; }
 }
 
 @media (orientation: landscape) {
   body { padding: 0.35rem 0 max(0.35rem, env(safe-area-inset-bottom)); }
   main { gap: 0.3rem; grid-template-rows: auto 1fr auto; }
   #piano { min-height: 70vh; }
+  #pads { min-height: 70vh; }
   #voicePick { gap: 0.3rem; }
   #voicePick .voice-btn { padding: 0.3rem 0.6rem; font-size: 0.65rem; }
 }

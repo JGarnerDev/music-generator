@@ -13,8 +13,9 @@
  * piano. See [`./useHotkeys`](./useHotkeys.ts), which learned this first.
  */
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { InstrumentName } from "@engine/composition";
+import type { DrumPiece, InstrumentName } from "@engine/composition";
 import { BEND_SEMITONES, DEFAULT_OCTAVE, bendDirection, midiForCode, shiftOctave } from "@engine/keys";
+import { padForCode, type DrumPad } from "@engine/pads";
 import { DEFAULT_VELOCITY, stepVelocity, type BendGesture, type KeyPress } from "@engine/take";
 import { LiveKeyboard } from "../audio/live";
 
@@ -38,6 +39,21 @@ export interface KeyboardSynth {
   use(instrument: InstrumentName, slug?: string): void;
   /** Start a note. Also how a pointer on the drawn keyboard plays one. */
   press(midi: number): void;
+  /**
+   * Strike a kit piece. How a pad plays, and the whole of it: a drum has no
+   * release, so there is no counterpart to this the way `release` is `press`'s.
+   */
+  hit(piece: DrumPiece): void;
+  /**
+   * Pieces struck a moment ago — what the drawn pads flash.
+   *
+   * A set with a timer behind it rather than a held set like `heldMidis`,
+   * because nothing about a struck drum is held: the sound is already on its
+   * way out by the time the hand comes off the pad. The flash says the hit
+   * registered, so it lasts long enough to see rather than as long as the
+   * finger is down.
+   */
+  struck: ReadonlySet<DrumPiece>;
   /**
    * Wake the audio context, if it is not awake already.
    *
@@ -76,16 +92,28 @@ export interface KeyboardSynth {
 export interface KeyboardSynthOptions {
   /** Whether keys should sound at all. False only while no voice is loaded. */
   enabled: boolean;
+  /**
+   * The pads under the hands, when the loaded voice is a kit.
+   *
+   * Given, the letter keys strike pieces and stop being a piano: a kit has no
+   * pitch, so leaving the note mapping live would have `Z` sound nothing and
+   * read as broken. Absent — the usual case — nothing here changes.
+   */
+  pads?: readonly DrumPad[];
   /** Space and escape, handed to the page — the transport is its business, not the instrument's. */
   onTransport?(action: "toggle" | "panic"): void;
 }
 
+/** How long a struck pad stays lit, in milliseconds. Long enough to see at speed. */
+const FLASH_MS = 120;
+
 export function useKeyboardSynth(options: KeyboardSynthOptions): KeyboardSynth {
-  const { enabled, onTransport } = options;
+  const { enabled, pads, onTransport } = options;
   const keyboard = useRef<LiveKeyboard | null>(null);
   if (keyboard.current === null) keyboard.current = new LiveKeyboard();
 
   const [heldMidis, setHeldMidis] = useState<ReadonlySet<number>>(() => new Set());
+  const [struck, setStruck] = useState<ReadonlySet<DrumPiece>>(() => new Set());
   const [bendSemitones, setBendSemitones] = useState(0);
   const [octave, setOctave] = useState(DEFAULT_OCTAVE);
   const [velocity, setVelocity] = useState(DEFAULT_VELOCITY);
@@ -94,8 +122,8 @@ export function useKeyboardSynth(options: KeyboardSynthOptions): KeyboardSynth {
   // Everything the listeners read and nothing they render: latched into refs so
   // the two window listeners are bound once. Re-binding them per render would
   // drop a keyup between the removal and the addition, which is a stuck note.
-  const state = useRef({ enabled, octave, velocity, onTransport });
-  state.current = { enabled, octave, velocity, onTransport };
+  const state = useRef({ enabled, octave, velocity, pads, onTransport });
+  state.current = { enabled, octave, velocity, pads, onTransport };
 
   /** Notes currently down, and the closed presses, while logging. */
   const open = useRef(new Map<number, { downMs: number; velocity: number }>());
@@ -111,6 +139,8 @@ export function useKeyboardSynth(options: KeyboardSynthOptions): KeyboardSynth {
   const intended = useRef(new Set<number>());
   /** The one in-flight `Tone.start()`, so ten fingers do not start ten of them. */
   const waking = useRef<Promise<void> | null>(null);
+  /** Flash timers per piece, so a roll re-lights a pad rather than going dark mid-roll. */
+  const flashes = useRef(new Map<DrumPiece, number>());
 
   /**
    * Bring the audio context up.
@@ -162,6 +192,45 @@ export function useKeyboardSynth(options: KeyboardSynthOptions): KeyboardSynth {
     [strike, wake],
   );
 
+  /**
+   * Strike a kit piece and flash its pad.
+   *
+   * Same wake dance as `press`, for the same reason — the first pad hit of the
+   * session is also the gesture the browser was waiting for — but without its
+   * "is it still down" check: a drum struck before the audio was ready is a
+   * drum that sounds a few milliseconds late, and there is no release that
+   * could arrive first and strand it.
+   */
+  const hit = useCallback(
+    (piece: DrumPiece): void => {
+      if (!state.current.enabled) return;
+      const vel = state.current.velocity;
+
+      const running = flashes.current.get(piece);
+      if (running !== undefined) clearTimeout(running);
+      setStruck((now) => (now.has(piece) ? now : new Set(now).add(piece)));
+      flashes.current.set(
+        piece,
+        setTimeout(() => {
+          flashes.current.delete(piece);
+          setStruck((now) => {
+            if (!now.has(piece)) return now;
+            const next = new Set(now);
+            next.delete(piece);
+            return next;
+          });
+        }, FLASH_MS) as unknown as number,
+      );
+
+      if (LiveKeyboard.started) {
+        keyboard.current?.hit(piece, vel);
+        return;
+      }
+      void wake().then(() => keyboard.current?.hit(piece, vel));
+    },
+    [wake],
+  );
+
   const release = useCallback((midi: number, at = performance.now()): void => {
     intended.current.delete(midi);
     keyboard.current?.noteOff(midi);
@@ -211,7 +280,10 @@ export function useKeyboardSynth(options: KeyboardSynthOptions): KeyboardSynth {
     open.current.clear();
     intended.current.clear();
     openBend.current = null;
+    for (const timer of flashes.current.values()) clearTimeout(timer);
+    flashes.current.clear();
     setHeldMidis(new Set());
+    setStruck(new Set());
     setBendSemitones(0);
   }, []);
 
@@ -284,6 +356,18 @@ export function useKeyboardSynth(options: KeyboardSynthOptions): KeyboardSynth {
       // or, for a bend, a fresh gesture logged every 30 ms.
       if (event.repeat) return;
 
+      // A kit owns the letter keys while it is loaded: `padForCode` answers
+      // first, and a key with no pad on it does nothing rather than falling
+      // through to a pitch the kit has no way to play.
+      const grid = state.current.pads;
+      if (grid && grid.length > 0) {
+        const piece = padForCode(event.code, grid);
+        if (piece === undefined) return;
+        event.preventDefault();
+        hit(piece);
+        return;
+      }
+
       const direction = bendDirection(event.code);
       if (direction !== undefined) {
         event.preventDefault();
@@ -300,6 +384,9 @@ export function useKeyboardSynth(options: KeyboardSynthOptions): KeyboardSynth {
     };
 
     const onKeyUp = (event: KeyboardEvent): void => {
+      // Nothing to lift off a drum, so the pads never take a keyup.
+      const grid = state.current.pads;
+      if (grid && grid.length > 0) return;
       if (bendDirection(event.code) !== undefined) {
         bend(0);
         return;
@@ -319,7 +406,17 @@ export function useKeyboardSynth(options: KeyboardSynthOptions): KeyboardSynth {
       window.removeEventListener("keyup", onKeyUp);
       window.removeEventListener("blur", panic);
     };
-  }, [bend, panic, press, release]);
+  }, [bend, hit, panic, press, release]);
+
+  // Flash timers are the one thing here that outlives a render, so they are
+  // cleared with the graph rather than left to fire into an unmounted page.
+  useEffect(() => {
+    const timers = flashes.current;
+    return () => {
+      for (const timer of timers.values()) clearTimeout(timer);
+      timers.clear();
+    };
+  }, []);
 
   // One teardown for the graph, on unmount only. StrictMode's double-mount in
   // dev disposes and rebuilds it, which is exactly the exercise worth having.
@@ -330,6 +427,8 @@ export function useKeyboardSynth(options: KeyboardSynthOptions): KeyboardSynth {
 
   return {
     heldMidis,
+    struck,
+    hit,
     bendSemitones,
     octave,
     velocity,

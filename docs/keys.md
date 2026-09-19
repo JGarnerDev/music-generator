@@ -2,7 +2,7 @@
 title: Keys — the computer keyboard as an instrument
 purpose: Playing a phrase at the keyboard and handing it over as notes. The loop, bending, the click, and why this is the one page that synthesises.
 audience: [claude, human]
-updated: 2026-09-18
+updated: 2026-09-19
 read_order: 5
 see_also: [../readme.md, ../claude.md, deploy.md, transcribe.md, rendering.md, library.md]
 ---
@@ -34,8 +34,9 @@ npm run take:read -- --file recordings/keys/<name>.take.json --emit <slug>
    nothing to arm. `Z` is middle C.
 2. **Pick a voice** if you want a different one. The instrument tabs and the
    dropdown are the same shelf `voice:find` searches — see
-   [voices](./voices.md). Drums and section voices are not offered, for reasons
-   under [what it will not play](#what-it-will-not-play).
+   [voices](./voices.md). Pick a drums voice and the keyboard becomes a grid of
+   pads — see [drums are pads](#drums-are-pads). Section voices are not offered,
+   for the reason under [what it will not play](#what-it-will-not-play).
 3. **Turn the click on** and set the tempo you want to play at. It runs until
    you turn it off — see [the click](#the-click).
 4. **Record.** Recording waits for the click's next downbeat, so the bars you
@@ -157,11 +158,40 @@ keyboard a held chord *is* a held chord, and trimming it deletes the harmony.
 something changes, so renaming it, or fixing the tempo you meant, costs no
 second performance. That is `--requantize`, in the page, by default.
 
-## What it will not play
+## Drums are pads
 
-**Drums.** A kit piece is a name, not a note — there is nothing for a keyboard
-to be. Tap a beat somewhere else and write the groove as a groove; see
-[grooves](./grooves.md).
+A kit piece is a name, not a note, so there is nothing for a *key* to be: no
+low-to-high to lay out, no octave to move, no chord to hold. Pick a drums voice
+and the piano is replaced by a grid of squares, one per piece the kit actually
+voices, labelled with the piece — `kick`, `snare`, `open hat`. The octave
+control goes away with the keyboard, because it had nothing left to move.
+
+The letter keys become the grid while a kit is loaded, three rows of four in the
+block a left hand already covers:
+
+```
+Q W E R
+A S D F
+Z X C V
+```
+
+Pads are filled in a fixed piece order rather than in the preset's key order, so
+the kick is the top-left pad on every kit on the shelf and changing voices does
+not mean re-learning where things are. A kit that voices fewer than twelve
+pieces simply draws fewer pads — a square that makes no sound is worse than no
+square.
+
+A hit is a hit: there is nothing to hold and nothing to release, so a pad
+flashes rather than staying lit, holding a key down strikes once rather than
+rolling, and a finger dragged across the grid plays each pad it crosses. On a
+phone the grid is two columns of thumb-sized pads and the key caps come off,
+since there are no keys.
+
+**What it does not do yet is record.** The pads play the kit live; a groove is
+still written as a groove ([grooves](./grooves.md)), because a take is
+[pitches on a grid](#reading-a-take) and a kit has no pitches.
+
+## What it will not play
 
 **Section voices.** A desk of eight players is eight synths of polyphony behind
 every key, which is a render-time cost meeting a realtime deadline. Play the
@@ -280,12 +310,14 @@ CLI, like every other note in this project.
 | Path | Role |
 |---|---|
 | `src/engine/keys.ts` | The layout, the drawn keyboard, the bend keys — pure, tested. |
+| `src/engine/pads.ts` | Which pads a kit draws, in what order, under which keys — pure, tested. |
 | `src/engine/take.ts` | Presses → notes → the take file, bends attached to the notes that were sounding. The back half is `transcribe`'s. |
 | `src/engine/key-guess.ts` | What key that was in, and the relative it might be instead. |
 | `src/engine/keys-bench.ts` | What the page says, and which voices it will play. |
 | `src/app/audio/live.ts` | The realtime voice, the pitch wheel, and waking the context. The only realtime synthesis here. |
 | `src/app/audio/metronome.ts` | The click and the count-in. |
 | `src/app/hooks/useKeyboardSynth.ts` | Key events → notes and the press log. |
+| `src/app/components/DrumPads.tsx` | The drawn kit: the grid, the flash, the drag across pads. |
 | `src/app/pages/Keys.tsx` + `keys.css` | The page. |
 | `src/dev/take-api.ts` + `take-store.ts` | Saving a take. Dev server only. |
 | `src/engine/take-shelf.ts` | Takes held on the device, where there is no server to save to. |

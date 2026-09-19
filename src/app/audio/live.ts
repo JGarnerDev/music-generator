@@ -14,14 +14,22 @@
  *
  * So the deadline is respected rather than assumed. The voice is built under
  * `LIVE_QUALITY`, polyphony is capped and stolen rather than left to throw, and
- * the two preset kinds that would blow the budget — sections and drum kits —
- * never get here, because [`@engine/keys-bench`](../../engine/keys-bench.ts)
- * refuses them where the user can read why.
+ * the preset kind that would blow the budget — a section, eight synths behind
+ * every key — never gets here, because
+ * [`@engine/keys-bench`](../../engine/keys-bench.ts) refuses it where the user
+ * can read why.
+ *
+ * A **drum kit** does get here, and costs less than anything else that does: a
+ * kit piece is a one-shot with no release to wait for and no polyphony to cap.
+ * It is refused at the *keyboard* — a piece is a name, not a note, so there is
+ * nothing for a key to be — and played from the pads instead
+ * ([`@engine/pads`](../../engine/pads.ts)), which is `hit()` below.
  */
 import * as Tone from "tone";
 import { bendCurve } from "@engine/bend";
-import type { InstrumentName } from "@engine/composition";
+import type { DrumPiece, InstrumentName } from "@engine/composition";
 import { midiToPitch } from "@engine/theory";
+import { DrumKit } from "./drums";
 import { createVoice, type Voice } from "./instruments";
 import { LIVE_QUALITY, withQuality } from "./quality";
 
@@ -82,11 +90,16 @@ function playbackSession(): void {
   if (session) session.type = "playback";
 }
 
-/** What `play` has to be for a key to trigger it. Sections and kits are refused upstream. */
+/** What `play` has to be for a key to trigger it. Sections are refused upstream, kits play as pads. */
 type Keyable = Tone.PolySynth | Tone.Sampler;
 
 function keyable(play: unknown): play is Keyable {
   return play instanceof Tone.PolySynth || play instanceof Tone.Sampler;
+}
+
+/** What `play` has to be for a pad to strike it. */
+function struckable(play: unknown): play is DrumKit {
+  return play instanceof DrumKit;
 }
 
 /**
@@ -152,9 +165,9 @@ export class LiveKeyboard {
     // The quality profile is read while the graph is *built*, not while it
     // plays, so the ceiling has to be in force for exactly this call.
     this.voice = withQuality(LIVE_QUALITY, () => createVoice(instrument, slug));
-    if (!keyable(this.voice.play)) {
+    if (!keyable(this.voice.play) && !struckable(this.voice.play)) {
       this.dispose();
-      throw new Error(`${instrument}${slug ? `/${slug}` : ""} cannot be played from the keyboard`);
+      throw new Error(`${instrument}${slug ? `/${slug}` : ""} cannot be played live`);
     }
     this.limiter = new Tone.Limiter(-1);
     this.master = new Tone.Gain(1);
@@ -196,6 +209,28 @@ export class LiveKeyboard {
     if (pitch === undefined || !keyable(play)) return;
     this.held.delete(midi);
     play.triggerRelease(pitch);
+  }
+
+  /** Whether the loaded voice is a kit — the page draws pads for it rather than keys. */
+  get percussive(): boolean {
+    return struckable(this.voice?.play);
+  }
+
+  /**
+   * Strike one piece of the kit.
+   *
+   * There is no `off` to pair with this and nothing to track as held: a struck
+   * drum rings for exactly as long as its own envelope says, which is the same
+   * call `graph.ts` makes when it schedules a groove. So none of the machinery
+   * that exists for a note that must be stopped — the held map, the stealing,
+   * `panic` — has anything to do here, and a pad that is let go early is a drum
+   * you took your hand off, which is silent.
+   */
+  hit(piece: DrumPiece, velocity: number): boolean {
+    const play = this.voice?.play;
+    if (!struckable(play)) return false;
+    play.triggerAttackRelease(piece, 0, undefined, velocity);
+    return true;
   }
 
   /**

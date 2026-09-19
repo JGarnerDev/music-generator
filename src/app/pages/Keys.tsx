@@ -23,6 +23,13 @@
  * asked at the exact moment a musical idea was in somebody's hands and leaving.
  * What is left on screen is what a hand uses: octave, velocity, bend, click.
  *
+ * **A kit is not a keyboard.** Pick a drums voice and the piano is replaced by
+ * a grid of pads, one per piece the kit voices — because a kit piece is a name
+ * rather than a note, so there is no low-to-high to lay out and no octave to
+ * move. Which pads exist is
+ * [`@engine/pads`](../../engine/pads.ts); the keyboard's letter keys become the
+ * pad grid while one is loaded.
+ *
  * The take is derived rather than stored, so a second reading costs nothing:
  * rename it, change the tempo, and the same presses are re-read through
  * [`buildTake`](../../engine/take.ts). That is `transcribe --requantize`, by
@@ -32,12 +39,24 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { pianoKeys, scalePitchClasses, shiftOctave } from "@engine/keys";
 import { playability } from "@engine/keys-bench";
 import { guessKey } from "@engine/key-guess";
+import { drumPads, padPlayable } from "@engine/pads";
 import { type VoiceEntry } from "@engine/voice-library";
+import { DrumPads } from "../components/DrumPads";
 import { PianoKeys } from "../components/PianoKeys";
 import { useKeyboardSynth } from "../hooks/useKeyboardSynth";
 import { VOICE_LIBRARY } from "../voices";
 
-const PLAYABLE = VOICE_LIBRARY.filter((entry) => playability(entry.preset).playable);
+/**
+ * The shelf: everything a hand can play, pitched or struck.
+ *
+ * Two questions rather than one, because they are two instruments.
+ * `playability` asks whether a keyboard can play a preset — and says no to a
+ * kit, correctly, since a key would have no pitch to sound. `padPlayable` asks
+ * the question a kit answers yes to.
+ */
+const PLAYABLE = VOICE_LIBRARY.filter(
+  (entry) => playability(entry.preset).playable || padPlayable(entry.preset),
+);
 const FIRST = PLAYABLE.find((entry) => entry.preset.default) ?? PLAYABLE[0];
 
 export function Keys() {
@@ -45,8 +64,12 @@ export function Keys() {
 
   const selected = PLAYABLE.find((entry) => entry.id === voiceId) ?? null;
 
+  // Empty for a pitched voice, which is what leaves the letter keys a piano.
+  const pads = useMemo(() => (selected ? drumPads(selected.preset) : []), [selected]);
+
   const synth = useKeyboardSynth({
     enabled: selected !== null,
+    pads,
   });
 
   const scale = useMemo(() => {
@@ -84,25 +107,31 @@ export function Keys() {
           </select>
         </div>
 
-        <div className="group" role="group" aria-label="Octave">
-          <span className="what">octave</span>
-          <button type="button" onClick={() => synth.setOctave(shiftOctave(synth.octave, -1))}>
-            −
-          </button>
-          <span className="value">{synth.octave}</span>
-          <button type="button" onClick={() => synth.setOctave(shiftOctave(synth.octave, 1))}>
-            +
-          </button>
-        </div>
+        {pads.length === 0 ? (
+          <div className="group" role="group" aria-label="Octave">
+            <span className="what">octave</span>
+            <button type="button" onClick={() => synth.setOctave(shiftOctave(synth.octave, -1))}>
+              −
+            </button>
+            <span className="value">{synth.octave}</span>
+            <button type="button" onClick={() => synth.setOctave(shiftOctave(synth.octave, 1))}>
+              +
+            </button>
+          </div>
+        ) : null}
       </div>
 
-      <PianoKeys
-        keys={keys}
-        held={synth.heldMidis}
-        scale={scale}
-        onPress={synth.press}
-        onRelease={synth.release}
-      />
+      {pads.length > 0 ? (
+        <DrumPads pads={pads} struck={synth.struck} onHit={synth.hit} />
+      ) : (
+        <PianoKeys
+          keys={keys}
+          held={synth.heldMidis}
+          scale={scale}
+          onPress={synth.press}
+          onRelease={synth.release}
+        />
+      )}
     </main>
   );
 }

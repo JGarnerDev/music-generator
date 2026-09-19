@@ -17,9 +17,11 @@ import type { Take } from "./take";
  *
  * Two hard noes, and they are the same two that decline a bend. **Drums** have
  * no pitch — a kit piece is a name, not a note, so there is nothing for a
- * keyboard to be. **Sections** are the subtler no: a desk of eight players is
- * eight synths of polyphony behind every key, which is a render-time cost being
- * asked to meet a realtime deadline, and the deadline is what loses.
+ * keyboard to be; they are played on the pad grid instead
+ * ([`./pads`](./pads.ts)), which is a different instrument rather than a
+ * loophole in this one. **Sections** are the subtler no: a desk of eight players
+ * is eight synths of polyphony behind every key, which is a render-time cost
+ * being asked to meet a realtime deadline, and the deadline is what loses.
  *
  * The amp warning is the measured one. `docs/rendering.md` puts ~85% of render
  * cost in the guitar chains, at 0.9x realtime for a whole arrangement — one
@@ -37,7 +39,7 @@ export function playability(preset: VoicePreset): Playability {
   if (preset.instrument === "drums") {
     return {
       playable: false,
-      note: "Drums have no pitch to play — a kit piece is a name, not a note. Pick a pitched instrument.",
+      note: "Drums have no pitch to play — a kit piece is a name, not a note. They play on the pads instead.",
     };
   }
   if (preset.section) {
