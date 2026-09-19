@@ -70,7 +70,7 @@ export function openingMessage(voices: number, canEdit: boolean): string {
   const shelf = `${voices} ${voices === 1 ? "voice" : "voices"} on the shelf`;
   return canEdit
     ? `${shelf}. Play — Z is C, Q is the octave above.`
-    : `${shelf}. Read-only build: play away, but saving a take needs "npm run dev".`;
+    : `${shelf}. Play — a take saves to this device, and Copy or Download hands it over.`;
 }
 
 export function readyMessage(voiceId: string, note: string): string {
@@ -102,9 +102,17 @@ export function recordingMessage(notes: number): string {
   return `Recording — ${notes} ${notes === 1 ? "note" : "notes"}.`;
 }
 
-export function stoppedMessage(notes: number): string {
+/**
+ * `canSave` is whether there is a dev server behind the page, because it
+ * changes which button the sentence should be pointing at: the bench has one
+ * called Save, and the standalone app has Download, Copy and Share instead.
+ * Naming a button that is not on screen at the end of a take is a user looking
+ * for it.
+ */
+export function stoppedMessage(notes: number, canSave = true): string {
   if (notes === 0) return "Stopped — nothing was played, so there is nothing to save.";
-  return `Stopped — ${notes} ${notes === 1 ? "note" : "notes"}. Check the summary, then Save.`;
+  const next = canSave ? "then Save." : "then Download, Copy or Share it.";
+  return `Stopped — ${notes} ${notes === 1 ? "note" : "notes"}. Check the summary, ${next}`;
 }
 
 /**
@@ -123,6 +131,49 @@ export function saveFailedMessage(message: string): string {
   return `Could not save: ${message}`;
 }
 
+/**
+ * What to say when a take left through a download instead of the dev server.
+ *
+ * The standalone app ([`docs/deploy.md`](../../docs/deploy.md)) has no
+ * filesystem to write to, so the file goes to the phone's downloads and the
+ * handoff is one step longer than `savedMessage`'s. Naming the import command
+ * is the whole message: a `.take.json` sitting in a Downloads folder is not yet
+ * a take anybody can compose from.
+ */
+export function downloadedMessage(fileName: string): string {
+  return `Downloaded ${fileName} — bring it to the repo and run: npm run take:import -- --file <path>/${fileName}`;
+}
+
+/** Same handoff, through the clipboard — which is the one that survives a phone. */
+export function copiedMessage(fileName: string): string {
+  return `Copied ${fileName} to the clipboard — paste it to Claude, or run: npm run take:import -- --stdin`;
+}
+
+/**
+ * The clipboard refusing.
+ *
+ * Worth its own message because it is common and recoverable: a browser only
+ * allows `navigator.clipboard` on a secure origin and inside a gesture, and
+ * Download is right there and always works.
+ */
+export function copyFailedMessage(message: string): string {
+  return `Could not copy: ${message}. Use Download instead.`;
+}
+
+/**
+ * The shelf, on a build that cannot write to disk.
+ *
+ * Said on load, because the reason the shelf exists is that a phone had
+ * discarded the tab: the takes are still there, and the user has no other way
+ * to find that out.
+ */
+export function heldMessage(count: number): string {
+  if (count === 0) return "";
+  const them = count === 1 ? "it" : "them";
+  const they = count === 1 ? "it ages" : "they age";
+  return `${count} take${count === 1 ? "" : "s"} held on this device — Copy or Download ${them} before ${they} off the shelf.`;
+}
+
 /** The header above the drawn keyboard: where the hands are, how hard, and where the pitch is. */
 export function stateLine(octave: number, velocity: number, held: number, bendCents = 0): string {
   const parts = [`octave ${octave} (Z = C${octave})`, `velocity ${velocity.toFixed(1)}`];
@@ -139,6 +190,29 @@ export function stateLine(octave: number, velocity: number, held: number, bendCe
 /** The control legend. One line, because it lives under the keyboard and competes with it. */
 export const LEGEND =
   "← → octave · ↑ ↓ velocity · F K bend · space record · esc panic";
+
+/**
+ * The same line for a device with no keys on it.
+ *
+ * Not the keyboard legend with the shortcuts filed off — a phone has a
+ * different instrument in front of it. Every control named here is a button
+ * that is on screen, which is the point: on a laptop the buttons are a
+ * convenience beside the shortcuts, and on a phone they are the whole
+ * instrument.
+ */
+export const TOUCH_LEGEND =
+  "tap or slide across the keys · turn sideways for more of them";
+
+/**
+ * Which legend to print.
+ *
+ * Keyed off the pointer being coarse rather than off the screen being small: a
+ * tablet with a keyboard attached wants the shortcuts, and a small window on a
+ * laptop still has a keyboard under it.
+ */
+export function legendFor(coarsePointer: boolean): string {
+  return coarsePointer ? TOUCH_LEGEND : LEGEND;
+}
 
 /** The take's filename, and the id the summary is headed with. */
 export function takePath(name: string): string {

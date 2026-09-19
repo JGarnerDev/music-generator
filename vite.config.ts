@@ -29,6 +29,9 @@ export default defineConfig({
     // a restart. Vite alone does not — see the plugin's header.
     liveLibrary(__dirname),
   ],
+  // The keys page is also built standalone, by `vite.keys.config.ts`. This is
+  // the half of that pair without a service worker — see `src/globals.d.ts`.
+  define: { __KEYS_APP__: "false" },
   build: {
     // Five pages: the composition, voice, studies and keys benches, plus the
     // session board. `render.html` is deliberately absent — it is dev-only

@@ -1,0 +1,17 @@
+{
+  "name": "keys — music-generator",
+  "short_name": "keys",
+  "description": "Play a phrase on a touch keyboard, record it, and hand it over as notes.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#14121a",
+  "theme_color": "#14121a",
+  "categories": ["music", "productivity"],
+  "icons": [
+    { "src": "./keys-icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "./keys-icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "./keys-icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

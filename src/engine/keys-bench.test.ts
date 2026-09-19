@@ -3,7 +3,13 @@ import { INSTRUMENT_NAMES } from "./composition";
 import type { SynthSpec, VoicePreset } from "./voice";
 import {
   LEGEND,
+  TOUCH_LEGEND,
   armedMessage,
+  copiedMessage,
+  copyFailedMessage,
+  downloadedMessage,
+  heldMessage,
+  legendFor,
   clickMessage,
   recordLabel,
   openingMessage,
@@ -56,9 +62,9 @@ describe("playability", () => {
 });
 
 describe("the status line", () => {
-  it("tells a read-only build what it is missing", () => {
-    expect(openingMessage(12, false)).toContain("npm run dev");
-    expect(openingMessage(12, true)).not.toContain("npm run dev");
+  it("tells a build with no dev server how a take gets off the device", () => {
+    expect(openingMessage(12, false)).toContain("Copy or Download");
+    expect(openingMessage(12, true)).not.toContain("Download");
   });
 
   it("counts the shelf in the plural it deserves", () => {
@@ -154,5 +160,48 @@ describe("playableInstruments", () => {
     const playable = playableInstruments(INSTRUMENT_NAMES);
     expect(playable).not.toContain("drums");
     expect(playable.length).toBe(INSTRUMENT_NAMES.length - 1);
+  });
+});
+
+describe("handing a take over from a build with no filesystem", () => {
+  it("names the import command in the download message", () => {
+    const message = downloadedMessage("tavern-hook.take.json");
+    expect(message).toContain("tavern-hook.take.json");
+    expect(message).toContain("npm run take:import");
+  });
+
+  it("names the --stdin form in the copy message, since a phone cannot hand over a path", () => {
+    expect(copiedMessage("tavern-hook.take.json")).toContain("--stdin");
+  });
+
+  it("points a refused clipboard at the button that always works", () => {
+    expect(copyFailedMessage("not allowed")).toContain("Download");
+  });
+
+  it("says nothing about an empty shelf and counts a full one", () => {
+    expect(heldMessage(0)).toBe("");
+    expect(heldMessage(1)).toContain("1 take held");
+    expect(heldMessage(1)).toContain("it ages");
+    expect(heldMessage(3)).toContain("3 takes held");
+    expect(heldMessage(3)).toContain("they age");
+  });
+});
+
+describe("stoppedMessage", () => {
+  it("names the button that is actually on the page", () => {
+    expect(stoppedMessage(4)).toContain("then Save.");
+    expect(stoppedMessage(4, false)).toContain("Download, Copy or Share");
+    expect(stoppedMessage(0, false)).toContain("nothing to save");
+  });
+});
+
+describe("legendFor", () => {
+  it("gives a touch device the buttons and a keyboard the shortcuts", () => {
+    expect(legendFor(true)).toBe(TOUCH_LEGEND);
+    expect(legendFor(false)).toBe(LEGEND);
+  });
+
+  it("names no key caps on the touch legend — there are none to press", () => {
+    for (const cap of ["esc", "space", "↑", "F K"]) expect(TOUCH_LEGEND).not.toContain(cap);
   });
 });

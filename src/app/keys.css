@@ -23,6 +23,11 @@
  * mid-phrase — so the piano's block is fixed and the summary at the bottom is
  * the only thing that scrolls.
  */
+html {
+  /* A rubber-band scroll is a keyboard sliding out from under a finger. */
+  overscroll-behavior: none;
+  -webkit-text-size-adjust: 100%;
+}
 body {
   font-family: ui-monospace, "Cascadia Code", monospace;
   background: var(--bg);
@@ -31,12 +36,31 @@ body {
   justify-content: center;
   align-content: start;
   min-height: 100vh;
+  /* 100dvh where it exists: on a phone `vh` is the address bar's idea of the
+     viewport, which is taller than what you can actually see. */
+  min-height: 100dvh;
   margin: 0;
   padding: 2rem 0 1.5rem;
+  overscroll-behavior: none;
+  /* Installed to a home screen the page owns the whole screen, notch and all —
+     `viewport-fit=cover` in keys.html. This pays the inset back. */
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+  padding-bottom: max(1.5rem, env(safe-area-inset-bottom));
 }
 main {
   width: min(900px, 94vw);
   display: grid;
+  /* One column that is allowed to be *narrower* than its contents. Without the
+     `minmax(0, …)` the column is sized to the widest item's min-content — and
+     the widest item is a keyboard of seventeen keys, each of which refuses to
+     go narrower than the pitch printed on it. The page then overflows
+     sideways on a phone, which is the one direction it must never do. */
+  grid-template-columns: minmax(0, 1fr);
+  /* And the items have to accept that column. A grid item's automatic minimum
+     is its *content's* minimum, so a row of tabs that scrolls sideways, or a
+     summary whose lines never wrap, would each widen the page rather than
+     scroll inside it. */
   grid-template-rows:
     auto auto auto auto /* title · tabs · voice · state */
     auto auto /* piano · legend */
@@ -44,6 +68,7 @@ main {
     minmax(8rem, 1fr) auto; /* summary · status */
   gap: 0.7rem;
 }
+main > * { min-width: 0; }
 h1 {
   font-size: 1.1rem;
   color: var(--accent);
@@ -64,7 +89,7 @@ button, select, input {
   border-radius: 4px;
   padding: 0.3rem 0.6rem;
 }
-button { cursor: pointer; }
+button { cursor: pointer; -webkit-tap-highlight-color: transparent; }
 button:hover:not(:disabled) { background: var(--panel-hi); }
 button:disabled { opacity: 0.4; cursor: default; }
 button.recording { border-color: var(--recording); color: var(--recording); }
@@ -90,6 +115,15 @@ button.bending { background: var(--accent); color: #1a1526; border-color: var(--
   user-select: none;
   touch-action: none; /* a drag across the keys plays them, it does not scroll */
 }
+/* `touch-action` is not inherited, and the touch lands on the key rather than
+   on the box around it — so the rule that stops a scroll has to be on both. */
+#piano .key {
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none; /* a long press is a held note, not a context menu */
+}
 #piano .whites { display: flex; height: 100%; gap: 2px; }
 .key {
   border: 1px solid var(--line);
@@ -104,6 +138,9 @@ button.bending { background: var(--accent); color: #1a1526; border-color: var(--
 }
 .key.white {
   flex: 1;
+  /* Shrink past the label rather than push the keyboard wider than the screen;
+     the label is a convenience and the width is the instrument. */
+  min-width: 0;
   background: #d8d4e4;
   color: #221c33;
 }
@@ -151,6 +188,11 @@ button.bending { background: var(--accent); color: #1a1526; border-color: var(--
 /* Square, so − and + are a pair rather than two words of different length. */
 #controls .group button { min-width: 2.1rem; text-align: center; }
 
+/* Wraps because the row grew: Record, a name, and up to three ways of handing
+   the take over (Download / Copy / Share on a build with no dev server behind
+   it) do not fit across a phone, and a transport that runs off the side of the
+   screen loses the button you need most. */
+#transport { flex-wrap: wrap; row-gap: 0.4rem; }
 #transport input { width: 10rem; }
 #transport .what { font-size: 0.78rem; opacity: 0.55; margin-left: 0.6rem; }
 
@@ -178,4 +220,120 @@ button.bending { background: var(--accent); color: #1a1526; border-color: var(--
   font-size: 0.8rem;
   color: var(--accent);
   min-height: 2.4rem;
+}
+
+/* ── The shelf ────────────────────────────────────────────────────── */
+/*
+ * Only ever rendered by the standalone app, which has no dev server to write
+ * takes to — see `src/engine/take-shelf.ts`. It is a holding pen, so it looks
+ * like one: a list of rows with the three ways out on each.
+ */
+#shelf {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0.5rem 0.7rem;
+}
+#shelf .what { font-size: 0.75rem; opacity: 0.55; margin: 0 0 0.4rem; }
+#shelf ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.4rem; }
+#shelf li { display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; }
+#shelf .held { flex: 1 1 12rem; font-size: 0.78rem; overflow: hidden; text-overflow: ellipsis; }
+#shelf button { font-size: 0.75rem; padding: 0.25rem 0.5rem; }
+#shelf .forget { opacity: 0.5; }
+#shelf .forget:hover { opacity: 1; border-color: var(--recording); color: var(--recording); }
+
+/* ── A phone ──────────────────────────────────────────────────────── */
+/*
+ * The same page with a different instrument in front of it. On a laptop the
+ * drawn keyboard is a picture of what the letter keys are doing; on a phone it
+ * *is* the keyboard, so it gets the screen and everything else gives way.
+ *
+ * Split in two on purpose. Width decides the layout — a narrow window on a
+ * laptop has the same problem a phone does. The pointer being coarse decides
+ * the *targets*, because that is a different question with a different answer:
+ * a tablet with a mouse is wide and precise, and a laptop in a small window is
+ * narrow and precise.
+ */
+@media (max-width: 760px) {
+  body { padding: 0.6rem 0 max(0.8rem, env(safe-area-inset-bottom)); }
+  /* The fixed row template is a desktop luxury — it reserves 8rem for the
+     summary, which on a phone is 8rem the keyboard does not get. Auto rows
+     here, and the two things that must not collapse say so themselves. */
+  main { width: 96vw; gap: 0.4rem; grid-template-rows: none; }
+  h1 { font-size: 0.95rem; height: auto; line-height: 1.3; }
+  h1 a { display: none; } /* the nav is not what a phone came here for */
+  /* One row that scrolls sideways rather than three rows that do not: the
+     instrument you want is usually the one already selected, and the tabs
+     wrapping costs the keyboard a third of its height. */
+  #tabs {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    gap: 0.3rem;
+    scrollbar-width: none;
+  }
+  #tabs::-webkit-scrollbar { display: none; }
+  #tabs > * { flex: 0 0 auto; }
+  #piano { height: clamp(7rem, 27vh, 12rem); }
+  /* Seventeen keys across a phone is 21 px each — the pitch has to fit in
+     that, or `min-width: 0` simply clips it. */
+  .key .pitch { font-size: 0.5rem; }
+  #summary { min-height: 3.5rem; max-height: 10rem; font-size: 0.7rem; }
+  #status { min-height: 1.6rem; }
+  #legend { font-size: 0.65rem; }
+  #transport input { width: 7rem; }
+  #transport .what { margin-left: 0; }
+  #controls { gap: 0.4rem 0.8rem; }
+}
+
+@media (pointer: coarse) {
+  /* Nothing under ~44 px is reliably hittable with a thumb, and every control
+     on this page is one somebody reaches for mid-phrase. */
+  button, select, input { min-height: 2.75rem; padding: 0.4rem 0.7rem; }
+  #controls .group button { min-width: 2.75rem; }
+  #shelf button { min-height: 2.2rem; }
+  /* The cap says which letter key plays this note. There is no letter key. */
+  .key .cap { display: none; }
+  .key .pitch { font-size: 0.62rem; opacity: 0.8; }
+  .key.black .pitch { display: none; }
+  .key { padding-bottom: 0.5rem; }
+}
+
+/*
+ * Landscape, which is how this should actually be held: the keyboard is three
+ * times as wide and every white key is a target instead of a sliver. What it
+ * costs is vertical room, so the summary shrinks to a peek and the legend goes
+ * — by then you have read it.
+ */
+@media (orientation: landscape) and (max-height: 560px) {
+  body { padding: 0.35rem 0 max(0.35rem, env(safe-area-inset-bottom)); }
+  main { gap: 0.3rem; grid-template-rows: none; }
+  h1 { font-size: 0.8rem; }
+  #legend { display: none; }
+  #state { height: auto; font-size: 0.75rem; }
+  #piano { height: clamp(6rem, 44vh, 11rem); }
+  #summary { min-height: 3rem; max-height: 6rem; }
+  #status { min-height: 1.2rem; font-size: 0.72rem; }
+
+  /*
+   * Phone landscape is 390 px of height for a page that wants 550, so
+   * something has to go below the fold and the only question is what. The
+   * answer is the difference this page already draws: what a hand uses while
+   * playing stays on screen — where the hands are, the keys, octave/velocity/
+   * bend/click, Record — and what you set up once before playing scrolls, since
+   * you have finished with it by the time the phrase starts.
+   *
+   * `order` rather than a second markup path: the DOM stays in reading order,
+   * which is the order everything else here is written for.
+   */
+  #state { order: 1; }
+  #piano { order: 2; }
+  #controls { order: 3; }
+  #transport { order: 4; }
+  #status { order: 5; }
+  h1 { order: 6; }
+  #tabs { order: 7; }
+  #voicePick { order: 8; }
+  #legend { order: 9; }
+  #summary { order: 10; }
+  #shelf { order: 11; }
 }

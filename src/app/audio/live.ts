@@ -63,6 +63,25 @@ const RETURN_MS = 150;
  */
 const BEND_STEP_MS = 8;
 
+/**
+ * Ask iOS to treat this page as playback rather than as an incidental sound.
+ *
+ * Without it, an `AudioContext` on iOS lands in the *ambient* session category,
+ * which the hardware mute switch silences — so a phone on silent, which is how
+ * a phone usually is, opens the app and plays nothing at all. There is no error
+ * and no visible difference; it is the single most confusing way this app can
+ * fail, and it fails that way for most people who open it.
+ *
+ * `navigator.audioSession` is Safari 16.4 and up and absent everywhere else,
+ * which is why this is a feature check and not a platform check. Called from
+ * inside the wake, because a session type set before the context exists is a
+ * setting applied to nothing.
+ */
+function playbackSession(): void {
+  const session = (navigator as Navigator & { audioSession?: { type: string } }).audioSession;
+  if (session) session.type = "playback";
+}
+
 /** What `play` has to be for a key to trigger it. Sections and kits are refused upstream. */
 type Keyable = Tone.PolySynth | Tone.Sampler;
 
@@ -99,6 +118,7 @@ export class LiveKeyboard {
    * never resumed fails silently rather than loudly.
    */
   static async start(): Promise<void> {
+    playbackSession();
     await Tone.start();
     Tone.getContext().lookAhead = LOOKAHEAD;
   }

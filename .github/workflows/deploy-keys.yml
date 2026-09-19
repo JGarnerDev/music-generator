@@ -1,0 +1,65 @@
+# Deploy the keys app to GitHub Pages.
+#
+# Only `/keys.html` goes out, and only because it is the one page here that
+# synthesises rather than playing rendered files — see docs/deploy.md. The
+# bench is not deployable: `public/audio/` is gitignored and every write button
+# is a dev-server plugin.
+name: deploy keys app
+
+on:
+  push:
+    branches: [master]
+    # Nothing else changes what is served. A new composition or a re-render has
+    # no effect on this app, and rebuilding for one is a deploy that says
+    # nothing changed.
+    paths:
+      - "keys.html"
+      - "src/**"
+      - "voices/**"
+      - "public/keys*"
+      - "vite.keys.config.ts"
+      - "package.json"
+      - "package-lock.json"
+      - "tsconfig.json"
+      - ".github/workflows/deploy-keys.yml"
+  workflow_dispatch:
+
+# Pages needs these; nothing here writes to the repo.
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# One deploy at a time, and a newer push wins — but never cancel one that is
+# already uploading.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      # The build typechecks first (`npm run build:keys` is tsc then vite), so a
+      # broken page fails here rather than on a phone.
+      - run: npm run build:keys
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist-keys
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

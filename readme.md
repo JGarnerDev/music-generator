@@ -46,7 +46,7 @@ loose musical ideas into something you're pumped about.
 | `studies/<concept>/*.json` | Attempts at a musical *concept*, to be thumbed up or down | Folder = concept. **Scratch** — deleted once distilled into [`docs/taste.md`](docs/taste.md), which is the permanent record. Verdicts queue in the generated `studies/ledger.md`. Process in [studies](docs/studies.md) |
 | `plans/*.json` | Section plans for long/looping pieces | Expanded by `npm run song:build`; see [looping](docs/looping.md) |
 | `sessions/*.json` | Running orders for a game night — ordered cues into the library | Played from `/session.html`; written by `npm run session:new`. See [sessions](docs/sessions.md) |
-| `recordings/keys/*.take.json` | Keyboard takes — a phrase played at `/keys.html` | Committed (they *are* the notes). Loop: [keys](docs/keys.md) |
+| `recordings/keys/*.take.json` | Keyboard takes — a phrase played at `/keys.html` | Committed (they *are* the notes). Loop: [keys](docs/keys.md); from a phone, [deploy](docs/deploy.md) |
 | `recordings/*.wav` | Guitar takes — "make the hook sound like *this*" | Audio gitignored, the `.notes.json` transcription beside it is committed. Capture rules: [`recordings/readme.md`](recordings/readme.md); the loop: [transcribe](docs/transcribe.md) |
 | `scripts/*.ts` | Deterministic CLI chores | commander, named flags. `render.ts` is the big one: see [rendering](docs/rendering.md) |
 | `src/dev/` | Dev-server middleware, render harness, render profiler | Never in the built bundle |
@@ -61,6 +61,7 @@ npm run dev        # five pages: / compositions · /voices.html · /studies.html
 npm run render -- --all   # render every composition to public/audio/
 npm test           # vitest (engine + utils)
 npm run typecheck  # tsc --noEmit
+npm run build:keys # the keys page alone, as a phone app → dist-keys/
 ```
 
 - **Compose:** write/adjust a `compositions/<kind>/<name>.json` using a palette's
@@ -136,6 +137,14 @@ npm run typecheck  # tsc --noEmit
   and the grid is re-readable afterwards. The one page here that synthesises,
   and why that does not contradict [rendering](docs/rendering.md):
   [keys](docs/keys.md).
+- **Play an idea in on a phone:** the keys page is also the one page here that
+  can be deployed — it needs no library, no renders and no dev server, so
+  `npm run build:keys` produces a static app you install on a home screen and
+  play offline. The handoff is the one thing that changes: with no server to
+  write to, a take is handed to the phone (Share / Download / Copy) and comes
+  back with `npm run take:import -- --file <path>`. Hosts, the install, the
+  shelf that survives a discarded tab, and what the deployed copy cannot do:
+  [deploy](docs/deploy.md).
 - **Decide an approach:** a *study* is a short attempt at a musical concept
   ("guitar solo", "chorus lift") made to be judged. Fan out four that differ on
   exactly one axis — `npm run study:new -- --concept chorus-lift --axis register
@@ -210,6 +219,9 @@ npm run typecheck  # tsc --noEmit
   play → record → hand-over loop, the three settings that decide what a take
   means, what it refuses to play, and why this page is allowed to synthesise
   when nothing else is.
+- [`docs/deploy.md`](docs/deploy.md) — the keys page as a deployed phone app:
+  what ships and why only that page, the three hosts, installing it, and how a
+  take played away from the repo gets back into it.
 - [`docs/transcribe.md`](docs/transcribe.md) — a recorded guitar take becomes
   notes: the record → read → emit → confirm loop, literal vs shape, and the four
   things it cannot do.

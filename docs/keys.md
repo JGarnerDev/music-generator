@@ -4,7 +4,7 @@ purpose: Playing a phrase at the keyboard and handing it over as notes. The loop
 audience: [claude, human]
 updated: 2026-09-18
 read_order: 5
-see_also: [../readme.md, ../claude.md, transcribe.md, rendering.md, library.md]
+see_also: [../readme.md, ../claude.md, deploy.md, transcribe.md, rendering.md, library.md]
 ---
 
 # Keys
@@ -46,7 +46,8 @@ npm run take:read -- --file recordings/keys/<name>.take.json --emit <slug>
    range, where the peak is.
 6. **Name it and Save.** It writes `recordings/keys/<name>.take.json` and tells
    you the path. **That path is the handoff** — give it to Claude, who reads it
-   with `npm run take:read`.
+   with `npm run take:read`. (On the deployed app there is no server to write
+   it, so the take is handed to the phone instead — see [on a phone](#on-a-phone).)
 
 Then it is notes like any other notes: quote it into a piece, emit it as a
 leitmotif, arrange around it.
@@ -174,6 +175,43 @@ machine, play fewer notes at once or pick a cleaner voice. **The recorded take i
 unaffected either way** — key presses are timestamps, not audio, so a take
 recorded through a stuttering voice is still exact.
 
+## On a phone
+
+The same page is deployed as a standalone app you can install on a phone —
+how, and where, is [deploy](./deploy.md). It is the only page here that can be:
+everything else plays rendered files or writes to the repo, and this one
+synthesises and does neither.
+
+What changes when a finger is doing the pointing rather than a mouse:
+
+- **The drawn keyboard is the instrument**, not a picture of what the letter
+  keys are doing. So it gets the screen — in landscape the keys, the controls
+  and the transport are what fits, and the title, the voice picker and the
+  summary scroll below the fold, because you have finished with those by the
+  time a phrase starts. Portrait fits the whole range at about 20 px a key;
+  landscape is 45 px, which is the difference between hunting a phrase and
+  playing one.
+- **Velocity gets buttons.** It was the arrow keys only, and a phone has no
+  arrow keys — so on a touch device it was previously stuck at 0.8 forever.
+- **The bend buttons lose their letters** (`↓ F` becomes `↓`), and the legend
+  names buttons rather than keys. An instruction to press a key that does not
+  exist is worse than no instruction.
+- **Save becomes Download, Copy and Share**, because there is no dev server to
+  write to. Stop also shelves the take in the browser's storage — a phone
+  discards a background tab within a minute or two, and that used to be a
+  performance nobody could play again.
+
+The take comes back with `npm run take:import -- --file <path>` (or `--stdin`
+for what Copy put on the clipboard), which validates it, writes it into
+`recordings/keys/` and prints the summary. From there it is a take like any
+other.
+
+**Two things that surprise people.** An iPhone on silent plays nothing from a
+web page unless the page asks for the `playback` audio category, which this one
+does — if it is silent anyway, that is a bug rather than the switch. And the
+app works with no signal at all after the first load; nothing here needs a
+network to make a sound.
+
 ## Reading a take
 
 ```bash
@@ -250,4 +288,6 @@ CLI, like every other note in this project.
 | `src/app/hooks/useKeyboardSynth.ts` | Key events → notes and the press log. |
 | `src/app/pages/Keys.tsx` + `keys.css` | The page. |
 | `src/dev/take-api.ts` + `take-store.ts` | Saving a take. Dev server only. |
+| `src/engine/take-shelf.ts` | Takes held on the device, where there is no server to save to. |
 | `scripts/take.ts` | `npm run take:read`. |
+| `scripts/take-import.ts` | `npm run take:import` — a take played on the phone, landed in the repo. |

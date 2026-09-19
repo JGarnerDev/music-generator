@@ -157,6 +157,11 @@ something the user *played* — see [`docs/bends.md`](./docs/bends.md). If they
 want to *record* one, point them at `/keys.html` — it plays on load, no start
 step — and tell them to turn the click on first, since recording starts on its
 next downbeat and its tempo is the take's grid. [`docs/keys.md`](./docs/keys.md).
+A take may also arrive from the **deployed keys app** on their phone, which has
+no dev server to save to: it comes as a file or a pasted blob, and
+`npm run take:import -- --file <path>` (or `--stdin`) lands it in
+`recordings/keys/` and prints the summary — same take, same loop from there.
+[`docs/deploy.md`](./docs/deploy.md).
 
 **If the user hands you a recording** — "I want the hook to sound like this" —
 that is not a composing problem, it is a transcription. You cannot hear it, so
