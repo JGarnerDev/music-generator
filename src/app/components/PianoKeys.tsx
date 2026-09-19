@@ -29,7 +29,7 @@ export interface PianoKeysProps {
 export function PianoKeys({ keys, held, scale, ...on }: PianoKeysProps) {
   const whites = keys.filter((key) => !key.black);
   const share = 100 / Math.max(1, whites.length);
-  const draggedKeyRef = useRef<number | null>(null);
+  const activePointersRef = useRef<Map<number, Set<number>>>(new Map());
 
   let whitesBefore = 0;
   const placed = keys.map((key) => {
@@ -38,40 +38,61 @@ export function PianoKeys({ keys, held, scale, ...on }: PianoKeysProps) {
     return { key, left };
   });
 
-  function grab(event: React.PointerEvent<HTMLDivElement>, midi: number): void {
-    event.currentTarget.setPointerCapture(event.pointerId);
-    draggedKeyRef.current = midi;
-    on.onPress(midi);
+  function handlePointerDown(event: React.PointerEvent<HTMLDivElement>): void {
+    const element = event.target as HTMLElement;
+    if (!element.classList.contains("key")) return;
+
+    const midi = parseInt(element.getAttribute("data-midi") || "0", 10);
+    const pointerId = event.pointerId;
+
+    if (!activePointersRef.current.has(pointerId)) {
+      activePointersRef.current.set(pointerId, new Set());
+    }
+
+    const keysForPointer = activePointersRef.current.get(pointerId)!;
+    if (!keysForPointer.has(midi)) {
+      keysForPointer.add(midi);
+      on.onPress(midi);
+    }
+
+    event.currentTarget.setPointerCapture(pointerId);
   }
 
   function handlePointerMove(event: React.PointerEvent<HTMLDivElement>): void {
-    if (held.size === 0) return;
+    const pointerId = event.pointerId;
+    const keysForPointer = activePointersRef.current.get(pointerId);
+    if (!keysForPointer || keysForPointer.size === 0) return;
+
     const element = document.elementFromPoint(event.clientX, event.clientY);
-    if (!element?.classList.contains("key")) {
-      if (draggedKeyRef.current !== null) {
-        on.onRelease(draggedKeyRef.current);
-        draggedKeyRef.current = null;
-      }
-      return;
-    }
+    if (!element?.classList.contains("key")) return;
 
-    const pianoMidiAttr = element.getAttribute("data-midi");
-    if (!pianoMidiAttr) return;
-
-    const midi = parseInt(pianoMidiAttr, 10);
-    if (draggedKeyRef.current !== midi) {
-      if (draggedKeyRef.current !== null) {
-        on.onRelease(draggedKeyRef.current);
-      }
-      draggedKeyRef.current = midi;
+    const midi = parseInt(element.getAttribute("data-midi") || "0", 10);
+    if (!keysForPointer.has(midi) && !held.has(midi)) {
+      keysForPointer.add(midi);
       on.onPress(midi);
     }
   }
 
-  function handlePointerLeave(): void {
-    if (draggedKeyRef.current !== null) {
-      on.onRelease(draggedKeyRef.current);
-      draggedKeyRef.current = null;
+  function handlePointerUp(event: React.PointerEvent<HTMLDivElement>): void {
+    const pointerId = event.pointerId;
+    const keysForPointer = activePointersRef.current.get(pointerId);
+    if (!keysForPointer) return;
+
+    keysForPointer.forEach((midi) => {
+      on.onRelease(midi);
+    });
+
+    activePointersRef.current.delete(pointerId);
+  }
+
+  function handlePointerLeave(event: React.PointerEvent<HTMLDivElement>): void {
+    const pointerId = event.pointerId;
+    const keysForPointer = activePointersRef.current.get(pointerId);
+    if (keysForPointer) {
+      keysForPointer.forEach((midi) => {
+        on.onRelease(midi);
+      });
+      activePointersRef.current.delete(pointerId);
     }
   }
 
@@ -80,14 +101,17 @@ export function PianoKeys({ keys, held, scale, ...on }: PianoKeysProps) {
       id="piano"
       role="group"
       aria-label="Keyboard"
+      onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUp}
       onPointerLeave={handlePointerLeave}
+      onPointerCancel={handlePointerUp}
     >
       <div className="whites">
         {placed
           .filter(({ key }) => !key.black)
           .map(({ key }) => (
-            <Key key={key.midi} pianoKey={key} held={held} scale={scale} grab={grab} {...on} />
+            <Key key={key.midi} pianoKey={key} held={held} scale={scale} />
           ))}
       </div>
       {placed
@@ -98,9 +122,7 @@ export function PianoKeys({ keys, held, scale, ...on }: PianoKeysProps) {
             pianoKey={key}
             held={held}
             scale={scale}
-            grab={grab}
             style={{ left: `${left}%`, width: `${share * 0.62}%` }}
-            {...on}
           />
         ))}
     </div>
@@ -112,11 +134,9 @@ interface KeyProps {
   held: ReadonlySet<number>;
   scale?: ReadonlySet<number>;
   style?: React.CSSProperties;
-  grab(event: React.PointerEvent<HTMLDivElement>, midi: number): void;
-  onRelease(midi: number): void;
 }
 
-function Key({ pianoKey, held, scale, style, grab, onRelease }: KeyProps) {
+function Key({ pianoKey, held, scale, style }: KeyProps) {
   const down = held.has(pianoKey.midi);
   // Out of key is what gets marked, not in: most notes played are in the scale,
   // so shading those would shade the whole keyboard and say nothing.
@@ -138,9 +158,6 @@ function Key({ pianoKey, held, scale, style, grab, onRelease }: KeyProps) {
       aria-label={pianoKey.pitch}
       aria-pressed={down}
       data-midi={pianoKey.midi}
-      onPointerDown={(event) => grab(event, pianoKey.midi)}
-      onPointerUp={() => onRelease(pianoKey.midi)}
-      onPointerCancel={() => onRelease(pianoKey.midi)}
     >
       <span className="cap">{pianoKey.labels[0]}</span>
       <span className="pitch">{pianoKey.pitch}</span>
