@@ -67,31 +67,23 @@ export function Keys() {
 
   return (
     <main>
-      <div className="row" id="voicePick">
-        <label htmlFor="voice">voice</label>
-        <select
-          id="voice"
-          value={voiceId ?? ""}
-          onChange={(event) => setVoiceId(event.target.value)}
-        >
-          {PLAYABLE.map((entry) => (
-            <option key={entry.id} value={entry.id}>
-              {entry.id}
-              {entry.preset.default ? " (default)" : ""}
-            </option>
-          ))}
-        </select>
-      </div>
+      <div className="row" id="topControls">
+        <div id="voicePick">
+          <label htmlFor="voice">voice</label>
+          <select
+            id="voice"
+            value={voiceId ?? ""}
+            onChange={(event) => setVoiceId(event.target.value)}
+          >
+            {PLAYABLE.map((entry) => (
+              <option key={entry.id} value={entry.id}>
+                {entry.id}
+                {entry.preset.default ? " (default)" : ""}
+              </option>
+            ))}
+          </select>
+        </div>
 
-      <PianoKeys
-        keys={keys}
-        held={synth.heldMidis}
-        scale={scale}
-        onPress={synth.press}
-        onRelease={synth.release}
-      />
-
-      <div id="controls">
         <div className="group" role="group" aria-label="Octave">
           <span className="what">octave</span>
           <button type="button" onClick={() => synth.setOctave(shiftOctave(synth.octave, -1))}>
@@ -103,6 +95,14 @@ export function Keys() {
           </button>
         </div>
       </div>
+
+      <PianoKeys
+        keys={keys}
+        held={synth.heldMidis}
+        scale={scale}
+        onPress={synth.press}
+        onRelease={synth.release}
+      />
     </main>
   );
 }

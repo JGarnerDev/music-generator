@@ -53,9 +53,8 @@ main {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   grid-template-rows:
-    auto /* voice select */
-    1fr /* piano */
-    auto; /* controls */
+    auto /* top controls */
+    1fr; /* piano */
   gap: 0.7rem;
 }
 main > * { min-width: 0; }
@@ -78,9 +77,24 @@ button.on { border-color: var(--accent); color: var(--accent); }
 /* Held, not toggled: the accent is on while the pitch is actually travelling. */
 button.bending { background: var(--accent); color: #1a1526; border-color: var(--accent); }
 
-#voicePick { align-items: center; }
+#topControls {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+#voicePick {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 0 1 auto;
+}
 #voicePick label { opacity: 0.6; font-size: 0.85rem; }
-#voicePick select { flex: 1; }
+#voicePick select { min-width: 10rem; }
+#topControls .group { display: flex; align-items: center; gap: 0.35rem; }
+#topControls .what { font-size: 0.78rem; opacity: 0.55; }
+#topControls .value { min-width: 1.2rem; text-align: center; font-weight: 700; }
+#topControls .group button { min-width: 2.1rem; text-align: center; }
 
 /* ── The keyboard ─────────────────────────────────────────────────── */
 /*

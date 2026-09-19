@@ -13,6 +13,7 @@
  * Laying them out as a plain chromatic row would be simpler and would stop
  * looking like a piano, which is the entire point of drawing one.
  */
+import { useRef } from "react";
 import type { PianoKey } from "@engine/keys";
 
 export interface PianoKeysProps {
@@ -28,6 +29,7 @@ export interface PianoKeysProps {
 export function PianoKeys({ keys, held, scale, ...on }: PianoKeysProps) {
   const whites = keys.filter((key) => !key.black);
   const share = 100 / Math.max(1, whites.length);
+  const draggedKeyRef = useRef<number | null>(null);
 
   let whitesBefore = 0;
   const placed = keys.map((key) => {
@@ -38,25 +40,49 @@ export function PianoKeys({ keys, held, scale, ...on }: PianoKeysProps) {
 
   function grab(event: React.PointerEvent<HTMLDivElement>, midi: number): void {
     event.currentTarget.setPointerCapture(event.pointerId);
+    draggedKeyRef.current = midi;
     on.onPress(midi);
   }
 
   function handlePointerMove(event: React.PointerEvent<HTMLDivElement>): void {
     if (held.size === 0) return;
     const element = document.elementFromPoint(event.clientX, event.clientY);
-    if (!element?.classList.contains("key")) return;
+    if (!element?.classList.contains("key")) {
+      if (draggedKeyRef.current !== null) {
+        on.onRelease(draggedKeyRef.current);
+        draggedKeyRef.current = null;
+      }
+      return;
+    }
 
     const pianoMidiAttr = element.getAttribute("data-midi");
     if (!pianoMidiAttr) return;
 
     const midi = parseInt(pianoMidiAttr, 10);
-    if (!held.has(midi)) {
+    if (draggedKeyRef.current !== midi) {
+      if (draggedKeyRef.current !== null) {
+        on.onRelease(draggedKeyRef.current);
+      }
+      draggedKeyRef.current = midi;
       on.onPress(midi);
     }
   }
 
+  function handlePointerLeave(): void {
+    if (draggedKeyRef.current !== null) {
+      on.onRelease(draggedKeyRef.current);
+      draggedKeyRef.current = null;
+    }
+  }
+
   return (
-    <div id="piano" role="group" aria-label="Keyboard" onPointerMove={handlePointerMove}>
+    <div
+      id="piano"
+      role="group"
+      aria-label="Keyboard"
+      onPointerMove={handlePointerMove}
+      onPointerLeave={handlePointerLeave}
+    >
       <div className="whites">
         {placed
           .filter(({ key }) => !key.black)
