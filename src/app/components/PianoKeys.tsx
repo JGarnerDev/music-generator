@@ -67,7 +67,20 @@ export function PianoKeys({ keys, held, scale, ...on }: PianoKeysProps) {
     if (!element?.classList.contains("key")) return;
 
     const midi = parseInt(element.getAttribute("data-midi") || "0", 10);
-    if (!keysForPointer.has(midi) && !held.has(midi)) {
+
+    // For single pointer: release old key, press new (slide behavior)
+    // For multi-pointer: keep all keys (chord behavior)
+    const isSinglePointer = activePointersRef.current.size === 1;
+
+    if (!keysForPointer.has(midi)) {
+      if (isSinglePointer) {
+        // Single pointer: release all previous keys for this pointer
+        keysForPointer.forEach((oldMidi) => {
+          on.onRelease(oldMidi);
+        });
+        keysForPointer.clear();
+      }
+
       keysForPointer.add(midi);
       on.onPress(midi);
     }
