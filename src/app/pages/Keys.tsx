@@ -67,16 +67,20 @@ export function Keys() {
 
   return (
     <main>
-      <div id="voicePick">
-        {PLAYABLE.map((entry) => (
-          <button
-            key={entry.id}
-            className={voiceId === entry.id ? "voice-btn active" : "voice-btn"}
-            onClick={() => setVoiceId(entry.id)}
-          >
-            {entry.id}
-          </button>
-        ))}
+      <div className="row" id="voicePick">
+        <label htmlFor="voice">voice</label>
+        <select
+          id="voice"
+          value={voiceId ?? ""}
+          onChange={(event) => setVoiceId(event.target.value)}
+        >
+          {PLAYABLE.map((entry) => (
+            <option key={entry.id} value={entry.id}>
+              {entry.id}
+              {entry.preset.default ? " (default)" : ""}
+            </option>
+          ))}
+        </select>
       </div>
 
       <PianoKeys

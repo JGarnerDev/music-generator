@@ -78,28 +78,9 @@ button.on { border-color: var(--accent); color: var(--accent); }
 /* Held, not toggled: the accent is on while the pitch is actually travelling. */
 button.bending { background: var(--accent); color: #1a1526; border-color: var(--accent); }
 
-#voicePick {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  padding: 0.5rem 0;
-}
-#voicePick .voice-btn {
-  flex: 0 1 auto;
-  padding: 0.4rem 0.8rem;
-  font-size: 0.75rem;
-  border: 1px solid var(--line);
-  border-radius: 4px;
-  background: var(--panel);
-  color: var(--ink);
-  cursor: pointer;
-}
-#voicePick .voice-btn:hover { background: var(--panel-hi); }
-#voicePick .voice-btn.active {
-  border-color: var(--accent);
-  background: var(--accent);
-  color: #1a1526;
-}
+#voicePick { align-items: center; }
+#voicePick label { opacity: 0.6; font-size: 0.85rem; }
+#voicePick select { flex: 1; }
 
 /* ── The keyboard ─────────────────────────────────────────────────── */
 /*

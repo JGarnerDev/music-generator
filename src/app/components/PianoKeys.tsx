@@ -36,18 +36,27 @@ export function PianoKeys({ keys, held, scale, ...on }: PianoKeysProps) {
     return { key, left };
   });
 
-  /**
-   * Pointer capture, so a drag off the key still releases it. Without it,
-   * pressing a key and sliding away leaves a note sounding with no element left
-   * that will ever see the pointerup.
-   */
   function grab(event: React.PointerEvent<HTMLDivElement>, midi: number): void {
     event.currentTarget.setPointerCapture(event.pointerId);
     on.onPress(midi);
   }
 
+  function handlePointerMove(event: React.PointerEvent<HTMLDivElement>): void {
+    if (held.size === 0) return;
+    const element = document.elementFromPoint(event.clientX, event.clientY);
+    if (!element?.classList.contains("key")) return;
+
+    const pianoMidiAttr = element.getAttribute("data-midi");
+    if (!pianoMidiAttr) return;
+
+    const midi = parseInt(pianoMidiAttr, 10);
+    if (!held.has(midi)) {
+      on.onPress(midi);
+    }
+  }
+
   return (
-    <div id="piano" role="group" aria-label="Keyboard">
+    <div id="piano" role="group" aria-label="Keyboard" onPointerMove={handlePointerMove}>
       <div className="whites">
         {placed
           .filter(({ key }) => !key.black)
@@ -102,6 +111,7 @@ function Key({ pianoKey, held, scale, style, grab, onRelease }: KeyProps) {
       title={pianoKey.pitch}
       aria-label={pianoKey.pitch}
       aria-pressed={down}
+      data-midi={pianoKey.midi}
       onPointerDown={(event) => grab(event, pianoKey.midi)}
       onPointerUp={() => onRelease(pianoKey.midi)}
       onPointerCancel={() => onRelease(pianoKey.midi)}
