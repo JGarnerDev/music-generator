@@ -1,0 +1,75 @@
+{
+  "instrument": "pluck",
+  "slug": "sludge-stack",
+  "title": "Sludge stack",
+  "status": "approved",
+  "tags": [
+    "guitar",
+    "rhythm",
+    "riff",
+    "sludge",
+    "stoner",
+    "metal",
+    "boss",
+    "cranked",
+    "heavy"
+  ],
+  "notes": "Cranked-amp rhythm guitar for a riff that leads the mix rather than sitting under a lead. Forked from brown-rhythm and moved toward chainsaw-chug on drive, but deliberately not onto it: the oscillator stays a saw, because this is an overdriven amp rather than a fuzz pedal, and a saw driven hard keeps a pick edge where a square smears into wool. Four moves from the parent. Input 1.7 -> 4.6 and preamp 0.5 -> 0.86, so the chug is saturated rather than crunchy. Tighten 170 -> 120: the low strings are let partly into the drive, enough to thicken the low mids, not enough to go woolly — between the brown rig's clean lows and the chainsaw's 160-on-a-square. Mids left in (+6.5) with the honk at 1.8 kHz rather than the 2.7 kHz rasp the chainsaw voices bump, which is the difference between a thick vintage stack and a buzzsaw. Cab rolled down to 3.9 kHz so the gain arrives as weight, not fizz. Width 0.78, because this tone is heard double-tracked; the lead pair sits inside it. Sum low (0.34) since all that gain arrives as level.",
+  "synth": {
+    "kind": "mono",
+    "oscillator": {
+      "type": "fatsawtooth",
+      "count": 3,
+      "spread": 14
+    },
+    "envelope": {
+      "attack": 0.002,
+      "decay": 0.34,
+      "sustain": 0.6,
+      "release": 0.3
+    },
+    "filter": {
+      "type": "lowpass",
+      "rolloff": -12,
+      "Q": 1.4
+    },
+    "filterEnvelope": {
+      "attack": 0.002,
+      "decay": 0.18,
+      "sustain": 0.38,
+      "release": 0.4,
+      "baseFrequency": 520,
+      "octaves": 3.2,
+      "exponent": 2
+    },
+    "maxPolyphony": 16
+  },
+  "amp": {
+    "input": 4.6,
+    "tighten": 120,
+    "sag": {
+      "threshold": -16,
+      "ratio": 3
+    },
+    "preamp": 0.86,
+    "toneStack": {
+      "low": 2,
+      "mid": 6.5,
+      "high": -4
+    },
+    "cab": 3900,
+    "presence": {
+      "frequency": 1800,
+      "gain": 4.5
+    },
+    "width": 0.78,
+    "slap": {
+      "delayTime": 0.06,
+      "wet": 0.06
+    },
+    "sum": 0.34
+  },
+  "forkedFrom": "pluck/brown-rhythm",
+  "approvedAt": "2026-11-12",
+  "summary": "Cranked-amp rhythm, mids in, lows half into the drive. A riff that leads the mix — boss fights, sludge. Saw edge, not chainsaw wool."
+}

@@ -1,5 +1,6 @@
 {
   "name": "redwater-golden-lioness-scene",
+  "campaign": "redwater",
   "bpm": 116,
   "key": "D mixolydian",
   "palettes": ["hopeful"],

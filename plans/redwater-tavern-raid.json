@@ -1,5 +1,6 @@
 {
   "name": "redwater-tavern-raid",
+  "campaign": "redwater",
   "bpm": 148,
   "key": "E dorian",
   "palettes": ["tense", "hopeful"],

@@ -2,7 +2,7 @@
 title: Approved voices
 purpose: Index of the instrument sounds we kept — read this before choosing voices for a new piece.
 audience: [claude, human]
-updated: 2026-08-24
+updated: 2026-11-12
 generated_by: npm run voice:approve
 ---
 
@@ -62,6 +62,7 @@ The low end. Owns everything under the guitars; defines the groove with the kick
 | [`bass/machine-fuzz`](./bass/machine-fuzz.json) | bass fuzz garage dance-punk riff | Bass through a guitar rig, doing the whole guitar section's job. Garage and dance-punk, where the riff is the bass. |
 | [`bass/moog-sub`](./bass/moog-sub.json) | bass sub synth house techno trap electronic round | Machine sub, resonant ladder filter and no body at all. The house/techno/trap low end, and the only bass safe at fast tempos. |
 | [`bass/saw-round`](./bass/saw-round.json) **default** | round neutral lo-fi | Plain sawtooth, soft attack, sits under everything without arguing. The neutral default — reach past it when the genre wants character. |
+| [`bass/sludge-bass`](./bass/sludge-bass.json) | bass distorted sludge stoner metal boss riff grind heavy | Amp-driven bass that doubles the riff under sludge-stack. Heavy sustain, grind at 900 Hz under the guitars. |
 | [`bass/tuba-oompah`](./bass/tuba-oompah.json) | tuba brass bass breath folk klezmer marching acoustic | Brass bass played by a lung: the note arrives late and stops dead. Oompah, klezmer, marching and village-band low end. |
 | [`bass/upright-pizz`](./bass/upright-pizz.json) | bass upright double-bass pizzicato gut spaghetti-western acoustic | Plucked double bass, gut and air, no amp. The low end for acoustic and western cues where an electric bass is the wrong century. |
 
@@ -77,6 +78,7 @@ Rhythm guitar: tight, fast-decaying, wide, low in the mix.
 | [`pluck/mandolin-tremolo`](./pluck/mandolin-tremolo.json) | mandolin tremolo folk bluegrass celtic italian acoustic shimmer | Mandolin on a fast tremolo, a plucked voice that can hold a note. Folk, bluegrass and Celtic, where string-tremolo is too big. |
 | [`pluck/nylon-arpeggio`](./pluck/nylon-arpeggio.json) | guitar nylon classical spanish spaghetti-western arpeggio fingerstyle | Nylon-string classical guitar, no amp. The fingerpicked arpeggio bed for a western or Spanish cue while the twang rests. |
 | [`pluck/sitar-jawari`](./pluck/sitar-jawari.json) | sitar plucked buzz drone raga indian | A plucked string whose brightness never collapses — jawari buzz, no amp. Drone and raga colour, unlike any guitar here. |
+| [`pluck/sludge-stack`](./pluck/sludge-stack.json) | guitar rhythm riff sludge stoner metal boss cranked heavy | Cranked-amp rhythm, mids in, lows half into the drive. A riff that leads the mix — boss fights, sludge. Saw edge, not chainsaw wool. |
 | [`pluck/steel-strum`](./pluck/steel-strum.json) | guitar steel-string acoustic dreadnought folk strum country flatpick | Steel-string dreadnought strummed: rings twice as long as the nylon, with the bridge hill it lacks. Folk, country, singer-songwriter. |
 | [`pluck/synth-arp`](./pluck/synth-arp.json) | synth arp sequenced house techno electronic sixteenths acid | Sequenced arp, amp deleted: 80 ms release keeps sixteenths separate, Q4 resonance sings over each step. House and techno. |
 
@@ -94,6 +96,7 @@ Top line guitar: compressed into sustain, mid-forward, centred, loud.
 | [`lead/harmonica-reed`](./lead/harmonica-reed.json) | harmonica harp reed spaghetti-western wail dust | Wailing cupped harmonica, rasp under 3 kHz. One held note over an empty station — the western that answers a man. |
 | [`lead/lone-whistle`](./lead/lone-whistle.json) | whistle human spaghetti-western lonely solo sine | A man whistling the tune — near-pure sine, no instrument at all. The loneliest top line in the palette. |
 | [`lead/lord-organ`](./lead/lord-organ.json) | organ hammond drawbar leslie hard-rock overdrive 70s | Tonewheel organ through a cranked Marshall — Jon Lord. Distorted, stereo Leslie, loud enough to solo; drawbar-organ is the clean bed. |
+| [`lead/sludge-lead`](./lead/sludge-lead.json) | guitar lead sludge stoner metal boss cranked harmony sustain | Lead half of sludge-stack: driven, chesty, singing sustain. Pan two apart for harmonised twin leads over a loud riff. |
 | [`lead/soprano-wordless`](./lead/soprano-wordless.json) | voice soprano wordless spaghetti-western ecstasy soaring | Soaring wordless soprano built on formants. The line that turns a western cue into ecstasy; nothing goes above it. |
 | [`lead/string-section`](./lead/string-section.json) | strings violins section bowed unison spaghetti-western tutti | Six violins taking the tune in unison — the tutti line when a cue stops being a whistle and becomes a film. Expensive. |
 | [`lead/violin-arco`](./lead/violin-arco.json) | violin strings bowed arco solo singing | Solo bowed violin, no amp, sustain from the bow rather than a compressor. The singing top line when a guitar would be wrong. |
@@ -137,6 +140,7 @@ bass/saw-round
       bass/upright-pizz
         bass/cello-arco
         bass/tuba-oompah
+    bass/sludge-bass
   bass/moog-sub
 pluck/brown-rhythm
   pluck/chainsaw-chug
@@ -145,11 +149,13 @@ pluck/brown-rhythm
     pluck/mandolin-tremolo
     pluck/steel-strum
   pluck/sitar-jawari
+  pluck/sludge-stack
   pluck/synth-arp
 lead/brown-lead
   lead/desert-twang
   lead/doom-fuzz
   lead/lord-organ
+  lead/sludge-lead
   lead/violin-arco
     lead/deguello-trumpet
     lead/harmonica-reed

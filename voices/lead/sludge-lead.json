@@ -1,0 +1,75 @@
+{
+  "instrument": "lead",
+  "slug": "sludge-lead",
+  "title": "Sludge lead",
+  "status": "approved",
+  "tags": [
+    "guitar",
+    "lead",
+    "sludge",
+    "stoner",
+    "metal",
+    "boss",
+    "cranked",
+    "harmony",
+    "sustain"
+  ],
+  "notes": "The lead half of the sludge-stack rig, for a harmonised pair over a riff that is already loud. Forked from brown-lead, keeping what makes a lead a lead — heavy compression so held notes sing, near-centre width, a higher high-pass than the rhythm so it climbs out of the chug — and pushing the drive: input 2.6 -> 4.2, preamp 0.62 -> 0.85. Mids up to +7 and lows less cut (-4 rather than -9), so a held note has chest instead of the brown lead's polish. Presence at 2.2 kHz rather than 3.1: above the stack's 1.8 kHz honk so the two don't sit in the same band, but below where it would read as a shred tone. Cab at 4.6 kHz. Width 0.3 so two of these panned apart read as two guitars in thirds. Slightly more slap (0.13 s) for size. Five fat saws at 18 cents is thickness, not chorus.",
+  "synth": {
+    "kind": "mono",
+    "oscillator": {
+      "type": "fatsawtooth",
+      "count": 5,
+      "spread": 18
+    },
+    "envelope": {
+      "attack": 0.003,
+      "decay": 0.6,
+      "sustain": 0.92,
+      "release": 0.8
+    },
+    "filter": {
+      "type": "lowpass",
+      "rolloff": -12,
+      "Q": 1.4
+    },
+    "filterEnvelope": {
+      "attack": 0.003,
+      "decay": 0.35,
+      "sustain": 0.8,
+      "release": 0.9,
+      "baseFrequency": 620,
+      "octaves": 3,
+      "exponent": 2
+    },
+    "maxPolyphony": 16
+  },
+  "amp": {
+    "input": 4.2,
+    "tighten": 190,
+    "sag": {
+      "threshold": -26,
+      "ratio": 6
+    },
+    "preamp": 0.85,
+    "toneStack": {
+      "low": -4,
+      "mid": 7,
+      "high": -3
+    },
+    "cab": 4600,
+    "presence": {
+      "frequency": 2200,
+      "gain": 5
+    },
+    "width": 0.3,
+    "slap": {
+      "delayTime": 0.13,
+      "wet": 0.16
+    },
+    "sum": 0.62
+  },
+  "forkedFrom": "lead/brown-lead",
+  "approvedAt": "2026-11-12",
+  "summary": "Lead half of sludge-stack: driven, chesty, singing sustain. Pan two apart for harmonised twin leads over a loud riff."
+}

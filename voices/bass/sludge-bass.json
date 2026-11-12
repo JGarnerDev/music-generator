@@ -1,0 +1,75 @@
+{
+  "instrument": "bass",
+  "slug": "sludge-bass",
+  "title": "Sludge bass",
+  "status": "approved",
+  "tags": [
+    "bass",
+    "distorted",
+    "sludge",
+    "stoner",
+    "metal",
+    "boss",
+    "riff",
+    "grind",
+    "heavy"
+  ],
+  "notes": "A distorted bass that doubles the riff under sludge-stack rather than doing the guitar section's job alone. Forked from machine-fuzz and moved two ways. Heavier: sag 3:1 -> 4:1, sustain 0.7 -> 0.82, release 0.35 -> 0.5, so a held root weighs something — the parent is short on purpose for dance-punk, and a sludge riff wants the opposite. And out of the guitars' way: the honk drops from 1.6 kHz to 900 Hz and the cab from 3.2 kHz to 2.6 kHz, so its grind sits under the stack's 1.8 kHz rather than on it, and low is +5. The oscillator goes from a fat square to two saws at 8 cents: amp grind with a pick attack rather than a fuzz box, matching the stack. Tighten stays at 40 Hz — the fundamental going into the drive is still what makes it a bass and a guitar at once. Narrow (0.12).",
+  "synth": {
+    "kind": "mono",
+    "oscillator": {
+      "type": "fatsawtooth",
+      "count": 2,
+      "spread": 8
+    },
+    "envelope": {
+      "attack": 0.004,
+      "decay": 0.4,
+      "sustain": 0.82,
+      "release": 0.5
+    },
+    "filter": {
+      "type": "lowpass",
+      "rolloff": -12,
+      "Q": 0.8
+    },
+    "filterEnvelope": {
+      "attack": 0.004,
+      "decay": 0.25,
+      "sustain": 0.6,
+      "release": 0.4,
+      "baseFrequency": 220,
+      "octaves": 3,
+      "exponent": 1.5
+    },
+    "maxPolyphony": 8
+  },
+  "amp": {
+    "input": 5.6,
+    "tighten": 40,
+    "sag": {
+      "threshold": -20,
+      "ratio": 4
+    },
+    "preamp": 0.84,
+    "toneStack": {
+      "low": 5,
+      "mid": 4,
+      "high": -4
+    },
+    "cab": 2600,
+    "presence": {
+      "frequency": 900,
+      "gain": 5
+    },
+    "width": 0.12,
+    "slap": {
+      "delayTime": 0.09,
+      "wet": 0.03
+    },
+    "sum": 0.55
+  },
+  "forkedFrom": "bass/machine-fuzz",
+  "approvedAt": "2026-11-12",
+  "summary": "Amp-driven bass that doubles the riff under sludge-stack. Heavy sustain, grind at 900 Hz under the guitars."
+}

@@ -1,0 +1,11 @@
+{
+  "name": "session-34",
+  "title": "Session 34",
+  "campaign": "redwater",
+  "cues": [
+    {
+      "entry": "loops/redwater-tithe",
+      "note": "Tithe boss fight — start on the scream, cut dead on the kill"
+    }
+  ]
+}

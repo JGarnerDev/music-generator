@@ -2,7 +2,7 @@
 title: Taste — the rules derived from judged studies
 purpose: What this listener actually likes, stated as rules to compose by. Read at step 3, with hooks.md. Self-contained — the studies behind it are deleted once distilled.
 audience: [claude, human]
-updated: 2026-08-19
+updated: 2026-11-12
 read_order: 12
 see_also: [studies.md, hooks.md, variety.md]
 status: living
@@ -111,6 +111,22 @@ sitting on top of someone else's arrangement.
 **From:** stated directly, from one accepted revision — asked for as "a little
 metal oomph, but a bigger orchestral drive", which is the distinction the rule
 encodes. **Unevidenced.**
+
+### A boss fight is led by the guitar, not the orchestra
+
+For a boss battle, the distorted guitar is the front of the mix and the riff is
+the hook: `pluck` and `lead` on heavy voices at roughly `0.75`–`0.9`, a
+distorted bass locked to the same figure, and anything orchestral demoted to
+colour at `0.2`–`0.35`. The tone wanted is a cranked amp with the mids left in —
+thick and gritty, not scooped and not a thin fuzz — double-tracked, with busy
+tom-heavy drums under it: stoner and sludge metal, not an orchestral cue with a
+band behind it. This inverts the rule above for one kind of scene: that rule is for
+a piece asked to get weightier while staying orchestral; a boss fight starts
+from the band.
+
+**From:** stated directly, after an orchestral boss loop with the guitar tucked
+under the cello. **Unevidenced** — no set has put guitar-led against
+orchestra-led on the same fight.
 
 ### Pay a minor piece off in major for one bar, then take it back
 

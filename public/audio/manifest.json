@@ -81,6 +81,22 @@
       "renderedAt": "2026-08-17T04:51:14.266Z"
     },
     {
+      "name": "redwater-tithe",
+      "file": "redwater-tithe.mp3",
+      "seconds": 108.29427083333333,
+      "bytes": 2166720,
+      "isLoop": false,
+      "renderedAt": "2026-11-12T21:54:42.675Z"
+    },
+    {
+      "name": "redwater-tithe.loop",
+      "file": "redwater-tithe.loop.mp3",
+      "seconds": 98.5714375,
+      "bytes": 1972320,
+      "isLoop": true,
+      "renderedAt": "2026-11-12T21:53:37.562Z"
+    },
+    {
       "name": "redwater-unhoming",
       "file": "redwater-unhoming.mp3",
       "seconds": 14,
