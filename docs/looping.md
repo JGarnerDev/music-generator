@@ -2,7 +2,7 @@
 title: Looping music for games
 purpose: How to write and export a track that repeats for minutes without fatiguing or clicking at the seam.
 audience: [claude, human]
-updated: 2026-08-15
+updated: 2026-11-12
 read_order: 3
 see_also: [../readme.md, ../claude.md, palette-authoring.md]
 ---
@@ -78,7 +78,7 @@ Long loops are thousands of mostly-mechanical notes, so they're generated from a
 **plan** rather than hand-authored:
 
 ```bash
-npm run song:build -- --plan plans/high-noon-warpath.json
+npm run song:build -- --plan plans/high-noon-warpath.json   # read its Clashes: line
 npm run composition:validate -- --file compositions/high-noon-warpath.json
 npm run render -- --file compositions/high-noon-warpath.json
 npm run dev   # Play with Loop checked
@@ -155,6 +155,14 @@ transpose leaves the key on every second note and arrives as a chorus pedal.
 Notes outside the scale snap to the nearest degree first, so the harmony part
 stays diatonic while the lead goes chromatic — what a second guitarist does.
 [`src/engine/harmony.ts`](../src/engine/harmony.ts).
+
+The builder also hands the twin each section's **chords**, and the line follows
+them: over a major V or a borrowed IV it takes the chord's raised degree, and
+where the diatonic third would sit a semitone off the chord's root or fifth it
+moves to the nearest chord tone — usually a fourth or fifth — instead. Kept in
+the key alone, a twin in F minor plays D♭ against a C major chord, and the pair
+reads as out of tune. Why, and what is still yours to check:
+[clashes](./clashes.md).
 
 Three per-section fields make the twin an *arrangement* rather than an effect
 left switched on:

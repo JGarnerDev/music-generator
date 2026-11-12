@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { harmonize, resolveSteps, scaleLadderMidi } from "./harmony";
+import { chordScale, harmonize, resolveSteps, scaleLadderMidi, type ChordSpan } from "./harmony";
 import type { Note } from "./composition";
 
 const n = (pitch: string, velocity = 0.8): Note => ({
@@ -93,5 +93,84 @@ describe("harmonize", () => {
 
   it("leaves an empty line empty", () => {
     expect(harmonize([], { tonic: "E" })).toEqual([]);
+  });
+});
+
+describe("chordScale", () => {
+  it("swaps in the V chord's leading tone in a minor key", () => {
+    expect(chordScale("F", "minor", "C")).toEqual(["F", "G", "Ab", "Bb", "C", "Db", "E"]);
+  });
+  it("swaps in a borrowed IV's raised sixth", () => {
+    expect(chordScale("F", "minor", "Bb")).toEqual(["F", "G", "Ab", "Bb", "C", "D", "Eb"]);
+  });
+  it("leaves a diatonic chord's scale alone", () => {
+    expect(chordScale("F", "minor", "Db")).toEqual(["F", "G", "Ab", "Bb", "C", "Db", "Eb"]);
+  });
+});
+
+describe("harmonize with chords", () => {
+  // F minor, a third below — the twin-lead setup the clashes were found in.
+  const opts = (symbol: string) => ({
+    tonic: "F",
+    scale: "minor",
+    interval: "third" as const,
+    below: true,
+    chords: [{ start: 0, end: 4, symbol }] satisfies ChordSpan[],
+  });
+  const under = (pitch: string, symbol: string) =>
+    harmonize([{ time: "0:0:0", pitch, duration: "4n", velocity: 0.8 }], opts(symbol))[0]!.pitch;
+
+  it("keeps a third that doesn't rub", () => {
+    expect(under("C5", "Fm")).toBe("G#4"); // Ab under C, both chord tones
+    expect(under("Ab4", "Fm")).toBe("F4");
+  });
+
+  it("puts the chord's leading tone's partner under it, not a flat nine", () => {
+    // Key-only: E snaps up to F, partner Db — a semitone above the chord's C.
+    expect(under("E5", "C")).toBe("C5");
+  });
+
+  it("thirds a raised sixth inside the borrowed chord instead of a second", () => {
+    // Key-only: D snaps up to Eb, partner C — a whole step under the lead.
+    expect(under("D5", "Bb")).toBe("A#4");
+    expect(under("F5", "Bb")).toBe("D5");
+  });
+
+  it("moves off a third that rubs a semitone against the root or fifth", () => {
+    expect(under("F4", "Fm")).toBe("C4"); // not Db, a semitone over the fifth
+    expect(under("C5", "C")).toBe("G4"); // not Ab, a semitone over the fifth
+    expect(under("Bb4", "Db")).toBe("F4"); // not G, a semitone under the fifth
+    expect(under("Eb5", "Db")).toBe("G#4"); // not C, a semitone under the root
+  });
+
+  it("leaves an octave doubling alone", () => {
+    const out = harmonize([{ time: "0:0:0", pitch: "F4", duration: "4n" }], {
+      ...opts("C"),
+      interval: "octave",
+    });
+    expect(out[0]!.pitch).toBe("F3");
+  });
+
+  it("falls back to the key where no chord covers the note", () => {
+    const out = harmonize([{ time: "2:0:0", pitch: "F4", duration: "4n" }], opts("Fm"));
+    expect(out[0]!.pitch).toBe("C#4");
+  });
+
+  it("finds the chord by onset across bars", () => {
+    const out = harmonize(
+      [
+        { time: "0:0:0", pitch: "C5", duration: "4n" },
+        { time: "1:2:0", pitch: "C5", duration: "4n" },
+      ],
+      {
+        ...opts("Fm"),
+        chords: [
+          { start: 0, end: 4, symbol: "Fm" },
+          { start: 4, end: 6, symbol: "Db" },
+          { start: 6, end: 8, symbol: "C" },
+        ],
+      },
+    );
+    expect(out.map((n) => n.pitch)).toEqual(["G#4", "G4"]);
   });
 });

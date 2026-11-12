@@ -333,6 +333,14 @@ export interface VoicePreset {
   section?: SectionSpec;
   /** Guitar rig. `pluck` and `lead` only. */
   amp?: AmpSpec;
+  /**
+   * A new onset stops the notes before it, the way a fretting hand does — see
+   * `./choke`. Default: on for any voice with an `amp` (a release ringing into
+   * the next note inside a drive is the sour grind the rig was making), off for
+   * everything else. `false` lets an amped voice ring, for a part that really is
+   * let-ring arpeggios; `true` asks for it on a clean voice.
+   */
+  choke?: boolean;
   /** Percussion. `drums` only. */
   kit?: KitSpec;
 }
@@ -688,4 +696,14 @@ function isStringArray(value: unknown): value is string[] {
 
 function isFinitePositive(value: unknown, allowZero = false): value is number {
   return typeof value === "number" && Number.isFinite(value) && (allowZero ? value >= 0 : value > 0);
+}
+
+/**
+ * Whether a preset's notes choke each other (`./choke`). Amped voices do unless
+ * they say otherwise, because distortion is what turns an overlap into a grind.
+ * A section never does: a desk of players is many hands, not one.
+ */
+export function chokes(preset: Pick<VoicePreset, "choke" | "amp" | "section">): boolean {
+  if (preset.section) return false;
+  return preset.choke ?? preset.amp !== undefined;
 }

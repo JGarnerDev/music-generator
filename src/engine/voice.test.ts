@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isAmped, SUMMARY_MAX, validateVoice, type VoicePreset } from "./voice";
+import { chokes, isAmped, SUMMARY_MAX, validateVoice, type VoicePreset } from "./voice";
 
 const synthVoice = (over: Partial<VoicePreset> = {}): unknown => ({
   instrument: "bass",
@@ -269,5 +269,22 @@ describe("isAmped", () => {
     expect(isAmped("bass")).toBe(true);
     expect(isAmped("piano")).toBe(false);
     expect(isAmped("drums")).toBe(false);
+  });
+});
+
+describe("chokes", () => {
+  const amp = {} as NonNullable<VoicePreset["amp"]>;
+  it("is on for an amped voice by default", () => {
+    expect(chokes({ amp })).toBe(true);
+  });
+  it("is off for a clean voice by default", () => {
+    expect(chokes({})).toBe(false);
+  });
+  it("follows the preset when it says", () => {
+    expect(chokes({ amp, choke: false })).toBe(false);
+    expect(chokes({ choke: true })).toBe(true);
+  });
+  it("is never on for a section", () => {
+    expect(chokes({ choke: true, section: {} as NonNullable<VoicePreset["section"]> })).toBe(false);
   });
 });

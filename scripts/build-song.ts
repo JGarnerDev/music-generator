@@ -10,7 +10,7 @@
  *
  * Named flags only (repo convention: no positional arguments).
  */
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { resolve, basename, dirname } from "node:path";
 import { Command } from "commander";
 import { COMPOSITION_KINDS, isCompositionKind } from "../src/engine/library";
@@ -40,7 +40,8 @@ import {
 } from "../src/engine/harmony";
 import { grooveNotes, validateGroove, type Groove } from "../src/engine/groove";
 import { pitchToMidi } from "../src/engine/theory";
-import { COMMON_TIME, validateMeter, type Meter } from "../src/utils/timing";
+import { COMMON_TIME, beatsPerBar, validateMeter, type Meter } from "../src/utils/timing";
+import { chordSpans, findClashes, formatClash, type LabelledSpan } from "../src/engine/clash";
 import { HOUSE_LEANS, humanize } from "../src/engine/humanize";
 import {
   STYLES,
@@ -168,6 +169,12 @@ interface Plan {
   name: string;
   bpm: number;
   key: string;
+  /**
+   * Campaign slug, copied onto the built piece (see `Composition.campaign`). It
+   * lives in the plan because anything patched into the generated file is
+   * erased by the next build.
+   */
+  campaign?: string;
   /**
    * Time signature, `[3, 4]` for a waltz, `[6, 8]` for a jig. Default 4/4.
    *
@@ -319,6 +326,64 @@ console.log(
 );
 
 reportDefaults(plan, meterOf(plan));
+reportClashes(plan, composition, meterOf(plan));
+
+/**
+ * Whether the voice a track would get runs through the guitar amp — read off
+ * the voice file, since the plan only names a slug. No slug means the
+ * instrument's default, as at render time.
+ */
+function voiceIsAmped(instrument: string, slug: string | undefined): boolean {
+  const dir = resolve(process.cwd(), "voices", instrument);
+  if (!existsSync(dir)) return false;
+  const presets = readdirSync(dir)
+    .filter((f) => f.endsWith(".json"))
+    .map((f) => JSON.parse(readFileSync(resolve(dir, f), "utf8")) as { slug?: string; default?: boolean; amp?: unknown });
+  const preset = slug ? presets.find((p) => p.slug === slug) : presets.find((p) => p.default);
+  return preset?.amp !== undefined;
+}
+
+/**
+ * Print the held notes that will sound sour — see `src/engine/clash.ts`.
+ *
+ * Like the defaults report, a nudge and never an error: a rub can be the point.
+ * But a clash nobody chose is the commonest reason a finished render sounds
+ * "slightly out of tune", and it is cheaper to read here than to hear after a
+ * ten-minute render.
+ */
+function reportClashes(plan: Plan, built: Composition, meter: Meter): void {
+  const spans: LabelledSpan[] = [];
+  let bar = 0;
+  for (const section of plan.sections) {
+    spans.push(...chordSpans(section.chords, bar, meter, section.id));
+    bar += section.chords.length;
+  }
+  const melodyOn = plan.melodyOn ?? "piano";
+  const lines = built.tracks
+    .filter((t) => t.instrument === melodyOn || t.instrument === "lead")
+    .map((t) => t.notes);
+  const clashes = findClashes(spans, lines, { meter });
+  if (clashes.length === 0) {
+    console.log("Clashes: none — no held tune note rubs the chord, and the lead lines never sit a second apart.");
+    return;
+  }
+  const shown = 16;
+  // A rub is a minor second against the root or fifth the rhythm section is
+  // *sounding*. Through a drive that is a grind; over a clean strum it is far
+  // more often a chosen colour — a major seventh, a sharp eleven — so the same
+  // list is worded as something to check rather than something to fix.
+  const driven = (["pluck", "bass"] as const).some((i) => voiceIsAmped(i, plan.voices?.[i]));
+  console.log(
+    driven
+      ? `
+Clashes: ${clashes.length} held note(s) will sound sour over the distorted rhythm section (docs/clashes.md):`
+      : `
+Clashes: ${clashes.length} held note(s) rub the chord. The rhythm section is clean, so many will be colour` +
+          ` (a maj7, a #11) — fix only the ones you didn't mean (docs/clashes.md):`,
+  );
+  for (const c of clashes.slice(0, shown)) console.log(`  ${formatClash(c, meter)}`);
+  if (clashes.length > shown) console.log(`  … ${clashes.length - shown} more`);
+}
 
 /**
  * Name the choices this plan didn't make.
@@ -513,6 +578,7 @@ function buildComposition(plan: Plan): Composition {
     name: plan.name,
     bpm: plan.bpm,
     key: plan.key,
+    ...(plan.campaign ? { campaign: plan.campaign } : {}),
     // Written only when it isn't the default, so a 4/4 piece doesn't read as
     // though someone chose 4/4.
     ...(plan.meter ? { meter } : {}),
@@ -659,9 +725,14 @@ function sectionHarmony(
 
   const [tonic, scale] = harmonyKeyOf(plan);
   try {
+    // The section's chords go in so the twin follows the harmony, not just the
+    // key — see `src/engine/harmony.ts` for the semitone rubs that prevents.
+    const meter = meterOf(plan);
     return harmonize(melody, {
       tonic,
       scale,
+      chords: chordSpans(section.chords, startBar, meter),
+      beatsPerBar: beatsPerBar(meter),
       interval: harmonyIntervalOf(section.harmonyInterval ?? twin.interval ?? "third"),
       below: section.harmonyBelow ?? twin.below,
       velocity: twin.velocity ?? 0.9,

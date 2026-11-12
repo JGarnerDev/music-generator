@@ -102,6 +102,15 @@ on a lead line or a sitar phrase rather than adding chromatic grace notes, which
 read as a trill. One bent note at a time per track — unbent notes on that track
 are unaffected — and section voices decline it. [`docs/bends.md`](./docs/bends.md).
 
+**A sour note is a clash, not a tuning problem.** Distorted guitars and twin
+leads make three mistakes look like bad intonation: overlap inside one drive
+(the renderer now chokes amped voices), a twin kept in the key while the chord
+moved (`harmonize` now follows the chords), and a held tune note a semitone off
+the chord's root or fifth — that one is yours. `song:build` prints every one as
+`Clashes:`; get it to `none`, usually by changing the **chord** rather than the
+tune, before rendering. For a hand-written segment there is no report, so check
+the rules yourself. [`docs/clashes.md`](./docs/clashes.md).
+
 **A sitar is not a guitar with a different tone.** If a part is for
 `pluck/sitar-jawari`, read [`docs/sitar.md`](./docs/sitar.md) before writing
 notes. The tone is already right; what makes it *not* a sitar is a moving

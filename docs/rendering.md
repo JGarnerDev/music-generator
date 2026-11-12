@@ -2,7 +2,7 @@
 title: Rendering audio
 purpose: How compositions become files the app plays, why rendering lives in a CLI and not the browser, and which designs were tried and rejected.
 audience: [claude, human]
-updated: 2026-08-14
+updated: 2026-11-12
 read_order: 4
 see_also: [../readme.md, ../claude.md, looping.md]
 ---
@@ -112,7 +112,7 @@ them.
    does not belong in the UI. Rendering is a codebase chore; the website should
    be ready on load.
 
-Two traps that bit along the way and are still live if you touch this code:
+Four traps that bit along the way and are still live if you touch this code:
 
 - **`Tone.Offline` yields on a `setTimeout` once per second of rendered audio**
   (`OfflineContext.js`). A hidden tab throttles timers to 1/second, and to
@@ -124,6 +124,17 @@ Two traps that bit along the way and are still live if you touch this code:
   can be empty when the render starts and it differs run to run. Replaced with
   `Tone.Convolver` fed a seeded IR from [`src/utils/impulse.ts`](../src/utils/impulse.ts),
   which also makes renders reproducible.
+- **`PolySynth` defers every release** with a timeout until the release time,
+  then reads the envelope's release *at that moment* — so a per-note release set
+  when the note is triggered has been overwritten by every note since. Choke
+  (per-note tails, see [voices](./voices.md#choke--one-hand-per-guitar)) uses
+  its own voice pool, `ChokedSynth`, which schedules attack and release in one
+  call so the value is baked in.
+- **Anything built lazily during a render must be given the context it was
+  built in.** Schedule callbacks run after `Tone.Offline` has restored the
+  global context, so a node created there belongs to the live context and
+  cannot connect into the render (`InvalidAccessError`). The same goes for the
+  quality profile: read it at construction, not in a callback.
 
 ## Where the code is
 

@@ -14,10 +14,11 @@ import * as Tone from "tone";
 import type { Composition, LoFiSettings } from "@engine/composition";
 import { isDry, signalChain } from "@engine/signal";
 import { bendAutomation } from "@engine/bend";
+import { chokeNotes } from "@engine/choke";
 import { impulseResponse } from "@utils/impulse";
-import { notationToSeconds } from "@utils/timing";
+import { barsBeatsToSeconds, notationToSeconds } from "@utils/timing";
 import { buildEffects } from "./effects";
-import { createVoice } from "./instruments";
+import { ChokedSynth, createVoice } from "./instruments";
 
 /** Seconds of reverb tail. Must stay <= render.ts's TAIL_SECONDS. */
 const REVERB_DECAY = 4;
@@ -114,7 +115,7 @@ export function scheduleComposition(comp: Composition): void {
     // Whether any note bends decides whether this track builds a second voice
     // at all, so it has to be known before the instrument is made.
     const bends = track.notes.some((n) => n.bend !== undefined);
-    const voice = createVoice(track.instrument, track.voice, bends);
+    const voice = createVoice(track.instrument, track.voice, bends, true);
     const trackGain = new Tone.Gain(track.gain ?? 1);
 
     // The track's own signal chain, from the timbre that shaped it. This is
@@ -145,11 +146,26 @@ export function scheduleComposition(comp: Composition): void {
     // scheduling callback: it needs the note's length in seconds, which is a
     // tempo question the transport can answer now and shouldn't be re-asked
     // every time the note comes round.
-    const events = track.notes.map((n) => ({
+    // A choked voice (an amped guitar, by default) stops each note at the next
+    // onset instead of letting its release ring into it — see `@engine/choke`
+    // for why that overlap is the sour note. Worked out over the whole track at
+    // once, because a note's tail depends on the note after it.
+    const choked = voice.choke
+      ? chokeNotes(
+          track.notes.map((n) => ({
+            start: barsBeatsToSeconds(String(n.time), comp.bpm, comp.meter),
+            duration: notationToSeconds(n.duration, comp.bpm, comp.meter),
+          })),
+          voice.choke.release,
+        )
+      : undefined;
+
+    const events = track.notes.map((n, i) => ({
       time: n.time,
       pitch: n.pitch,
-      duration: n.duration,
+      duration: choked ? choked[i]!.duration : n.duration,
       velocity: n.velocity ?? 0.7,
+      release: choked?.[i]!.release,
       bend:
         n.bend && voice.bend
           ? bendAutomation(n.bend, notationToSeconds(n.duration, comp.bpm, comp.meter))
@@ -161,7 +177,9 @@ export function scheduleComposition(comp: Composition): void {
       // by its polyphonic synth. Both are summed into the same chain, so this
       // is a routing decision and not a tonal one.
       if (ev.bend && voice.bend) voice.bend.play(ev.pitch, ev.duration, time, ev.velocity, ev.bend);
-      else voice.play.triggerAttackRelease(ev.pitch, ev.duration, time, ev.velocity);
+      else if (voice.play instanceof ChokedSynth) {
+        voice.play.triggerAttackRelease(ev.pitch, ev.duration, time, ev.velocity, ev.release);
+      } else voice.play.triggerAttackRelease(ev.pitch, ev.duration, time, ev.velocity);
     }, events).start(0);
   }
 }

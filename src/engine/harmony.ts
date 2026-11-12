@@ -20,11 +20,22 @@
  * guitarist does, and it is the behaviour that keeps a bII riff from dragging a
  * harmonised line into a key nobody is in.
  *
+ * **Given the chords, the line also follows them** (`chords` below). A key alone
+ * is not enough: in a minor key the V chord is major and a borrowed IV raises
+ * the sixth, and a line kept strictly in the key puts the second guitar a
+ * semitone off the chord the rhythm guitar is hitting — Db against a C major
+ * chord, C under a lead's D over Bb major. With the chords it does what a second
+ * guitarist does by ear: takes the chord's version of the altered degree, and
+ * where the diatonic third would still rub a semitone against the chord's root
+ * or fifth, moves to the nearest chord tone instead — the fourth or fifth under
+ * a tonic, rather than the sour third.
+ *
  * Pure and deterministic → tested. `scripts/build-song.ts` calls this to derive
  * a section's second lead; a section that wants real counterpoint writes both
  * lines out instead and this stays out of the way.
  */
 import type { Note } from "./composition";
+import { Chord, Note as TonalNote } from "tonal";
 import { pitchToMidi, scaleNotes } from "./theory";
 
 /**
@@ -59,11 +70,28 @@ export interface HarmonyOptions {
   /** Put the harmony *under* the melody instead of over it. */
   below?: boolean;
   /**
+   * The harmony underneath, so the line can follow it rather than only the key.
+   * Spans are in beats from the same origin as the notes' times (`bar:beat:16th`
+   * read with `beatsPerBar`). A note with no span over its onset is harmonised
+   * from the key alone, exactly as before chords existed here.
+   */
+  chords?: ChordSpan[];
+  /** Beats in a bar, for reading note times against `chords`. Default 4. */
+  beatsPerBar?: number;
+  /**
    * Scales every velocity. The harmony part sits under the lead rather than
    * level with it — two identical volumes read as a detune, not two players.
    * Default 1.
    */
   velocity?: number;
+}
+
+/** One chord, held from `start` up to (not including) `end`, in beats. */
+export interface ChordSpan {
+  start: number;
+  end: number;
+  /** A chord symbol tonal can read: `Fm`, `C`, `Bb7`. */
+  symbol: string;
 }
 
 /** Lowest and highest MIDI note the ladder covers. Beyond a guitar either way. */
@@ -76,15 +104,99 @@ const LADDER_RANGE: [number, number] = [12, 119];
  * a harmony guitar that drifts against its lead is a flam, not a section.
  */
 export function harmonize(notes: readonly Note[], opts: HarmonyOptions): Note[] {
-  const ladder = scaleLadderMidi(opts.tonic, opts.scale ?? "minor");
+  const scale = opts.scale ?? "minor";
+  const keyLadder = scaleLadderMidi(opts.tonic, scale);
   const steps = resolveSteps(opts.interval ?? "third") * (opts.below ? -1 : 1);
   const scaleVelocity = opts.velocity ?? 1;
+  const beatsPerBar = opts.beatsPerBar ?? 4;
 
-  return notes.map((note) => ({
-    ...note,
-    pitch: midiToPitch(harmonyMidi(pitchToMidi(note.pitch), ladder, steps)),
-    velocity: clampVelocity((note.velocity ?? 0.7) * scaleVelocity),
-  }));
+  return notes.map((note) => {
+    const lead = pitchToMidi(note.pitch);
+    const span = opts.chords?.find((c) => {
+      const at = noteBeats(String(note.time), beatsPerBar);
+      return at >= c.start - 1e-6 && at < c.end - 1e-6;
+    });
+    const midi = span
+      ? chordAwareMidi(lead, opts.tonic, scale, span.symbol, steps)
+      : harmonyMidi(lead, keyLadder, steps);
+    return {
+      ...note,
+      pitch: midiToPitch(midi),
+      velocity: clampVelocity((note.velocity ?? 0.7) * scaleVelocity),
+    };
+  });
+}
+
+/**
+ * The key's scale with the chord's altered degrees swapped in, by letter: over
+ * C major in F minor the Eb becomes E (harmonic minor); over Bb major the Db
+ * becomes D. Same seven letters, so a "third" is still two of them.
+ */
+export function chordScale(tonic: string, scale: string, chordSymbol: string): string[] {
+  const names = scaleNotes(tonic, scale);
+  for (const tone of chordTones(chordSymbol)) {
+    if (names.some((n) => TonalNote.chroma(n) === TonalNote.chroma(tone))) continue;
+    const letter = TonalNote.get(tone).letter;
+    const at = names.findIndex((n) => TonalNote.get(n).letter === letter);
+    if (at >= 0) names[at] = tone;
+  }
+  return names;
+}
+
+/**
+ * The partner note with the chord in view: walk the chord's scale, then, if the
+ * result rubs a semitone against the chord's root or fifth, take the nearest
+ * chord tone a third to a sixth away on the same side instead. Unison and
+ * octave doublings are left alone — they can only clash where the lead does.
+ */
+function chordAwareMidi(
+  lead: number,
+  tonic: string,
+  scale: string,
+  chordSymbol: string,
+  steps: number,
+): number {
+  const ladder = ladderFromNames(chordScale(tonic, scale, chordSymbol));
+  const partner = harmonyMidi(lead, ladder, steps);
+  if (steps % 7 === 0) return partner;
+
+  const tones = chordTones(chordSymbol).map((t) => TonalNote.chroma(t) ?? 0);
+  const anchors = [tones[0]!, tones.find((t) => (t - tones[0]! + 12) % 12 === 7) ?? tones[2] ?? tones[0]!];
+  const rubs = anchors.some((a) => {
+    const d = (((partner - a) % 12) + 12) % 12;
+    return d === 1 || d === 11;
+  });
+  if (!rubs) return partner;
+
+  const side = steps < 0 ? -1 : 1;
+  let best: number | undefined;
+  for (let gap = 3; gap <= 9; gap++) {
+    const candidate = lead + side * gap;
+    if (!tones.includes(((candidate % 12) + 12) % 12)) continue;
+    if (best === undefined || Math.abs(candidate - partner) < Math.abs(best - partner)) best = candidate;
+  }
+  return best ?? partner;
+}
+
+function chordTones(symbol: string): string[] {
+  const chord = Chord.get(symbol);
+  if (chord.empty || chord.notes.length === 0) throw new Error(`unknown chord: "${symbol}"`);
+  return chord.notes;
+}
+
+function ladderFromNames(names: string[]): number[] {
+  const pitchClasses = new Set(names.map((n) => TonalNote.chroma(n) ?? 0));
+  const ladder: number[] = [];
+  for (let midi = LADDER_RANGE[0]; midi <= LADDER_RANGE[1]; midi++) {
+    if (pitchClasses.has(midi % 12)) ladder.push(midi);
+  }
+  return ladder;
+}
+
+/** `bar:beat:sixteenth` as beats from zero. */
+function noteBeats(time: string, beatsPerBar: number): number {
+  const [bar = 0, beat = 0, sixteenth = 0] = time.split(":").map(Number);
+  return bar * beatsPerBar + beat + sixteenth / 4;
 }
 
 /** Scale steps for an interval name, or the number straight through. */

@@ -2,7 +2,7 @@
 title: music-generator
 purpose: Router and first-principles for the project. Read this before diving into code.
 audience: [claude, human]
-updated: 2026-08-14
+updated: 2026-11-12
 read_order: 1
 see_also: [claude.md, docs/vision.md, docs/rendering.md, docs/palette-authoring.md]
 ---
@@ -210,6 +210,10 @@ npm run build:keys # the keys page alone, as a phone app → dist-keys/
 - [`docs/hooks.md`](docs/hooks.md) — the other half: what makes a piece worth
   hearing twice, genre-independent. Contour, withholding, negative space, one
   surprise. Read with variety.md before writing bars.
+- [`docs/clashes.md`](docs/clashes.md) — why a note sounds "slightly out of
+  tune" when nothing is: distortion grinding overlapping notes, a twin line kept
+  in the key while the chord moved, held tune notes against the root or fifth.
+  What the engine handles, what `song:build` reports, the checklist.
 - [`docs/studies.md`](docs/studies.md) — the third bench: attempts at a musical
   concept, four at a time on one axis, judged by ear so the approach is chosen
   rather than defaulted.

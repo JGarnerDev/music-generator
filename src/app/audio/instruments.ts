@@ -24,12 +24,13 @@ import type {
   VibratoSpec,
   VoicePreset,
 } from "@engine/voice";
+import { chokes } from "@engine/voice";
 import { planSection, sectionGain, type PlayerPlan } from "@engine/section";
 import { getQuality } from "./quality";
 import { DrumKit } from "./drums";
 import { voiceFor } from "../voices";
 
-export type Playable = Tone.PolySynth | Tone.Sampler | DrumKit | Section;
+export type Playable = Tone.PolySynth | Tone.Sampler | DrumKit | Section | ChokedSynth;
 
 /**
  * A voice is what you trigger plus where its sound comes *out*, because an
@@ -44,6 +45,11 @@ export interface Voice {
    * preset can provide it. Absent means play them straight — see `BendVoice`.
    */
   bend?: BendVoice;
+  /**
+   * Present when `play` is a `ChokedSynth`: the voice's own release, which the
+   * schedule shortens per note with `@engine/choke` before handing it over.
+   */
+  choke?: { release: number };
 }
 
 /**
@@ -56,9 +62,19 @@ export interface Voice {
  * `graph.ts`: distortion belongs to the guitar, not to the drums that would be
  * ruined by it.
  */
-export function createVoice(name: InstrumentName, slug?: string, wantsBend = false): Voice {
+export function createVoice(
+  name: InstrumentName,
+  slug?: string,
+  wantsBend = false,
+  wantsChoke = false,
+): Voice {
   const preset = voiceFor(name, slug);
-  const play = createInstrument(preset);
+  // Choke is asked for by the file render only. The live keyboard is played by
+  // hands that already stop their own notes, and it needs a real PolySynth to
+  // hold a key down — see `live.ts`.
+  const choked = wantsChoke && preset.synth !== undefined && chokes(preset);
+  const play = choked ? new ChokedSynth(preset.synth!) : createInstrument(preset);
+  const choke = choked ? { release: Number(preset.synth!.envelope.release) } : undefined;
   const bend = wantsBend ? bendVoiceFor(preset) : undefined;
   // Signal order is the instrument being modelled, top to bottom: the string
   // moves (synth), its pitch is not still (vibrato), the bow may be reversing
@@ -77,12 +93,12 @@ export function createVoice(name: InstrumentName, slug?: string, wantsBend = fal
   // listening to a different tone from the phrase it belongs to. The gain only
   // exists on tracks that bend, so every other piece builds the graph it always
   // did, node for node.
-  const head = bend ? sum(play, bend) : play;
+  const head = bend ? sum(play, bend) : play instanceof ChokedSynth ? play.output : play;
   const acoustic = play instanceof Section ? play.output : acousticChain(head, preset);
   if (preset.amp) {
-    return { play, bend, output: guitarAmp(acoustic, preset.amp) };
+    return { play, bend, choke, output: guitarAmp(acoustic, preset.amp) };
   }
-  return { play, bend, output: acoustic };
+  return { play, bend, choke, output: acoustic };
 }
 
 /** The polyphonic voice and the bending one, into one node the chain can start from. */
@@ -316,7 +332,12 @@ function guitarAmp(source: Tone.ToneAudioNode, voicing: AmpSpec): Tone.ToneAudio
     lowFrequency: 220,
     highFrequency: 2800,
   });
-  const powerAmp = new Tone.Distortion({ distortion: 0.18, oversample: "none" });
+  // Oversampled like the preamp. It is a mild curve, but it is fed a signal the
+  // preamp has already filled with harmonics up to Nyquist, and without
+  // oversampling those fold back as inharmonic partials — heard as a sour high
+  // note, worst at the audition profile's 22.05 kHz. See `@engine/choke` for
+  // the larger cause of the same symptom.
+  const powerAmp = new Tone.Distortion({ distortion: 0.18, oversample: getQuality().oversample });
   const cab = new Tone.Filter({ frequency: voicing.cab, type: "lowpass", rolloff: -48 });
   const presence = new Tone.Filter({ type: "peaking", Q: 1.2, ...voicing.presence });
   // Cab thump cleanup, after the speaker. 105 Hz for a guitar, because nothing
@@ -341,6 +362,83 @@ function guitarAmp(source: Tone.ToneAudioNode, voicing: AmpSpec): Tone.ToneAudio
   const slap = new Tone.FeedbackDelay({ ...voicing.slap, feedback: 0.12 });
   sum.connect(slap);
   return slap;
+}
+
+/**
+ * A pool of single voices that plays like a `PolySynth`, except that every note
+ * carries its own release — which is what choke needs (`@engine/choke`).
+ *
+ * A `PolySynth` can't do this, and the reason isn't guessable: it defers each
+ * release with a timeout until the release time, then reads the envelope's
+ * release *at that moment*, so a value set when the note was triggered has been
+ * overwritten by every note triggered since. Here a voice is picked, its release
+ * set, and both its attack and release scheduled in the same call, so the value
+ * is baked into that note's automation and nothing later can reach it.
+ *
+ * Voices are allocated lazily up to the preset's polyphony (capped by the
+ * quality profile, as a `PolySynth`'s are) and reused once their tail is over;
+ * with choke on, that is rarely more than a chord's worth.
+ */
+export class ChokedSynth {
+  readonly output: Tone.Gain;
+  private readonly voices: { synth: Bendable; busyUntil: number }[] = [];
+  private readonly limit: number;
+  /**
+   * The context this instrument was built in. Voices are allocated lazily, from
+   * the schedule's callbacks, and by then Tone's *global* context is the online
+   * one again — a voice built there cannot connect into an offline render.
+   * `PolySynth` passes its own context to every voice for the same reason.
+   */
+  private readonly context: Tone.BaseContext;
+  /** Synth options negotiated with the quality profile now, for the same reason. */
+  private readonly options: Record<string, unknown>;
+
+  constructor(private readonly spec: SynthSpec) {
+    this.context = Tone.getContext();
+    this.options = { ...synthOptions(spec), context: this.context };
+    this.output = new Tone.Gain({ gain: 1, context: this.context });
+    this.limit = Math.min(spec.maxPolyphony ?? 16, getQuality().maxPolyphony);
+  }
+
+  triggerAttackRelease(
+    pitch: string,
+    duration: Tone.Unit.Time,
+    time: number,
+    velocity = 0.7,
+    release?: number,
+  ): void {
+    const seconds = Tone.Time(duration).toSeconds();
+    const voice = this.voiceAt(time);
+    const tail = release ?? Number(this.spec.envelope.release);
+    voice.synth.envelope.release = tail;
+    voice.synth.triggerAttack(pitch, time, velocity);
+    voice.synth.triggerRelease(time + seconds);
+    voice.busyUntil = time + seconds + tail;
+  }
+
+  connect(destination: Tone.InputNode): this {
+    this.output.connect(destination);
+    return this;
+  }
+
+  dispose(): void {
+    for (const v of this.voices) v.synth.dispose();
+    this.output.dispose();
+  }
+
+  /** A voice whose tail is over by `time`, a new one, or — at the cap — the one closest to done. */
+  private voiceAt(time: number): { synth: Bendable; busyUntil: number } {
+    const free = this.voices.find((v) => v.busyUntil <= time);
+    if (free) return free;
+    if (this.voices.length < this.limit) {
+      const synth = buildMono(this.spec.kind, this.options);
+      synth.connect(this.output);
+      const voice = { synth, busyUntil: 0 };
+      this.voices.push(voice);
+      return voice;
+    }
+    return this.voices.reduce((a, b) => (b.busyUntil < a.busyUntil ? b : a));
+  }
 }
 
 function createInstrument(preset: VoicePreset): Playable {

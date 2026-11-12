@@ -119,6 +119,11 @@ does this with a Db in bar 3 of a C-minor reveal, and its plan `note` says so.
 
 One. Two surprises are zero surprises.
 
+A surprise chord changes a degree of the key, so the tune over it has to change
+that degree too — D♮ over a borrowed B♭ in F minor, not the key's D♭. A held
+note that ignores it is a semitone rub, and the surprise lands as a mistake
+instead. `song:build` flags it; see [clashes](./clashes.md).
+
 ### 9. Something changes every 8 bars
 
 Even in a loop. Add a part, drop one, shift an octave, take a fill. Static is

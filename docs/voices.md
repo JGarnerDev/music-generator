@@ -2,9 +2,9 @@
 title: Voices — designing instrument sounds
 purpose: The loop for introducing, refining and approving an instrument sound, and how an approved voice gets used in songs.
 audience: [claude, human]
-updated: 2026-08-15
+updated: 2026-11-12
 read_order: 5
-see_also: [../readme.md, ../claude.md, rendering.md, ../voices/archive.md]
+see_also: [../readme.md, ../claude.md, rendering.md, clashes.md, ../voices/archive.md]
 ---
 
 # Voices
@@ -260,6 +260,31 @@ year and the archive is back where it started.
 | `scripts/find-voice.ts` | `voice:find` — the read-only one: search the shelf, or print one fork brief. |
 | `scripts/check-voices.ts` | `voice:check` — the other read-only one: which pairs will converge. |
 | `public/audio/voices/` | Rendered probes + their manifest. What the bench plays. |
+
+## Choke — one hand per guitar
+
+Every voice with an `amp` **chokes** when a file is rendered: a new onset cuts the
+previous note's tail so it ends where the next begins, the way fretting the next
+note or palm-muting stops the last one. Notes struck together are a chord and
+never choke each other; a note followed by silence keeps its full ring-out.
+
+It is on by default because the alternative was the rig's worst sound. A synth
+release rings into the next note, both reach the same drive stage, and the drive
+multiplies them into difference tones belonging to neither — measured at −7 dB
+for a whole step, against −35 dB for one note alone. That is heard as the note
+being out of tune, and the longer the release and the harder the drive, the
+worse it gets. Mechanism and numbers: [clashes](./clashes.md),
+[`src/engine/choke.ts`](../src/engine/choke.ts).
+
+`"choke": false` lets an amped voice ring (let-ring arpeggios, and any
+**keyboard** through the amp — `lead/lord-organ` sets it, because an organ holds
+a chord under a moving top note and choke would cut the chord at every melody
+note); `"choke": true` asks for it on a clean one. Sections never choke — a desk is many hands. The
+live keyboard does not choke either: hands stop their own notes.
+
+So a long `release` on an amped voice is now a **phrase-end** setting — how the
+last note of a line rings out — not a smear across the line. Design it by ear on
+the probe's held notes, not on its runs.
 
 ## Traps
 
