@@ -4,7 +4,7 @@ purpose: Playing a phrase at the keyboard and handing it over as notes. The loop
 audience: [claude, human]
 updated: 2026-09-19
 read_order: 5
-see_also: [../readme.md, ../claude.md, deploy.md, transcribe.md, rendering.md, library.md]
+see_also: [../README.md, ../CLAUDE.md, deploy.md, transcribe.md, rendering.md, library.md]
 ---
 
 # Keys

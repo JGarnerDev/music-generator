@@ -4,7 +4,7 @@ purpose: How to bend a note's pitch while it sounds — the schema, the three cu
 audience: [claude, human]
 updated: 2026-11-12
 read_order: 6
-see_also: [../readme.md, ../claude.md, voices.md, variety.md]
+see_also: [../README.md, ../CLAUDE.md, voices.md, variety.md]
 ---
 
 # String bends

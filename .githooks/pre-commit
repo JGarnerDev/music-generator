@@ -1,0 +1,28 @@
+#!/bin/sh
+# Auto-format staged Markdown with markdownlint before commit.
+# Non-blocking: fixes what it can, re-stages the result, never aborts the commit.
+# Setup: run `git config core.hooksPath .githooks` once per clone.
+# Requires global binary: npm i -g markdownlint-cli2@0.13.0 (node 18 needs this exact pin).
+
+tmp=$(mktemp)
+git diff --cached --name-only -z --diff-filter=ACM -- '*.md' > "$tmp"
+
+# No staged Markdown — nothing to do.
+if [ ! -s "$tmp" ]; then
+  rm -f "$tmp"
+  exit 0
+fi
+
+if ! command -v markdownlint-cli2 >/dev/null 2>&1; then
+  echo "pre-commit: markdownlint-cli2 not found; skipping Markdown format." >&2
+  echo "pre-commit: install with  npm i -g markdownlint-cli2@0.13.0" >&2
+  rm -f "$tmp"
+  exit 0
+fi
+
+# Fix in place (reads .markdownlint.json from repo root), then re-stage the fixes.
+xargs -0 markdownlint-cli2 --fix < "$tmp" >/dev/null 2>&1
+xargs -0 git add < "$tmp"
+
+rm -f "$tmp"
+exit 0

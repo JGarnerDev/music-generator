@@ -1,15 +1,15 @@
 ---
 title: CLAUDE.md
-purpose: Operating instructions for Claude in this repo. Routes to readme.md.
+purpose: Operating instructions for Claude in this repo. Routes to README.md.
 audience: [claude]
 updated: 2026-08-12
 read_order: 0
-see_also: [readme.md]
+see_also: [README.md]
 ---
 
 # CLAUDE.md
 
-**Read [`readme.md`](./readme.md) first — it is the router.** This file only adds
+**Read [`README.md`](./README.md) first — it is the router.** This file only adds
 Claude-specific working rules that don't belong in the human-facing README.
 
 ## Non-negotiables
@@ -25,6 +25,14 @@ Claude-specific working rules that don't belong in the human-facing README.
   npm script under `scripts/`.
 - **Keep this file and the README small.** When a topic outgrows a screen, split
   it into its own frontmatter'd doc and link it.
+- **Versioning** (`VERSION`, `CHANGELOG.md`): a change that breaks something a
+  reader or script relied on (renamed script or flag, changed composition schema)
+  bumps MAJOR, a new capability bumps MINOR, a fix bumps PATCH. New compositions,
+  palettes, voices and renders never bump. A bump edits `VERSION` and `version` in
+  `package.json` and prepends a dated `CHANGELOG.md` entry, committed together.
+- **`TODO.md`** is the backlog: remove items once done, keep the **Next:** line true.
+  A commission or other big piece of work gets `tasks/<name>/` with `PLAN.md` and
+  `TODO.md`.
 
 ## How to compose (default loop)
 

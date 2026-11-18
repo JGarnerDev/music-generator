@@ -4,7 +4,7 @@ purpose: How compositions become files the app plays, why rendering lives in a C
 audience: [claude, human]
 updated: 2026-11-12
 read_order: 4
-see_also: [../readme.md, ../claude.md, looping.md]
+see_also: [../README.md, ../CLAUDE.md, looping.md]
 ---
 
 # Rendering audio

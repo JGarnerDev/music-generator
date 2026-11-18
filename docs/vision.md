@@ -1,10 +1,10 @@
 ---
 title: Vision & Intent
-purpose: Why this project exists — use cases, desired outcomes, and the design philosophy behind the first principles. Read for intent; readme.md for how, progress.md for what's next.
+purpose: Why this project exists — use cases, desired outcomes, and the design philosophy behind the first principles. Read for intent; README.md for how, TODO.md for what's next.
 audience: [claude, human]
 updated: 2026-08-12
 read_order: 3
-see_also: [readme.md, progress.md]
+see_also: [README.md, TODO.md]
 status: living
 ---
 
@@ -12,7 +12,7 @@ status: living
 
 Make music in code through conversation with Claude. Fun, productive, quick —
 with depth on demand. This doc holds the *why*; the
-[readme](../readme.md) turns it into working first principles.
+[readme](../README.md) turns it into working first principles.
 
 ## Who it's for (two use cases)
 
@@ -52,14 +52,14 @@ with depth on demand. This doc holds the *why*; the
 
 ## Repository mandates
 
-These are enforced across [readme.md](../readme.md) and
+These are enforced across [README.md](../README.md) and
 [CLAUDE.md](../CLAUDE.md):
 
 - Every markdown file has detailed frontmatter; read frontmatter before the body
   for context efficiency.
 - Promote scripts for repeatable deterministic work; when unscripted work proves
   repeatable, script it.
-- `readme.md` is the router — where to find things and the fundamental
+- `README.md` is the router — where to find things and the fundamental
   principles. `CLAUDE.md` holds instructions but mostly points to the readme.
 - Keep both readme and CLAUDE.md at a reasonable size. A subject that outgrows
   them gets its own progressively-disclosed doc.

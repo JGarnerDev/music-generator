@@ -4,7 +4,7 @@ purpose: Router and first-principles for the project. Read this before diving in
 audience: [claude, human]
 updated: 2026-11-12
 read_order: 1
-see_also: [claude.md, docs/vision.md, docs/rendering.md, docs/palette-authoring.md]
+see_also: [CLAUDE.md, docs/vision.md, docs/rendering.md, docs/palette-authoring.md]
 ---
 
 # music-generator
@@ -47,7 +47,7 @@ loose musical ideas into something you're pumped about.
 | `plans/*.json` | Section plans for long/looping pieces | Expanded by `npm run song:build`; see [looping](docs/looping.md) |
 | `sessions/*.json` | Running orders for a game night — ordered cues into the library | Played from `/session.html`; written by `npm run session:new`. See [sessions](docs/sessions.md) |
 | `recordings/keys/*.take.json` | Keyboard takes — a phrase played at `/keys.html` | Committed (they *are* the notes). Loop: [keys](docs/keys.md); from a phone, [deploy](docs/deploy.md) |
-| `recordings/*.wav` | Guitar takes — "make the hook sound like *this*" | Audio gitignored, the `.notes.json` transcription beside it is committed. Capture rules: [`recordings/readme.md`](recordings/readme.md); the loop: [transcribe](docs/transcribe.md) |
+| `recordings/*.wav` | Guitar takes — "make the hook sound like *this*" | Audio gitignored, the `.notes.json` transcription beside it is committed. Capture rules: [`recordings/README.md`](recordings/README.md); the loop: [transcribe](docs/transcribe.md) |
 | `scripts/*.ts` | Deterministic CLI chores | commander, named flags. `render.ts` is the big one: see [rendering](docs/rendering.md) |
 | `src/dev/` | Dev-server middleware, render harness, render profiler | Never in the built bundle |
 | `public/audio/` | Rendered MP3s + `manifest.json` — what the bench plays | Committed; written by `npm run render` |
@@ -57,6 +57,7 @@ loose musical ideas into something you're pumped about.
 
 ```bash
 npm install
+git config core.hooksPath .githooks   # once per clone: Markdown auto-fix on commit
 npm run dev        # five pages: / compositions · /voices.html · /studies.html · /session.html · /keys.html
 npm run render -- --all   # render every composition to public/audio/
 npm test           # vitest (engine + utils)
@@ -163,7 +164,7 @@ npm run build:keys # the keys page alone, as a phone app → dist-keys/
   A/B. `--mode shape` keeps only the intervals and rhythm, for when the gesture is
   wanted in another key. Corrections are free: `--requantize` reuses the saved
   detector output so the model runs once per take. Capture rules:
-  [`recordings/readme.md`](recordings/readme.md); the loop:
+  [`recordings/README.md`](recordings/README.md); the loop:
   [transcribe](docs/transcribe.md).
 - **New palette:** `npm run palette:new -- --kind emotion|genre|timbre --slug <slug> --title "<t>" --tags a,b,c`
   (writes `palettes/<kind>/<slug>.md`). Add `--parent <slug>` for a **subtype**

@@ -54,4 +54,4 @@ won't touch that note, which is half the genre missing.
   Silence right after a flurry is as important as the flurry.
 - **Gated on meter:** the 12-beat *compás* (bulería, soleá) with its accents on
   12, 3, 6, 8, 10 is flamenco's real clock and needs time-signature support (see
-  progress.md). What's here is the 4/4 rumba flamenca side.
+  TODO.md). What's here is the 4/4 rumba flamenca side.

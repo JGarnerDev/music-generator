@@ -292,7 +292,7 @@ export function confirmChecklist(ctx: ConfirmContext): string {
     lines.push("  spelled against the key, which is also what makes the idea transposable.");
   }
   lines.push("  Everything a step off, or the phrase starting in the wrong bar, is a take problem");
-  lines.push("  rather than a flag: re-record with a one-bar count-in (recordings/readme.md).");
+  lines.push("  rather than a flag: re-record with a one-bar count-in (recordings/README.md).");
 
   return lines.join("\n");
 }

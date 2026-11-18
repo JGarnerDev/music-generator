@@ -1,14 +1,22 @@
 ---
-title: Progress & Roadmap
-purpose: Prioritized backlog of what to build. Living doc — check items off, reorder as reality shifts.
+type: doc
+purpose: Prioritized backlog of what to build, plus links to open tasks. Living doc — remove items once done, reorder as reality shifts.
 audience: [claude, human]
-updated: 2026-08-20
+updated: 2026-11-18
 read_order: 2
-see_also: [readme.md, docs/vision.md]
+see_also: [README.md, docs/vision.md]
 status: living
 ---
 
-# Progress & Roadmap
+# TODO
+
+**Next:** the Redwater Act 1 commission, 23 of 33 pieces still to do. Top build item: P1, sampled instruments via `smplr`.
+
+## Tasks
+
+- [ ] [Redwater Act 1](tasks/redwater/TODO.md): music commission from the dnd engine's Redwater campaign. Brief in `tasks/redwater/PLAN.md`; approved pieces are filed beside them (kept local, not in git)
+
+## Backlog
 
 Ordered by priority. **P0** = the music itself is the product; nothing ships
 above it. **P1** = makes the core loop good. **P2** = app architecture &

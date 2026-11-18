@@ -26,7 +26,7 @@ describe("reloadReason", () => {
   it("ignores everything Vite already handles", () => {
     for (const path of [
       "src/app/main.ts",
-      "readme.md",
+      "README.md",
       "voices/archive.md",
       "compositions/segments/notes.txt",
       "palettes/emotion/sad.md",

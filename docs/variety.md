@@ -18,7 +18,7 @@ see_also: [hooks.md, knobs.md, looping.md, grooves.md, voices.md, ../progress.md
 to find out what the tools could do, and the finding was worth more than the
 pieces: three of the four were the same song. This doc is what survived them. It
 is knowledge, not a backlog — the work it implies lives in
-[`progress.md`](../progress.md).
+[`TODO.md`](../progress.md).
 
 ## What actually happened
 

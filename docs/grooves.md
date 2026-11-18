@@ -4,7 +4,7 @@ purpose: How a genre palette writes its beat, and how that beat reaches the spea
 audience: [claude, human]
 updated: 2026-08-13
 read_order: 6
-see_also: [palette-authoring.md, looping.md, ../readme.md]
+see_also: [palette-authoring.md, looping.md, ../README.md]
 ---
 
 # Grooves

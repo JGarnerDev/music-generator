@@ -4,7 +4,7 @@ purpose: The palette taxonomy (kinds), the hard schema for each, and how to add 
 audience: [claude, human]
 updated: 2026-08-13
 read_order: 4
-see_also: [readme.md, ../src/engine/palette.ts]
+see_also: [README.md, ../src/engine/palette.ts]
 status: living
 ---
 
@@ -83,6 +83,7 @@ All kinds share `kind`, `slug`, `title`, `tags` (non-empty), and an optional
 `parent`. Then:
 
 **emotion** — the composable primitive (only kind `compose` accepts):
+
 ```yaml
 kind: emotion
 slug: sad
@@ -96,6 +97,7 @@ instruments: [piano, pad]      # optional; must map to engine InstrumentName
 ```
 
 **genre** — groove + harmony vocabulary, no fixed tonic:
+
 ```yaml
 kind: genre
 slug: jazz
@@ -127,6 +129,7 @@ notation, the kit pieces, and the swing rule that fails silently if you get it
 wrong.
 
 **timbre** — pure sound, no tonality/progressions/tempo:
+
 ```yaml
 kind: timbre
 slug: analog-synth

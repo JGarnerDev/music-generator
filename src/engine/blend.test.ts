@@ -326,7 +326,7 @@ tempo: [100, 130]
 body`);
 
   it("warns when a genre's mode fights the emotion's key", () => {
-    // The reproducer from progress.md: the chords go minor while the melody is
+    // The reproducer from TODO.md: the chords go minor while the melody is
     // still drawn from the emotion's major scale.
     const d = blendPalettes([major(), minorGenre]);
     expect(d.warnings).toHaveLength(1);

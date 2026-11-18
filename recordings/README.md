@@ -3,7 +3,7 @@ title: Recordings — capture rules
 purpose: How to record a guitar take so the transcriber can read it. Read before hitting record, not after.
 audience: [human, claude]
 updated: 2026-08-17
-see_also: [docs/transcribe.md, readme.md]
+see_also: [docs/transcribe.md, README.md]
 status: living
 ---
 

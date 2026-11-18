@@ -4,7 +4,7 @@ purpose: How to write and export a track that repeats for minutes without fatigu
 audience: [claude, human]
 updated: 2026-11-12
 read_order: 3
-see_also: [../readme.md, ../claude.md, palette-authoring.md]
+see_also: [../README.md, ../CLAUDE.md, palette-authoring.md]
 ---
 
 # Looping music for games

@@ -3,7 +3,7 @@ title: Keyboard takes
 purpose: What lives in this folder, and why these files are committed when the WAVs next door are not.
 audience: [human, claude]
 updated: 2026-09-18
-see_also: [../readme.md, ../../docs/keys.md]
+see_also: [../README.md, ../../docs/keys.md]
 status: living
 ---
 

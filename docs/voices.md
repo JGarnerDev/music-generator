@@ -4,7 +4,7 @@ purpose: The loop for introducing, refining and approving an instrument sound, a
 audience: [claude, human]
 updated: 2026-11-12
 read_order: 5
-see_also: [../readme.md, ../claude.md, rendering.md, clashes.md, ../voices/archive.md]
+see_also: [../README.md, ../CLAUDE.md, rendering.md, clashes.md, ../voices/archive.md]
 ---
 
 # Voices

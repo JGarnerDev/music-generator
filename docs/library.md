@@ -4,7 +4,7 @@ purpose: How compositions/ is organised (kinds = folders = tabs), and how leitmo
 audience: [claude, human]
 updated: 2026-08-13
 read_order: 5
-see_also: [../readme.md, looping.md, ../src/engine/library.ts]
+see_also: [../README.md, looping.md, ../src/engine/library.ts]
 status: living
 ---
 

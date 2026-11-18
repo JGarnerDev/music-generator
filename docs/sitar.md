@@ -125,7 +125,7 @@ structure, and they cannot rescue a part that has chord changes under it.
 | **meend** | The glide. Up to 7 semitones on one pluck. | `"bend": { "curve": "meend" }` |
 | **andolan** | A slow oscillation on one held note. | A slow narrow bend with `release: true` |
 | **kan** | A grace note leaning into the main note. | A very short quiet note before it |
-| **murki** | A fast cluster of 2–3 neighbouring notes around one. | Short grace notes — the one place `claude.md`'s "don't write trills" does not apply |
+| **murki** | A fast cluster of 2–3 neighbouring notes around one. | Short grace notes — the one place `CLAUDE.md`'s "don't write trills" does not apply |
 | **krintan** | A descending note sounded by a left-hand flick, *not* re-plucked. | The next note at much lower velocity |
 | **gamak** | Heavy wide oscillation, forceful. | Wide bend with `release`, repeated |
 

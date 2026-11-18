@@ -4,7 +4,7 @@ purpose: Turning a recorded guitar take into notes Claude can read, quote and re
 audience: [claude, human]
 updated: 2026-08-17
 read_order: 5
-see_also: [../readme.md, ../claude.md, ../recordings/readme.md, library.md, rendering.md]
+see_also: [../README.md, ../CLAUDE.md, ../recordings/README.md, library.md, rendering.md]
 ---
 
 # Transcription
@@ -25,7 +25,7 @@ npm run transcribe -- --file recordings/lioness-hook.wav --tempo 90 --key Am
 ## The loop
 
 1. **Record.** One idea, 4–16 bars, to a click with a one-bar count-in. The
-   capture rules are [`recordings/readme.md`](../recordings/readme.md) and they
+   capture rules are [`recordings/README.md`](../recordings/README.md) and they
    matter more than any flag on this page — a legible take is worth more than
    any amount of cleverness downstream.
 2. **Transcribe.** The command above. It prints a summary and writes

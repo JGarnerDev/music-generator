@@ -55,5 +55,5 @@ trad colour, and equally correct here.
   different ending — the trad AABB shape. Ornament by repeating a note quickly
   rather than by adding chromatics.
 - **Gated on meter:** the jig (6/8) and the slip jig (9/8) are the other half of
-  this genre and need time-signature support (see progress.md). What's here is
+  this genre and need time-signature support (see TODO.md). What's here is
   the reel/ballad side, in 4/4.

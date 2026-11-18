@@ -25,6 +25,6 @@ describe("isSessionFile", () => {
   it("takes .json and nothing else", () => {
     expect(isSessionFile("night.json")).toBe(true);
     expect(isSessionFile("NIGHT.JSON")).toBe(true);
-    expect(isSessionFile("readme.md")).toBe(false);
+    expect(isSessionFile("README.md")).toBe(false);
   });
 });

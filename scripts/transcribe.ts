@@ -169,7 +169,7 @@ const detected = opts.requantize ? loadDetected() : await runDetector();
 if (detected.length === 0) {
   fail(
     "no notes detected. Check the take is not silent, and that it was played clean — " +
-      "see recordings/readme.md for what makes a take legible.",
+      "see recordings/README.md for what makes a take legible.",
   );
 }
 

@@ -4,7 +4,7 @@ purpose: Putting /keys.html on the internet as a phone app — what ships, what 
 audience: [claude, human]
 updated: 2026-09-18
 read_order: 6
-see_also: [keys.md, rendering.md, ../readme.md, ../claude.md]
+see_also: [keys.md, rendering.md, ../README.md, ../CLAUDE.md]
 ---
 
 # Deploying the keys app
