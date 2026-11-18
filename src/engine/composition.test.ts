@@ -111,6 +111,41 @@ describe("validateComposition", () => {
     expect(validateComposition({ ...valid, tracks: [{ instrument: "lead", notes }] })).toEqual([]);
   });
 
+  it("accepts a tapped run", () => {
+    const notes = [
+      { time: "0:0", pitch: "E4", duration: "16n" },
+      { time: "0:0:1", pitch: "E5", duration: "16n", legato: true },
+      { time: "0:0:2", pitch: "B4", duration: "16n", legato: true },
+    ];
+    expect(validateComposition({ ...valid, tracks: [{ instrument: "lead", notes }] })).toEqual([]);
+  });
+
+  it("rejects a legato note that also bends, and a run that starts on a bend", () => {
+    const notes = [
+      { time: "0:0", pitch: "E4", duration: "16n", bend: { semitones: 1 } },
+      { time: "0:0:1", pitch: "G4", duration: "16n", legato: true, bend: { semitones: 1 } },
+    ];
+    const issues = validateComposition({ ...valid, tracks: [{ instrument: "lead", notes }] });
+    expect(issues.some((i) => i.path === "tracks[0].notes[1].legato")).toBe(true);
+    expect(issues.some((i) => i.path === "tracks[0].notes[0].bend")).toBe(true);
+  });
+
+  it("rejects a bend sounding over a legato run — both need the one bending voice", () => {
+    const notes = [
+      { time: "0:0", pitch: "E4", duration: "8n" },
+      { time: "0:1", pitch: "G4", duration: "2n", legato: true },
+      { time: "0:2", pitch: "A4", duration: "4n", bend: { semitones: 2 } },
+    ];
+    const issues = validateComposition({ ...valid, tracks: [{ instrument: "lead", notes }] });
+    expect(issues.some((i) => i.path === "tracks[0].notes[2].bend")).toBe(true);
+  });
+
+  it("rejects legato on drums", () => {
+    const notes = [{ time: "0:0", pitch: "kick", duration: "8n", legato: true }];
+    const issues = validateComposition({ ...valid, tracks: [{ instrument: "drums", notes }] });
+    expect(issues.some((i) => i.path === "tracks[0].notes[0].legato")).toBe(true);
+  });
+
   it("flags missing note fields", () => {
     const bad = {
       ...valid,

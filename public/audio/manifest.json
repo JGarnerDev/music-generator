@@ -41,6 +41,22 @@
       "renderedAt": "2026-08-24T03:31:27.319Z"
     },
     {
+      "name": "redwater-main-title",
+      "file": "redwater-main-title.mp3",
+      "seconds": 133.514125,
+      "bytes": 2671200,
+      "isLoop": false,
+      "renderedAt": "2026-11-13T02:20:05.622Z"
+    },
+    {
+      "name": "redwater-main-title.loop",
+      "file": "redwater-main-title.loop.mp3",
+      "seconds": 106.56977083333334,
+      "bytes": 2132160,
+      "isLoop": true,
+      "renderedAt": "2026-11-13T02:11:08.832Z"
+    },
+    {
       "name": "redwater-sable-wren",
       "file": "redwater-sable-wren.mp3",
       "seconds": 15.4285625,

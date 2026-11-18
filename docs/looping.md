@@ -127,6 +127,45 @@ lead:
 { "melodyOn": "lead", "voices": { "lead": "lone-whistle" } }
 ```
 
+A **section** may hand a part to another player for its bars — the main title
+whose theme goes trumpet → flute → solo violin → soprano is one `lead` part in
+four hands:
+
+```jsonc
+{ "id": "open-road", "voices": { "lead": "wood-flute", "twin": "violin-arco" },
+  "gains": { "pluck": 0.42, "pad": 0 } }   // 0 silences that part here
+```
+
+Each distinct voice-and-gain becomes its own track (a sound that returns later
+reuses its track), `twin` names the second lead, and a note belongs to the
+section its onset is in. [`src/engine/section-sound.ts`](../src/engine/section-sound.ts).
+
+**Doubles** make a part bigger the way records do it: track the rhythm guitar
+twice and pan the takes apart. `"doubles": { "pluck": { "voice": "chainsaw-chug",
+"pan": -0.45, "pairPan": 0.45 } }` plays the `pluck` part's notes again on its
+own track, voice, level and humanize seed, so the two takes drift instead of
+summing to one louder mono part. `pluck`, `pad` and `bass` can be doubled; a
+section re-voices the double as `voices.pluck2` and drops it with
+`gains.pluck2: 0`, which is how a quiet section stays small.
+
+**Tempo can move.** A section's `bpm` steps to a new tempo on its first bar;
+`rampTo` glides from its opening tempo and arrives on its last barline. Notes
+stay in bars, so nothing has to be rewritten to change speed. Ramps are linear
+in time, and the loop file is cut where
+[`src/engine/tempo.ts`](../src/engine/tempo.ts) predicts. The transport gets
+each ramp as one tempo step per sixteenth, landing on the map at every step.
+Never hand Tone a `linearRampToValueAtTime` on the bpm: its tick solver
+breaks mid-ramp, and the render goes **silent for the rest of the ramp with no
+error** — a whole section lost. **A loop must wrap at the tempo it starts at**, or every
+lap lurches: give the last section `rampTo` back to the loop's tempo.
+`song:build` warns when it doesn't.
+
+```jsonc
+{ "id": "the-rally", "bpm": 120, "rampTo": 152 },   // accelerates into the peak
+{ "id": "triumph",   "bpm": 144 },
+{ "id": "turnaround", "rampTo": 116 }               // back to main-title's tempo
+```
+
 ## Twin leads — why one lead line sounds thin
 
 One lead playing one line is thin in a way no amount of gain fixes: a single

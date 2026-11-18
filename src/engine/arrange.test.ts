@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { compositionDurationSeconds, loopWindowSeconds } from "./arrange";
+import { compositionDurationSeconds, loopIntroSeconds, loopWindowSeconds } from "./arrange";
 import type { Composition } from "./composition";
 
 const comp: Composition = {
@@ -34,5 +34,16 @@ describe("loopWindowSeconds", () => {
     const looping: Composition = { ...comp, bpm: 150, loop: { startBar: 8, endBar: 72 } };
     // a bar at 150bpm is 1.6s; 64 bars = 102.4s
     expect(loopWindowSeconds(looping)!.duration).toBeCloseTo(102.4);
+  });
+});
+
+describe("loopIntroSeconds", () => {
+  it("plays the full render up to the loop body's end before the loop file", () => {
+    expect(loopIntroSeconds({ ...comp, loop: { startBar: 2, endBar: 6 } })).toBeCloseTo(12);
+  });
+
+  it("is null with no intro to play", () => {
+    expect(loopIntroSeconds(comp)).toBeNull();
+    expect(loopIntroSeconds({ ...comp, loop: { startBar: 0, endBar: 4 } })).toBeNull();
   });
 });

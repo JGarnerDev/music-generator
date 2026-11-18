@@ -24,6 +24,8 @@ const MEMBRANE_DEFAULTS = { pitchDecay: 0.03, octaves: 6 };
 const NOISE_Q = 0.9;
 /** The snare body follows its rattle, a little behind it. */
 const SNARE_BODY_VELOCITY = 0.8;
+/** Tone's own "strictly greater" tolerance for restarting a source, in seconds. */
+const STRIKE_EPSILON = 1e-6;
 
 type Trigger = (time: Tone.Unit.Time | undefined, velocity: number) => void;
 
@@ -36,6 +38,7 @@ export class DrumKit {
   private readonly output = new Tone.Gain(1);
   private readonly parts: { dispose: () => void }[] = [this.output];
   private readonly triggers = new Map<DrumPiece, Trigger>();
+  private readonly lastStrike = new Map<string, number>();
 
   constructor(kit: KitSpec) {
     const level = (piece: string): number => kit.levels[piece] ?? 0;
@@ -114,7 +117,19 @@ export class DrumKit {
     time?: Tone.Unit.Time,
     velocity = 0.8,
   ): this {
-    this.triggers.get(piece as DrumPiece)?.(time, velocity);
+    const trigger = this.triggers.get(piece as DrumPiece);
+    if (!trigger) return this;
+    // Each piece is one monophonic synth, and Tone throws — killing the whole
+    // render — if it is restarted at a time not strictly after its last start.
+    // An offline render seeked to a loop point can deliver the same hit twice
+    // (or two hits clamped to the same "now"), so a second strike at the same
+    // instant is dropped: it was never a separate hit anyone could hear.
+    if (typeof time === "number") {
+      const at = Math.max(time, this.output.context.currentTime);
+      if (at <= (this.lastStrike.get(piece) ?? -Infinity) + STRIKE_EPSILON) return this;
+      this.lastStrike.set(piece, at);
+    }
+    trigger(time, velocity);
     return this;
   }
 

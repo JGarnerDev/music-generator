@@ -15,8 +15,9 @@ import type { Composition, LoFiSettings } from "@engine/composition";
 import { isDry, signalChain } from "@engine/signal";
 import { bendAutomation } from "@engine/bend";
 import { chokeNotes } from "@engine/choke";
+import { legatoRuns, type LegatoRun } from "@engine/legato";
 import { impulseResponse } from "@utils/impulse";
-import { barsBeatsToSeconds, notationToSeconds } from "@utils/timing";
+import { tempoMap } from "@engine/tempo";
 import { buildEffects } from "./effects";
 import { ChokedSynth, createVoice } from "./instruments";
 
@@ -108,13 +109,14 @@ export function scheduleComposition(comp: Composition): void {
   if (comp.meter) transport.timeSignature = [comp.meter[0], comp.meter[1]];
 
   const { input: chainInput, dry: dryInput } = buildLoFiChain(comp.lofi);
+  const tempo = tempoMap(comp);
 
   for (const track of comp.tracks) {
     // `track.voice` names one of the instrument's presets in `voices/`; omitted
     // means its default, so a piece written before voices existed is unchanged.
     // Whether any note bends decides whether this track builds a second voice
     // at all, so it has to be known before the instrument is made.
-    const bends = track.notes.some((n) => n.bend !== undefined);
+    const bends = track.notes.some((n) => n.bend !== undefined || n.legato);
     const voice = createVoice(track.instrument, track.voice, bends, true);
     const trackGain = new Tone.Gain(track.gain ?? 1);
 
@@ -146,31 +148,54 @@ export function scheduleComposition(comp: Composition): void {
     // scheduling callback: it needs the note's length in seconds, which is a
     // tempo question the transport can answer now and shouldn't be re-asked
     // every time the note comes round.
+    const timed = track.notes.map((n) => ({
+      start: tempo.secondsAt(String(n.time)),
+      duration: tempo.durationSeconds(String(n.time), n.duration),
+    }));
+
+    // A legato run is played as its first note, held for the whole run, with
+    // the rest of its notes as steps in that note's pitch — see `@engine/legato`.
+    // It needs the bending voice, so a voice that has none (a section) picks
+    // every note as written.
+    const runs = voice.bend && track.notes.some((n) => n.legato)
+      ? legatoRuns(track.notes.map((n, i) => ({ ...timed[i]!, midi: Tone.Frequency(n.pitch).toMidi(), legato: n.legato })))
+      : [];
+    const runAt = new Map<number, LegatoRun>(runs.map((r) => [r.head, r]));
+    const absorbed = new Set(runs.flatMap((r) => r.members));
+    const played = track.notes.map((_, i) => i).filter((i) => !absorbed.has(i));
+    const length = (i: number): number => runAt.get(i)?.duration ?? timed[i]!.duration;
+
     // A choked voice (an amped guitar, by default) stops each note at the next
     // onset instead of letting its release ring into it — see `@engine/choke`
     // for why that overlap is the sour note. Worked out over the whole track at
-    // once, because a note's tail depends on the note after it.
+    // once, because a note's tail depends on the note after it — and after the
+    // runs are folded, because a hammer-on is not an onset that stops its string.
     const choked = voice.choke
       ? chokeNotes(
-          track.notes.map((n) => ({
-            start: barsBeatsToSeconds(String(n.time), comp.bpm, comp.meter),
-            duration: notationToSeconds(n.duration, comp.bpm, comp.meter),
-          })),
+          played.map((i) => ({ start: timed[i]!.start, duration: length(i) })),
           voice.choke.release,
         )
       : undefined;
 
-    const events = track.notes.map((n, i) => ({
-      time: n.time,
-      pitch: n.pitch,
-      duration: choked ? choked[i]!.duration : n.duration,
-      velocity: n.velocity ?? 0.7,
-      release: choked?.[i]!.release,
-      bend:
-        n.bend && voice.bend
-          ? bendAutomation(n.bend, notationToSeconds(n.duration, comp.bpm, comp.meter))
-          : undefined,
-    }));
+    // Lengths go to the synths in seconds, from the tempo map: a "4n" handed to
+    // Tone is read at whatever tempo is sounding when the callback fires, which
+    // inside a ramp is not the tempo the note spans.
+    const events = played.map((i, k) => {
+      const n = track.notes[i]!;
+      const run = runAt.get(i);
+      return {
+        time: n.time,
+        pitch: n.pitch,
+        duration: choked ? choked[k]!.duration : length(i),
+        velocity: n.velocity ?? 0.7,
+        release: choked?.[k]!.release,
+        bend: run
+          ? run.points
+          : n.bend && voice.bend
+            ? bendAutomation(n.bend, timed[i]!.duration)
+            : undefined,
+      };
+    });
 
     new Tone.Part((time, ev) => {
       // A bent note is played by the track's one bending voice; everything else

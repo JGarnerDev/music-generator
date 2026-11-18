@@ -43,6 +43,9 @@ import { pitchToMidi } from "../src/engine/theory";
 import { COMMON_TIME, beatsPerBar, validateMeter, type Meter } from "../src/utils/timing";
 import { chordSpans, findClashes, formatClash, type LabelledSpan } from "../src/engine/clash";
 import { HOUSE_LEANS, humanize } from "../src/engine/humanize";
+import { splitBySound, type SectionSound } from "../src/engine/section-sound";
+import { offsetNotes, planBendIssues, withoutBends, type PlanNote } from "../src/engine/plan-note";
+import { sectionTempoChanges, tempoMap, type TempoChange } from "../src/engine/tempo";
 import {
   STYLES,
   buildSection,
@@ -65,8 +68,6 @@ import {
  */
 const DEFAULT_REGISTER: [string, string] = ["G1", "D2"];
 
-/** ["bar:beat:sixteenth", pitch, duration, velocity] — compact enough to read in bulk. */
-type PlanNote = [string, string, string, number];
 
 interface PlanSection {
   id: string;
@@ -132,6 +133,52 @@ interface PlanSection {
   harmonyInterval?: HarmonyInterval | number;
   /** Override the twin's side for this section — the harmony crossing above the tune is a lift. */
   harmonyBelow?: boolean;
+  /**
+   * A different sound for these bars, `{ "lead": "wood-flute", "twin": "violin-arco" }`
+   * — the same part handed to another player. Each sound becomes its own track
+   * (see `src/engine/section-sound.ts`); `twin` names the second lead's voice.
+   * Unnamed instruments keep the plan's voice.
+   */
+  voices?: Partial<Record<SoundKey, string>>;
+  /** Track gain for these bars, over the plan's `gains`. `0` silences a part here. */
+  gains?: Partial<Record<SoundKey, number>>;
+  /**
+   * Tempo from this section's first bar, held until a later section states
+   * another. A step on the barline — the section *is* faster, rather than
+   * getting there. See [`src/engine/tempo.ts`](../src/engine/tempo.ts).
+   */
+  bpm?: number;
+  /**
+   * Glide from the section's opening tempo to this one, arriving on its last
+   * barline: a rally that accelerates into the peak, a turnaround that eases
+   * back to the loop's tempo so the seam doesn't lurch.
+   */
+  rampTo?: number;
+}
+
+/** A part a section can re-voice: an instrument, the twin lead, or a part's double (`pluck2`). */
+type SoundKey = InstrumentName | "twin" | `${DoubledPart}2`;
+
+/** Parts that can be double-tracked. */
+type DoubledPart = "pluck" | "pad" | "bass";
+const DOUBLED_PARTS: readonly DoubledPart[] = ["pluck", "pad", "bass"];
+
+/**
+ * A second player on the same part — the record-making trick of tracking the
+ * rhythm guitar twice and panning the takes apart. Same notes, its own voice,
+ * level, side and humanize seed, so the two takes drift against each other
+ * instead of summing into one louder mono part. A section re-voices it as
+ * `voices.pluck2` and drops it with `gains.pluck2: 0`.
+ */
+interface Double {
+  /** Voice slug in `voices/<part>/`. Default: the part's own voice. */
+  voice?: string;
+  /** Gain for the double. Default: the part's gain. */
+  gain?: number;
+  /** Stereo position of the double. Default -0.6. */
+  pan?: number;
+  /** Stereo position of the original, so the pair sits apart. Default 0.6. */
+  pairPan?: number;
 }
 
 /**
@@ -244,6 +291,8 @@ interface Plan {
    * Only meaningful with `melodyOn`, since it harmonises the *written* tune.
    */
   twinLead?: TwinLead;
+  /** Double-track a part — see `Double`. `{ "pluck": { "voice": "chainsaw-chug" } }`. */
+  doubles?: Partial<Record<DoubledPart, Double>>;
   /**
    * Play the parts rather than placing them: micro-timing and dynamics, seeded
    * so a rebuild gives the same performance.
@@ -507,10 +556,13 @@ function buildComposition(plan: Plan): Composition {
   // the section builders' contract, and a harmony line is a plan-level decision
   // no builder knows about.
   const harmonyNotes: Note[] = [];
+  const spans: { section: PlanSection; start: number; end: number }[] = [];
 
   let bar = 0;
   for (const section of plan.sections) {
     const span = { start: bar, end: bar + section.chords.length };
+    spans.push({ section, ...span });
+    checkBends(section);
     const ctx: PlanSectionContext = {
       section,
       style: styleOf(section),
@@ -551,32 +603,65 @@ function buildComposition(plan: Plan): Composition {
     ] as Track[]
   )
     .filter((t) => t.notes.length > 0)
-    .map((t) => ({
-      ...t,
-      gain: gainFor(plan, t.instrument, t.gain ?? 1),
-      ...voiceFor(plan, t.instrument),
-      ...(t.instrument === "lead" && plan.twinLead
-        ? { pan: plan.twinLead.leadPan ?? 0.35 }
-        : {}),
-      notes: performed(plan, t.instrument, t.notes, meter),
-    }));
+    .flatMap((t) => {
+      const base = { ...voiceFor(plan, t.instrument), gain: gainFor(plan, t.instrument, t.gain ?? 1) };
+      const double = doubleOf(plan, t.instrument);
+      // A section that names its own sound gets its own track — see `section-sound.ts`.
+      const parts: Track[] = splitBySound(t.notes, sectionSounds(spans, t.instrument), base).map((part) => ({
+        instrument: t.instrument,
+        gain: part.gain,
+        // Key order kept as it was before sections could re-voice, so a rebuild
+        // of an older plan is byte-identical.
+        notes: performed(plan, t.instrument, part.notes, meter),
+        ...(part.voice === undefined ? {} : { voice: part.voice }),
+        ...(t.instrument === "lead" && plan.twinLead
+          ? { pan: plan.twinLead.leadPan ?? 0.35 }
+          : {}),
+        ...(double ? { pan: double.pairPan ?? 0.6 } : {}),
+      }));
+      if (!double) return parts;
+      const key = `${t.instrument as DoubledPart}2` as const;
+      const doubled: Track[] = splitBySound(t.notes, sectionSounds(spans, key), {
+        voice: double.voice ?? base.voice,
+        gain: double.gain ?? base.gain,
+      }).map((part) => ({
+        instrument: t.instrument,
+        gain: part.gain,
+        pan: double.pan ?? -0.6,
+        ...(part.voice === undefined ? {} : { voice: part.voice }),
+        // Its own seed: two takes, not one take copied.
+        notes: performed(plan, t.instrument, part.notes, meter, key),
+      }));
+      return [...parts, ...doubled];
+    });
 
   // Filed directly after the lead, because that is what it is: the same section
   // of the band, one desk over.
   if (harmonyNotes.length > 0) {
-    const leadAt = tracks.findIndex((t) => t.instrument === "lead");
-    tracks.splice(leadAt < 0 ? tracks.length : leadAt + 1, 0, {
-      instrument: "lead",
-      gain: plan.twinLead?.gain ?? 0.72,
-      pan: plan.twinLead?.pan ?? -0.35,
+    const twinTracks: Track[] = splitBySound(harmonyNotes, sectionSounds(spans, "twin"), {
       ...harmonyVoiceOf(plan),
-      notes: performed(plan, "lead", harmonyNotes, meter),
-    });
+      gain: plan.twinLead?.gain ?? 0.72,
+    }).map((part) => ({
+      instrument: "lead",
+      gain: part.gain,
+      pan: plan.twinLead?.pan ?? -0.35,
+      ...(part.voice === undefined ? {} : { voice: part.voice }),
+      notes: performed(plan, "lead", part.notes, meter),
+    }));
+    const leadAt = tracks.map((t) => t.instrument).lastIndexOf("lead");
+    tracks.splice(leadAt < 0 ? tracks.length : leadAt + 1, 0, ...twinTracks);
   }
+
+  const tempo = sectionTempoChanges(
+    plan.bpm,
+    spans.map(({ section, start, end }) => ({ start, end, ...sectionTempoOf(section) })),
+  );
+  if (loopStartBar !== null && tempo.length > 0) warnTempoSeam(plan, tempo, loopStartBar, bar, meter);
 
   return {
     name: plan.name,
     bpm: plan.bpm,
+    ...(tempo.length > 0 ? { tempo } : {}),
     key: plan.key,
     ...(plan.campaign ? { campaign: plan.campaign } : {}),
     // Written only when it isn't the default, so a 4/4 piece doesn't read as
@@ -601,13 +686,14 @@ function performed(
   instrument: InstrumentName,
   notes: Note[],
   meter: Meter,
+  player: string = instrument,
 ): Note[] {
   if (!plan.humanize) return notes;
   const tuning = plan.humanize === true ? {} : plan.humanize;
   const seed = tuning.seed ?? plan.name;
   const locked = instrument === "drums" || instrument === "bass";
   return humanize(notes, {
-    seed: `${seed}|${instrument}`,
+    seed: `${seed}|${player}`,
     lock: locked ? `${seed}|rhythm-section` : undefined,
     lean: HOUSE_LEANS[instrument] ?? 0,
     jitter: tuning.jitter,
@@ -647,6 +733,83 @@ function bandOf([low, high]: [string, string], label: string): [number, number] 
     process.exit(2);
   }
   return midi;
+}
+
+/**
+ * Each section's own sound for one part — `twin` for the second lead — with
+ * slugs and gains checked here, so a typo fails at build time with the section
+ * named rather than rendering the default an hour later.
+ */
+function sectionSounds(
+  spans: readonly { section: PlanSection; start: number; end: number }[],
+  part: SoundKey,
+): SectionSound[] {
+  const instrument = (part === "twin" ? "lead" : part.replace(/2$/, "")) as InstrumentName;
+  return spans.flatMap(({ section, start, end }) => {
+    const voice = section.voices?.[part];
+    const gain = section.gains?.[part];
+    if (voice === undefined && gain === undefined) return [];
+    if (voice !== undefined && !existsSync(resolve(process.cwd(), `voices/${instrument}/${voice}.json`))) {
+      console.error(`section "${section.id}": voices.${part}: no such voice "${instrument}/${voice}"`);
+      console.error(`  find one with: npm run voice:find -- --instrument ${instrument}`);
+      process.exit(2);
+    }
+    if (gain !== undefined && !(typeof gain === "number" && gain >= 0 && gain <= 2)) {
+      console.error(`section "${section.id}": gains.${part}: must be a number in 0..2, got ${JSON.stringify(gain)}`);
+      process.exit(2);
+    }
+    return [{ start, end, ...(voice === undefined ? {} : { voice }), ...(gain === undefined ? {} : { gain }) }];
+  });
+}
+
+/** The plan's double for a part, checked; undefined when the part isn't doubled. */
+function doubleOf(plan: Plan, instrument: InstrumentName): Double | undefined {
+  if (!plan.doubles) return undefined;
+  for (const key of Object.keys(plan.doubles)) {
+    if (!DOUBLED_PARTS.includes(key as DoubledPart)) {
+      console.error(`doubles.${key}: only ${DOUBLED_PARTS.join(", ")} can be doubled`);
+      process.exit(2);
+    }
+  }
+  const double = plan.doubles[instrument as DoubledPart];
+  if (!double) return undefined;
+  if (double.voice && !existsSync(resolve(process.cwd(), `voices/${instrument}/${double.voice}.json`))) {
+    console.error(`doubles.${instrument}.voice: no such voice "${instrument}/${double.voice}"`);
+    process.exit(2);
+  }
+  return double;
+}
+
+/** A section's tempo request, checked so a typo fails with the section named. */
+function sectionTempoOf(section: PlanSection): { bpm?: number; rampTo?: number } {
+  for (const field of ["bpm", "rampTo"] as const) {
+    const value = section[field];
+    if (value !== undefined && !(typeof value === "number" && value > 0 && Number.isFinite(value))) {
+      console.error(`section "${section.id}": ${field} must be a positive number, got ${JSON.stringify(value)}`);
+      process.exit(2);
+    }
+  }
+  return {
+    ...(section.bpm === undefined ? {} : { bpm: section.bpm }),
+    ...(section.rampTo === undefined ? {} : { rampTo: section.rampTo }),
+  };
+}
+
+/**
+ * A loop that wraps at a different tempo than it starts at lurches on every lap.
+ * Warned rather than refused — a deliberate snap back can be the point.
+ */
+function warnTempoSeam(plan: Plan, tempo: TempoChange[], startBar: number, endBar: number, meter: Meter): void {
+  const map = tempoMap({ bpm: plan.bpm, tempo, meter });
+  const perBar = beatsPerBar(meter);
+  const opening = map.bpmAtBeat(startBar * perBar);
+  const closing = map.bpmAtBeat(endBar * perBar - 1e-6);
+  if (Math.abs(opening - closing) > 0.5) {
+    console.warn(
+      `Tempo seam: the loop starts at ${opening.toFixed(1)} bpm but wraps from ${closing.toFixed(1)} — ` +
+        `give the last section "rampTo": ${opening.toFixed(0)} unless the snap is the point.`,
+    );
+  }
 }
 
 /** One track's gain: the plan's override, else the builder's staging default. */
@@ -728,7 +891,8 @@ function sectionHarmony(
     // The section's chords go in so the twin follows the harmony, not just the
     // key — see `src/engine/harmony.ts` for the semitone rubs that prevents.
     const meter = meterOf(plan);
-    return harmonize(melody, {
+    // A bend belongs to a line that is alone — the twin plays the written pitch.
+    return harmonize(withoutBends(melody), {
       tonic,
       scale,
       chords: chordSpans(section.chords, startBar, meter),
@@ -741,6 +905,21 @@ function sectionHarmony(
     console.error(`section "${section.id}": could not harmonise — ${(err as Error).message}`);
     process.exit(2);
   }
+}
+
+/**
+ * The bends a section wrote, checked before anything is built so a bad one
+ * names its section and field — see `src/engine/plan-note.ts`.
+ */
+function checkBends(section: PlanSection): void {
+  const issues = (["melody", "lead"] as const).flatMap((field) =>
+    planBendIssues(section[field] ?? [], field),
+  );
+  if (Array.isArray(section.harmony)) issues.push(...planBendIssues(section.harmony, "harmony"));
+  if (issues.length === 0) return;
+  console.error(`section "${section.id}": invalid bend`);
+  for (const issue of issues) console.error(`  ${issue}`);
+  process.exit(2);
 }
 
 /** A stated interval, checked here so a typo prints the shelf. */
@@ -896,13 +1075,3 @@ function findLoopStart(plan: Plan): number | null {
   console.error(`loopFrom "${plan.loopFrom}" matches no section id`);
   process.exit(2);
 }
-
-/** Move plan notes (written relative to their section) onto the real timeline. */
-function offsetNotes(notes: PlanNote[], startBar: number): Note[] {
-  return notes.map(([time, pitch, duration, velocity]) => {
-    const [bar = "0", beat = "0", sixteenth = "0"] = time.split(":");
-    return { time: `${Number(bar) + startBar}:${beat}:${sixteenth}`, pitch, duration, velocity };
-  });
-}
-
-

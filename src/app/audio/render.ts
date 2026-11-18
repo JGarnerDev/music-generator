@@ -17,6 +17,7 @@
 import * as Tone from "tone";
 import type { Composition } from "@engine/composition";
 import { compositionDurationSeconds, loopWindowSeconds } from "@engine/arrange";
+import { tempoMap } from "@engine/tempo";
 import type { PcmAudio } from "@utils/wav";
 import { wrapTail, secondsToSamples } from "@utils/loop";
 import { EXPORT_QUALITY, withQuality, type RenderQuality } from "./quality";
@@ -52,7 +53,7 @@ export async function renderComposition(
   const quality = opts.quality ?? EXPORT_QUALITY;
   if (!opts.loopOnly) {
     const seconds = compositionDurationSeconds(comp) + TAIL_SECONDS;
-    const buffer = await renderOffline(comp, seconds, 0, quality);
+    const buffer = await renderOffline(comp, seconds, 0, 0, quality);
     return { sampleRate: buffer.sampleRate, channels: readChannels(buffer) };
   }
 
@@ -60,7 +61,13 @@ export async function renderComposition(
   if (!window) {
     throw new Error(`"${comp.name}" has no loop window — add a loop {startBar,endBar}`);
   }
-  const buffer = await renderOffline(comp, window.duration + TAIL_SECONDS, window.start, quality);
+  const buffer = await renderOffline(
+    comp,
+    window.duration + TAIL_SECONDS,
+    window.start,
+    comp.loop!.startBar,
+    quality,
+  );
   const channels = wrapTail({
     channels: readChannels(buffer),
     loopSamples: secondsToSamples(window.duration, buffer.sampleRate),
@@ -69,8 +76,9 @@ export async function renderComposition(
 }
 
 /**
- * Run the graph offline. `offsetSeconds` seeks the transport, so the render
- * starts mid-piece without the earlier bars sounding.
+ * Run the graph offline. `offsetBar` seeks the transport, so the render starts
+ * mid-piece without the earlier bars sounding; `offsetSeconds` is the same
+ * point in seconds, which the tempo automation needs.
  *
  * This is `Tone.Offline` unrolled so the clock walk is ours to control, and it
  * runs the **asynchronous** walk deliberately. The choice is between two flaws:
@@ -92,6 +100,7 @@ async function renderOffline(
   comp: Composition,
   seconds: number,
   offsetSeconds: number,
+  offsetBar: number,
   quality: RenderQuality,
 ): Promise<Tone.ToneAudioBuffer> {
   const original = Tone.getContext();
@@ -107,7 +116,16 @@ async function renderOffline(
     // counts and oversampling, which are constructor arguments.
     withQuality(quality, () => {
       scheduleComposition(comp);
-      context.transport.start(0, offsetSeconds);
+      // The tempo map's automation, shifted so the render's 0 is the seek point.
+      // The bpm param is clocked in context time, not transport time, so it has
+      // to be told where the seek landed.
+      for (const ev of tempoMap(comp).automation(offsetSeconds)) {
+        if (ev.ramp) context.transport.bpm.linearRampToValueAtTime(ev.bpm, ev.seconds);
+        else context.transport.bpm.setValueAtTime(ev.bpm, ev.seconds);
+      }
+      // Seek by bar, not by seconds: Tone converts a seconds offset to ticks at
+      // the tempo sounding *now*, which is wrong as soon as the tempo has moved.
+      context.transport.start(0, `${offsetBar}:0:0`);
     });
     rendering = context.render();
   } finally {

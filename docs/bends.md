@@ -1,8 +1,8 @@
 ---
 title: String bends
-purpose: How to bend a note's pitch while it sounds — the schema, the three curves, the one-note-at-a-time rule, and which voices can do it.
+purpose: How to bend a note's pitch while it sounds — the schema, the three curves, the one-note-at-a-time rule, which voices can do it, and legato runs (hammer-ons, pull-offs, tapping).
 audience: [claude, human]
-updated: 2026-08-17
+updated: 2026-11-12
 read_order: 6
 see_also: [../readme.md, ../claude.md, voices.md, variety.md]
 ---
@@ -79,6 +79,60 @@ track go to the ordinary polyphonic synth and are untouched. A bent line over
 held chords on one track is fine. Two bends at once are not — write the second
 one on its own track, which is also how it would be played.
 
+## In a plan
+
+A plan note is a tuple, and a bend is its optional fifth entry — so a loop or a
+song built by `song:build` bends exactly as a hand-written piece does:
+
+```jsonc
+"melody": [
+  ["0:0:0", "A4", "4n", 0.5],
+  ["0:1:0", "D5", "2n.", 0.66, { "semitones": 1, "curve": "meend", "at": 0.35, "over": 0.25, "release": true }]
+]
+```
+
+A bad bend fails the build naming its section. A twin derived from a bent
+melody plays the written pitch — the bend belongs to the line that is alone
+(see [taste](./taste.md)). Write the twin out with its own bend if you mean
+both. [`src/engine/plan-note.ts`](../src/engine/plan-note.ts).
+
+## Legato: hammer-ons, pull-offs, tapping
+
+A bend moves one note's pitch along a curve. `"legato": true` moves it in
+**steps**: the note is not picked, the string the previous note was sounding
+just changes to it. A run of these is one picked note held for the whole run,
+its pitch walking fret to fret, with no new attack anywhere after the first.
+That missing attack is the whole sound of a tapped run. Without it, sixteenths
+on a lead read as tremolo picking however fast they are.
+
+```jsonc
+// Eruption shape in E: pick, tap the octave, pull off twice, repeat.
+{ "time": "0:0:0", "pitch": "E4", "duration": "16t" },
+{ "time": "0:0:0.67", "pitch": "E5", "duration": "16t", "legato": true },
+{ "time": "0:0:1.33", "pitch": "B4", "duration": "16t", "legato": true },
+```
+
+In a plan the fifth tuple entry is the string `"legato"` in place of a bend
+spec: `["0:0:1", "E5", "16n", 0.7, "legato"]`.
+
+- A legato note lands on the note that **started most recently before it** —
+  the top note if that was a chord. With nothing before it, it is picked.
+- The run plays through the bending voice, so it obeys **the same rule**: one run
+  or bend at a time per track. A legato note can't also bend, and neither can a
+  run's first note. Section voices can't do it, so they pick every note.
+- Tapped and hammered are not told apart, because through a drive the
+  difference is a few dB of attack. The run's loudness is its first note's
+  velocity, so **pick the first note hard**.
+- A choked (amped) voice treats the run as one note: a hammer-on doesn't stop
+  its own string, but the next picked note does.
+- A twin derived from the melody keeps the legato marks, so both lines
+  articulate together.
+
+Fits `lead/sludge-lead` and `lead/brown-lead`. A run that spans more than an
+octave above its first note darkens a little at the top, because the filter
+envelope tracks the picked pitch.
+[`src/engine/legato.ts`](../src/engine/legato.ts).
+
 ## Which voices can bend
 
 Any voice with a `synth` block, which is nearly all of them. Two cannot:
@@ -120,5 +174,6 @@ usually a section voice silently declining it — check the render's warnings.
 | [`src/engine/bend.ts`](../src/engine/bend.ts) | The curves and the automation points. Pure, tested. |
 | [`src/engine/composition.ts`](../src/engine/composition.ts) | `Note.bend`, and the overlap rule. |
 | [`src/app/audio/instruments.ts`](../src/app/audio/instruments.ts) | `BendVoice` — why it is a second synth and not the track's. |
-| [`src/app/audio/graph.ts`](../src/app/audio/graph.ts) | Routing bent notes to it. |
+| [`src/engine/legato.ts`](../src/engine/legato.ts) | Folding legato runs into one held note's detune steps. Pure, tested. |
+| [`src/app/audio/graph.ts`](../src/app/audio/graph.ts) | Routing bent notes and legato runs to it. |
 | `compositions/segments/string-bend-probe.json` | Every curve, in one short piece. |

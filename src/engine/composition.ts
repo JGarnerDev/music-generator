@@ -9,6 +9,9 @@
 // its dev plugins, and config is loaded before the resolve aliases exist.
 import { barsBeatsToSeconds, notationToSeconds, validateMeter } from "../utils/timing";
 import { validateBend, type BendSpec } from "./bend";
+import { tempoIssues, type TempoChange } from "./tempo";
+import { legatoRuns, type LegatoNote } from "./legato";
+import { pitchToMidi } from "./theory";
 
 export interface Note {
   /** Transport time, "bars:beats:sixteenths" (Tone.js format), e.g. "0:0" or "1:2:2". */
@@ -29,6 +32,14 @@ export interface Note {
    * bend) or on section voices (a desk of players is not one bending hand).
    */
   bend?: BendSpec;
+  /**
+   * Hammered on, pulled off or tapped: the string the note before it was
+   * sounding moves to this pitch without being picked again, so there is no new
+   * attack. A run of these is one held note whose pitch steps — see
+   * [`./legato`](./legato.ts). Played by the same voice as bends, so a run
+   * shares their rule: one at a time per track, no `bend` on its notes.
+   */
+  legato?: boolean;
 }
 
 /**
@@ -138,7 +149,15 @@ export interface LoopSettings {
 
 export interface Composition {
   name: string;
+  /** Tempo at bar 0 — and throughout, unless `tempo` changes it. */
   bpm: number;
+  /**
+   * Tempo changes after bar 0: a step from a bar on, or a `ramp` that glides from
+   * the previous change and arrives on its bar. Absent = `bpm` throughout. Every
+   * seconds conversion goes through [`./tempo`](./tempo.ts), so note times stay
+   * in bars and never move. A loop should arrive back at the tempo it started at.
+   */
+  tempo?: TempoChange[];
   /** e.g. "A minor" — informational; palettes/theory decide pitches. */
   key: string;
   /**
@@ -208,6 +227,10 @@ export function validateComposition(input: unknown): ValidationIssue[] {
   }
   if (typeof c.key !== "string" || c.key.trim() === "") {
     push("key", "must be a non-empty string");
+  }
+
+  if (c.tempo !== undefined) {
+    for (const [path, message] of tempoIssues(c.tempo)) push(path, message);
   }
 
   if (c.meter !== undefined) {
@@ -281,8 +304,15 @@ export function validateComposition(input: unknown): ValidationIssue[] {
         if (isDrums) push(`${nb}.bend`, "drums have no pitch to bend");
         else validateBend(n.bend, `${nb}.bend`, push);
       }
+      if (n.legato !== undefined) {
+        if (typeof n.legato !== "boolean") push(`${nb}.legato`, "must be a boolean");
+        else if (isDrums && n.legato) push(`${nb}.legato`, "drums have no string to hammer on");
+        else if (n.legato && n.bend !== undefined) {
+          push(`${nb}.legato`, "a legato note is a step in a run, so it cannot also bend");
+        }
+      }
     });
-    validateBendOverlap(t.notes as Record<string, unknown>[], base, c, push);
+    if (!isDrums) validateBendOverlap(t.notes as Record<string, unknown>[], base, c, push);
   });
 
   return issues;
@@ -310,21 +340,37 @@ function validateBendOverlap(
   if (typeof comp.bpm !== "number" || !(comp.bpm > 0)) return;
   const meter = Array.isArray(comp.meter) ? (comp.meter as [number, number]) : undefined;
 
-  const spans: { index: number; start: number; end: number }[] = [];
-  notes.forEach((n, i) => {
-    if (n.bend === undefined) return;
-    if (typeof n.time !== "string" || typeof n.duration !== "string") return;
+  // Every note's place in seconds, or undefined where the time won't parse — an
+  // unparseable time is already an issue of its own, with nothing to add here.
+  const timed = notes.map((n) => {
+    if (typeof n.time !== "string" || typeof n.duration !== "string") return undefined;
     try {
       const start = barsBeatsToSeconds(n.time, comp.bpm as number, meter);
-      spans.push({
-        index: i,
-        start,
-        end: start + notationToSeconds(n.duration, comp.bpm as number, meter),
-      });
+      return { start, duration: notationToSeconds(n.duration, comp.bpm as number, meter) };
     } catch {
-      // An unparseable time or duration is already an issue of its own; there is
-      // nothing useful to say about whether it overlaps.
+      return undefined;
     }
+  });
+
+  // A legato run is one held note on the bending voice, so it takes a span of
+  // its own and its head may not bend as well.
+  const legato = legatoInputs(notes, timed);
+  const runs = legatoRuns(legato.notes);
+  const inRun = new Set<number>();
+  const spans: { index: number; start: number; end: number }[] = [];
+  for (const run of runs) {
+    const head = legato.index[run.head]!;
+    for (const m of [run.head, ...run.members]) inRun.add(legato.index[m]!);
+    if (notes[head]!.bend !== undefined) {
+      push(`${base}.notes[${head}].bend`, "starts a legato run, so it cannot also bend");
+    }
+    const start = legato.notes[run.head]!.start;
+    spans.push({ index: head, start, end: start + run.duration });
+  }
+  notes.forEach((n, i) => {
+    const t = timed[i];
+    if (n.bend === undefined || t === undefined || inRun.has(i)) return;
+    spans.push({ index: i, start: t.start, end: t.start + t.duration });
   });
 
   spans.sort((a, b) => a.start - b.start);
@@ -336,10 +382,32 @@ function validateBendOverlap(
     if (cur.start < prev.end - 1e-6) {
       push(
         `${base}.notes[${cur.index}].bend`,
-        `overlaps the bent note at index ${prev.index} — one track bends one note at a time`,
+        `overlaps the bent note or legato run at index ${prev.index} — one track bends one note at a time`,
       );
     }
   }
+}
+
+/** The notes `legatoRuns` can read, and where each came from in the track. */
+function legatoInputs(
+  notes: Record<string, unknown>[],
+  timed: ({ start: number; duration: number } | undefined)[],
+): { notes: LegatoNote[]; index: number[] } {
+  const out: LegatoNote[] = [];
+  const index: number[] = [];
+  notes.forEach((n, i) => {
+    const t = timed[i];
+    if (t === undefined || typeof n.pitch !== "string") return;
+    let midi: number;
+    try {
+      midi = pitchToMidi(n.pitch);
+    } catch {
+      return;
+    }
+    out.push({ ...t, midi, legato: n.legato === true });
+    index.push(i);
+  });
+  return { notes: out, index };
 }
 
 /**

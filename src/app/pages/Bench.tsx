@@ -21,6 +21,7 @@ import {
   type CompositionKind,
   type LibraryEntry,
 } from "@engine/library";
+import { loopIntroSeconds } from "@engine/arrange";
 import { audioName } from "@engine/manifest";
 import { TRASH_ENDPOINT } from "../../dev/endpoints";
 import { KindTabs } from "../components/KindTabs";
@@ -103,11 +104,16 @@ export function Bench() {
       setStatus(`No audio for ${name}. Run: npm run render -- --file <its .json>`);
       return;
     }
+    // A loop whose body starts after an intro hears the intro once first, from
+    // the full render — the `.loop` file alone starts at the body.
+    const introSeconds = repeat ? loopIntroSeconds(comp) : null;
+    const full = introSeconds !== null ? await lookup(audioName(comp.name, { loop: false })) : undefined;
     setLoading(true);
     try {
       await playback.play(`/audio/${entry.file}`, {
         loop: repeat,
         onEnded: () => setStatus("Finished."),
+        ...(introSeconds !== null && full ? { intro: { url: `/audio/${full.file}`, seconds: introSeconds } } : {}),
       });
       setStatus(
         `${repeat ? "Playing loop" : "Playing"} — ${entry.seconds.toFixed(0)}s, ` +

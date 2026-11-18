@@ -100,7 +100,9 @@ sitar) or `linear`; `release` brings it back. This is the *note's* gesture; a
 voice's `vibrato` is the *instrument's* and happens on every note. Reach for it
 on a lead line or a sitar phrase rather than adding chromatic grace notes, which
 read as a trill. One bent note at a time per track — unbent notes on that track
-are unaffected — and section voices decline it. [`docs/bends.md`](./docs/bends.md).
+are unaffected — and section voices decline it. `"legato": true` is its stepped
+cousin — hammer-on, pull-off, tapping: the note isn't picked, the previous one's
+string moves to it. [`docs/bends.md`](./docs/bends.md).
 
 **A sour note is a clash, not a tuning problem.** Distorted guitars and twin
 leads make three mistakes look like bad intonation: overlap inside one drive
@@ -218,7 +220,9 @@ ones you left alone — a nudge, not an error, but "I meant it" is the only good
 reason to ignore it. Why each default is a trap, and the rules for choosing:
 [`docs/variety.md`](./docs/variety.md). A section states its own `register` when
 it should sit *above* the one before it — that is the contour knob, and it is
-the one a chorus needs.
+the one a chorus needs. A section's `bpm` / `rampTo` moves the tempo (the loop
+must wrap at the tempo it starts at), and `doubles` double-tracks a part for
+size — both in [`docs/looping.md`](./docs/looping.md).
 
 For `compose` the scene words choose those knobs for you and it prints what they
 picked; override with `--figure` / `--register` / `--tempo`, and reach for

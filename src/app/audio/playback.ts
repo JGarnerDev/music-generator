@@ -14,6 +14,7 @@
  */
 import * as Tone from "tone";
 import { dbToFraction, fractionToDb } from "@utils/volume";
+import { wrapLoopPosition } from "@utils/loop-position";
 
 let player: Tone.Player | null = null;
 /**
@@ -35,6 +36,8 @@ let startedAt = 0;
 let paused = false;
 /** Set while pausing, so the player's own `onstop` doesn't report a natural end. */
 let pausing = false;
+/** Where the repeating part of the loaded buffer starts — 0 unless an intro plays first. */
+let loopStart = 0;
 
 export type PlaybackState = "stopped" | "playing" | "paused";
 
@@ -43,6 +46,14 @@ export interface PlayFileOptions {
   loop?: boolean;
   /** Called when playback of a non-looping file reaches the end. */
   onEnded?: () => void;
+  /**
+   * With `loop`: play this file once first, up to `seconds`, then the looping
+   * file forever. For a piece whose loop body starts after an intro, `url` is
+   * the `.loop` file and this is the full render cut where the body *ends* — the
+   * `.loop` file opens with that ending's tail wrapped in, so the join is the
+   * same seam every later lap crosses.
+   */
+  intro?: { url: string; seconds: number };
 }
 
 /**
@@ -58,11 +69,25 @@ export async function playFile(url: string, opts: PlayFileOptions = {}): Promise
   // `load()` is the promise; `player.loaded` is a *boolean* getter — awaiting
   // that resolves immediately and `start()` then throws on an empty buffer.
   const loaded = new Tone.Player({ loop });
-  await loaded.load(url);
+  let introSeconds = 0;
+  if (loop && opts.intro) {
+    const [intro, body] = await Promise.all([
+      new Tone.ToneAudioBuffer().load(opts.intro.url),
+      new Tone.ToneAudioBuffer().load(url),
+    ]);
+    const joined = joinIntro(intro, opts.intro.seconds, body);
+    loaded.buffer = new Tone.ToneAudioBuffer(joined.buffer);
+    introSeconds = joined.loopStart;
+    loaded.loopStart = introSeconds;
+    loaded.loopEnd = joined.buffer.duration;
+  } else {
+    await loaded.load(url);
+  }
   if (token !== generation) {
     loaded.dispose(); // stopped or superseded while the file was loading
     return;
   }
+  loopStart = introSeconds;
 
   player = loaded.toDestination();
   if (!loop && opts.onEnded) {
@@ -84,7 +109,9 @@ export async function playFile(url: string, opts: PlayFileOptions = {}): Promise
   offset = 0;
   paused = false;
   startedAt = Tone.now();
-  player.start();
+  // Offset stated, never defaulted: a looping Player with no offset starts at
+  // `loopStart`, which skips an intro without a word.
+  player.start(undefined, 0);
 }
 
 /**
@@ -97,7 +124,7 @@ export async function playFile(url: string, opts: PlayFileOptions = {}): Promise
 export function pausePlayback(): boolean {
   if (!player || paused) return false;
   const duration = player.buffer.duration;
-  offset = duration > 0 ? (offset + (Tone.now() - startedAt)) % duration : 0;
+  offset = wrapLoopPosition(offset + (Tone.now() - startedAt), duration, loopStart);
   pausing = true;
   player.stop();
   pausing = false;
@@ -140,7 +167,7 @@ export function positionSeconds(): number {
   const duration = player.buffer.duration;
   if (duration <= 0) return 0;
   const elapsed = paused ? offset : offset + (Tone.now() - startedAt);
-  return elapsed % duration;
+  return wrapLoopPosition(elapsed, duration, loopStart);
 }
 
 /**
@@ -191,9 +218,52 @@ export function getVolume(): number {
 export function stopPlayback(): void {
   generation++;
   offset = 0;
+  loopStart = 0;
   paused = false;
   if (!player) return;
   player.stop();
   player.dispose();
   player = null;
+}
+
+/**
+ * How long the hand-off from intro to loop takes. The two files are separate
+ * renders — their reverbs and drifts never match sample for sample — so a
+ * straight cut clicks. The crossfade runs into the *end* of the loop file just
+ * before the join, so the join itself is the loop's own seam, which is clean,
+ * and the body's first downbeat is never faded.
+ */
+const INTRO_HANDOFF_SECONDS = 0.05;
+
+/**
+ * The first `seconds` of `intro` followed by all of `body`, as one buffer, and
+ * where the body starts in it. One buffer rather than two players handed off on
+ * a timer, so pause, seek and the scrub bar keep working on a single position.
+ */
+function joinIntro(
+  intro: Tone.ToneAudioBuffer,
+  seconds: number,
+  body: Tone.ToneAudioBuffer,
+): { buffer: AudioBuffer; loopStart: number } {
+  const a = intro.get()!;
+  const b = body.get()!;
+  const head = Math.min(a.length, Math.round(seconds * a.sampleRate));
+  const fade = Math.min(Math.round(INTRO_HANDOFF_SECONDS * b.sampleRate), head, b.length);
+  const channels = Math.max(a.numberOfChannels, b.numberOfChannels);
+  const out = Tone.getContext().createBuffer(channels, head + b.length, b.sampleRate);
+  for (let c = 0; c < channels; c++) {
+    const data = out.getChannelData(c);
+    const from = a.getChannelData(Math.min(c, a.numberOfChannels - 1));
+    const to = b.getChannelData(Math.min(c, b.numberOfChannels - 1));
+    data.set(from.subarray(0, head - fade), 0);
+    for (let i = 0; i < fade; i++) {
+      // Equal power: the two renders are uncorrelated at this scale.
+      const g = (i + 0.5) / fade;
+      data[head - fade + i] =
+        from[head - fade + i]! * Math.cos((g * Math.PI) / 2) +
+        to[b.length - fade + i]! * Math.sin((g * Math.PI) / 2);
+    }
+    data.set(to, head);
+  }
+  return { buffer: out, loopStart: head / b.sampleRate };
 }

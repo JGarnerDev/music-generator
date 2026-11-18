@@ -24,6 +24,7 @@
 import { useMemo, useState } from "react";
 import type { Composition } from "@engine/composition";
 import { buildLibrary, type LibraryEntry } from "@engine/library";
+import { loopIntroSeconds } from "@engine/arrange";
 import { audioName } from "@engine/manifest";
 import {
   addCue,
@@ -111,10 +112,20 @@ export function Session() {
 
   /* ── Transport ─────────────────────────────────────────────────────────── */
 
-  async function start(url: string, loop: boolean, label: string, note?: string): Promise<void> {
+  async function start(
+    url: string,
+    loop: boolean,
+    label: string,
+    note?: string,
+    comp?: Composition,
+  ): Promise<void> {
+    // A looping cue with an intro plays it once from the full render first.
+    const introSeconds = loop && comp ? loopIntroSeconds(comp) : null;
+    const full = introSeconds !== null ? rendered?.get(audioName(comp!.name, { loop: false })) : undefined;
     try {
       await playback.play(url, {
         loop,
+        ...(introSeconds !== null && full ? { intro: { url: `/audio/${full.file}`, seconds: introSeconds } } : {}),
         onEnded: () => {
           // A one-shot that runs out is not a stop: leave the cue named on
           // screen so you can see what just finished.
@@ -137,7 +148,7 @@ export function Session() {
     }
     setPlayingCue(cue.index);
     setPlayingEntry(cue.entry?.id ?? null);
-    await start(`/audio/${cue.audio.file}`, cue.loop, cue.label, cue.cue.note);
+    await start(`/audio/${cue.audio.file}`, cue.loop, cue.label, cue.cue.note, cue.entry?.composition);
   }
 
   async function playEntry(entry: LibraryEntry): Promise<void> {
@@ -149,7 +160,7 @@ export function Session() {
     }
     setPlayingCue(null);
     setPlayingEntry(entry.id);
-    await start(`/audio/${audio.file}`, looping, entry.composition.name);
+    await start(`/audio/${audio.file}`, looping, entry.composition.name, undefined, entry.composition);
   }
 
   /** Play/pause whatever is loaded. Does nothing when nothing is. */
