@@ -16,11 +16,10 @@
     "skipLibCheck": true,
     "resolveJsonModule": true,
     "forceConsistentCasingInFileNames": true,
-    "baseUrl": ".",
     "paths": {
-      "@engine/*": ["src/engine/*"],
-      "@utils/*": ["src/utils/*"],
-      "@app/*": ["src/app/*"]
+      "@engine/*": ["./src/engine/*"],
+      "@utils/*": ["./src/utils/*"],
+      "@app/*": ["./src/app/*"]
     }
   },
   "include": ["src", "scripts", "vite.config.ts", "vite.keys.config.ts"]

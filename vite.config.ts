@@ -11,7 +11,7 @@ import { voiceApi } from "./src/dev/voice-api";
 
 export default defineConfig({
   plugins: [
-    // JSX + Fast Refresh. Pinned to plugin-react v5 — v6 requires Vite 8.
+    // JSX + Fast Refresh.
     // `render.html` has no React on it and is unaffected: the plugin only
     // transforms files that contain JSX.
     react(),
