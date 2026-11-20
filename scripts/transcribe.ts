@@ -34,7 +34,7 @@ import {
 } from "@spotify/basic-pitch";
 import { decodeWav, isRiffWave, type PcmAudio } from "../src/utils/wav";
 import { downmixToMono, resample } from "../src/utils/resample";
-import { COMMON_TIME, type Meter } from "../src/utils/timing";
+import { type Meter } from "../src/utils/timing";
 import {
   cleanDetected,
   degreesOf,

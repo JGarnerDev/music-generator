@@ -76,14 +76,7 @@ export interface TempoMap {
   readonly constant: boolean;
 }
 
-/** Beats elapsed `t` seconds into a segment. */
-function beatsInto(seg: Segment, t: number): number {
-  if (seg.from === seg.to) return (t * seg.from) / 60;
-  const span = (120 * seg.beats) / (seg.from + seg.to);
-  return (seg.from * t + ((seg.to - seg.from) * t * t) / (2 * span)) / 60;
-}
-
-/** Seconds into a segment at which `x` beats have elapsed — the inverse of `beatsInto`. */
+/** Seconds into a segment at which `x` beats have elapsed — the inverse of beats(t) = (from·t + (to − from)·t² / 2·span) / 60. */
 function secondsInto(seg: Segment, x: number): number {
   if (seg.from === seg.to) return (60 * x) / seg.from;
   const span = (120 * seg.beats) / (seg.from + seg.to);

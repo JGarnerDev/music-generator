@@ -13,22 +13,22 @@
  * `(pointer: coarse)` asks the only question worth asking — is a finger doing
  * the pointing?
  */
-import { useEffect, useState } from "react";
+import { useCallback, useSyncExternalStore } from "react";
 
 export function useMediaQuery(query: string): boolean {
-  const [matches, setMatches] = useState(() =>
-    typeof window === "undefined" ? false : window.matchMedia(query).matches,
+  const subscribe = useCallback(
+    (onChange: () => void) => {
+      const list = window.matchMedia(query);
+      list.addEventListener("change", onChange);
+      return () => list.removeEventListener("change", onChange);
+    },
+    [query],
   );
-
-  useEffect(() => {
-    const list = window.matchMedia(query);
-    setMatches(list.matches);
-    const onChange = (event: MediaQueryListEvent) => setMatches(event.matches);
-    list.addEventListener("change", onChange);
-    return () => list.removeEventListener("change", onChange);
-  }, [query]);
-
-  return matches;
+  return useSyncExternalStore(
+    subscribe,
+    () => window.matchMedia(query).matches,
+    () => false,
+  );
 }
 
 /** True while a finger, not a mouse, is doing the pointing. */

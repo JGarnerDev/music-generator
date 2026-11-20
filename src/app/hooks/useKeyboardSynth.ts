@@ -12,7 +12,7 @@
  * name field contains the letters Z and Q, and typing them must not play the
  * piano. See [`./useHotkeys`](./useHotkeys.ts), which learned this first.
  */
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { DrumPiece, InstrumentName } from "@engine/composition";
 import {
   BEND_SEMITONES,
@@ -136,7 +136,9 @@ export function useKeyboardSynth(options: KeyboardSynthOptions): KeyboardSynth {
   // the two window listeners are bound once. Re-binding them per render would
   // drop a keyup between the removal and the addition, which is a stuck note.
   const state = useRef({ enabled, octave, velocity, pads, onTransport });
-  state.current = { enabled, octave, velocity, pads, onTransport };
+  useLayoutEffect(() => {
+    state.current = { enabled, octave, velocity, pads, onTransport };
+  });
 
   /** Notes currently down, and the closed presses, while logging. */
   const open = useRef(new Map<number, { downMs: number; velocity: number }>());

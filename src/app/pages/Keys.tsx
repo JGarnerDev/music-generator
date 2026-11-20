@@ -42,13 +42,11 @@
  * [`buildTake`](../../engine/take.ts). That is `transcribe --requantize`, by
  * default, in the page.
  */
-import { useEffect, useMemo, useRef, useState } from "react";
-import { pianoKeys, scalePitchClasses, shiftOctave } from "@engine/keys";
+import { useEffect, useMemo, useState } from "react";
+import { pianoKeys, shiftOctave } from "@engine/keys";
 import { playability } from "@engine/keys-bench";
-import { guessKey } from "@engine/key-guess";
 import { defaultMonitor, isMonitorId, type MonitorId } from "@engine/monitor";
 import { drumPads, padPlayable } from "@engine/pads";
-import { type VoiceEntry } from "@engine/voice-library";
 import { Button, Select } from "jeff-ui";
 import { DrumPads } from "../components/DrumPads";
 import { KeysMenu } from "../components/KeysMenu";

@@ -12,7 +12,7 @@
  * write is debounced: reordering a running order is a burst of clicks and each
  * one would otherwise be a file write.
  */
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useEffectEvent, useLayoutEffect, useRef, useState } from "react";
 import {
   checkSessionName,
   deletedMessage,
@@ -65,9 +65,11 @@ export function useSessions({ enabled, onStatus, onOpen }: SessionsOptions): Ses
   // Latched: both fire from a debounced timer or a promise, long after the
   // render that supplied them.
   const status = useRef(onStatus);
-  status.current = onStatus;
   const open = useRef(onOpen);
-  open.current = onOpen;
+  useLayoutEffect(() => {
+    status.current = onStatus;
+    open.current = onOpen;
+  });
 
   /**
    * False once a write has been refused. A built bundle has no dev server to
@@ -119,10 +121,11 @@ export function useSessions({ enabled, onStatus, onOpen }: SessionsOptions): Ses
   // guard is what makes StrictMode's second pass a no-op rather than a second
   // fetch that re-announces the pre-flight check over the top of itself.
   const started = useRef(false);
+  const loadFirst = useEffectEvent(() => void load());
   useEffect(() => {
     if (!enabled || started.current) return;
     started.current = true;
-    void load();
+    loadFirst();
   }, [enabled]);
 
   return {

@@ -96,9 +96,9 @@ describe("the axis shelf", () => {
   });
 
   it("gives no values to written axes — there is nothing to enumerate", () => {
-    for (const axis of STUDY_AXES) {
-      if (axis.kind === "written") expect(axis.values).toBeUndefined();
-    }
+    const written = STUDY_AXES.filter((axis) => axis.kind === "written");
+    expect(written.length).toBeGreaterThan(0);
+    for (const axis of written) expect(axis.values).toBeUndefined();
   });
 
   it("resolves by name", () => {

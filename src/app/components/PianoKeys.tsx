@@ -31,12 +31,12 @@ export function PianoKeys({ keys, held, scale, ...on }: PianoKeysProps) {
   const share = 100 / Math.max(1, whites.length);
   const activePointersRef = useRef<Map<number, Set<number>>>(new Map());
 
+  const placed: { key: (typeof keys)[number]; left: number }[] = [];
   let whitesBefore = 0;
-  const placed = keys.map((key) => {
-    const left = whitesBefore * share;
+  for (const key of keys) {
+    placed.push({ key, left: whitesBefore * share });
     if (!key.black) whitesBefore += 1;
-    return { key, left };
-  });
+  }
 
   function handlePointerDown(event: React.PointerEvent<HTMLDivElement>): void {
     const element = event.target as HTMLElement;

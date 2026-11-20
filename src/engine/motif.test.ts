@@ -25,13 +25,6 @@ const theme: Composition = {
   ],
 };
 
-const notesOf = (tracks: { notes: unknown[] }[]) =>
-  tracks.flatMap((t) => t.notes) as {
-    time: string;
-    pitch: string;
-    velocity?: number;
-  }[];
-
 describe("quoteMotif", () => {
   it("moves the theme into the host's key", () => {
     // A minor → D minor is five semitones up, which beats seven down.

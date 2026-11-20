@@ -11,14 +11,13 @@
  * every render, and re-binding a window listener sixty times a scene is how you
  * end up with two of them. One listener, always calling the newest handler.
  */
-import { useEffect, useRef } from "react";
+import { useEffect, useEffectEvent } from "react";
 
 /** Where a keystroke belongs to what you are typing in, not to the page. */
 const TYPING = /^(INPUT|TEXTAREA|SELECT)$/;
 
 export function useHotkeys(handler: (event: KeyboardEvent) => void): void {
-  const latest = useRef(handler);
-  latest.current = handler;
+  const latest = useEffectEvent(handler);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent): void => {
@@ -26,7 +25,7 @@ export function useHotkeys(handler: (event: KeyboardEvent) => void): void {
       if (target && TYPING.test(target.tagName)) return;
       // Leave the browser's own shortcuts alone — ⌘/ctrl-1 switches tabs.
       if (event.metaKey || event.ctrlKey || event.altKey) return;
-      latest.current(event);
+      latest(event);
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);

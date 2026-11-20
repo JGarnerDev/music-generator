@@ -88,7 +88,7 @@ export function Session() {
 
   const playback = usePlayback();
   const fader = useVolume();
-  const scrub = useScrubBar((seconds) => setStatus(seekedMessage(seconds)));
+  const { ref: scrubRef, ...scrub } = useScrubBar((seconds) => setStatus(seekedMessage(seconds)));
   const rendered = useManifestIndex();
 
   const sessions = useSessions({
@@ -352,7 +352,7 @@ export function Session() {
       <div id="nowPlaying">{nowPlaying}</div>
       {/* The bar owns its own children and its own class list from here on —
           see hooks/useScrubBar.ts for why it is not JSX. */}
-      <div id="scrub" className="scrub idle" ref={scrub.ref} />
+      <div id="scrub" className="scrub idle" ref={scrubRef} />
       <div className="row">
         <Button id="toggle" disabled={playback.state === "stopped"} onClick={togglePlayback}>
           {playback.state === "playing" ? "⏸ Pause" : "▶ Play"}

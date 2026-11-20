@@ -15,7 +15,7 @@
  * cancels the frame loop and drops the bar; the remount builds a fresh one into
  * the same (emptied) container.
  */
-import { useCallback, useRef } from "react";
+import { useCallback, useLayoutEffect, useRef } from "react";
 import { createScrubBar, type ScrubBar } from "../scrub";
 
 export interface ScrubHandle {
@@ -33,7 +33,9 @@ export function useScrubBar(onSeek: (seconds: number) => void): ScrubHandle {
   // Latched rather than passed: the bar is built once, but `onSeek` closes over
   // this render's status setter. Assigning here keeps the seek message current
   // without rebuilding the DOM every time the board re-renders.
-  seek.current = onSeek;
+  useLayoutEffect(() => {
+    seek.current = onSeek;
+  });
 
   const ref = useCallback((node: HTMLDivElement | null) => {
     if (!node) {
