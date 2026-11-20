@@ -12,7 +12,6 @@
  * Not a data-fetching library, and deliberately no loading state: every call
  * here starts at a click the caller can already `await` inside.
  */
-import { useMemo } from "react";
 
 /** POST JSON, get JSON. Throws with the server's `error` when it refuses. */
 export async function postJson<T = Record<string, unknown>>(
@@ -50,6 +49,9 @@ export interface Api {
   canEdit: boolean;
 }
 
+// One object for the app's lifetime, so pages can list it as an effect dependency.
+const API: Api = { post: postJson, get: getJson, canEdit: import.meta.env.DEV };
+
 export function useApi(): Api {
-  return useMemo<Api>(() => ({ post: postJson, get: getJson, canEdit: import.meta.env.DEV }), []);
+  return API;
 }

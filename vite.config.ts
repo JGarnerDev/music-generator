@@ -3,6 +3,7 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import { resolve } from "node:path";
 import { libraryApi } from "./src/dev/library-api";
+import { reactCompiler } from "./src/dev/react-compiler";
 import { liveLibrary } from "./src/dev/live-library";
 import { sessionApi } from "./src/dev/session-api";
 import { studyApi } from "./src/dev/study-api";
@@ -15,6 +16,8 @@ export default defineConfig({
     // `render.html` has no React on it and is unaffected: the plugin only
     // transforms files that contain JSX.
     react(),
+    // Memoizes every component and hook — see the module's header.
+    reactCompiler(),
     // Dev-only: lets the bench's delete button move a composition into _trash.
     libraryApi(resolve(__dirname, "compositions")),
     // Dev-only: Approve / Fork in the voices bench, writing voices/ + the archive.

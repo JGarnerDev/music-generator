@@ -12,7 +12,7 @@
  * name field contains the letters Z and Q, and typing them must not play the
  * piano. See [`./useHotkeys`](./useHotkeys.ts), which learned this first.
  */
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useEffectEvent, useLayoutEffect, useRef, useState } from "react";
 import type { DrumPiece, InstrumentName } from "@engine/composition";
 import {
   BEND_SEMITONES,
@@ -165,48 +165,46 @@ export function useKeyboardSynth(options: KeyboardSynthOptions): KeyboardSynth {
    * first note both wakes the audio and is the first thing you hear, and the
    * page is playable the moment it loads.
    */
-  const wake = useCallback((): Promise<void> => {
+  const wake = (): Promise<void> => {
     if (LiveKeyboard.started) return Promise.resolve();
-    waking.current ??= LiveKeyboard.start().finally(() => {
-      waking.current = null;
-    });
+    if (!waking.current)
+      waking.current = LiveKeyboard.start().finally(() => {
+        waking.current = null;
+      });
     return waking.current;
-  }, []);
+  };
 
   /** Sound a note. Separate from `press` because only this half needs audio. */
-  const strike = useCallback((midi: number, velocity: number): void => {
+  const strike = (midi: number, velocity: number): void => {
     keyboard.current?.noteOn(midi, velocity);
-  }, []);
+  };
 
-  const press = useCallback(
-    (midi: number, at = performance.now()): void => {
-      const { enabled: on, velocity: vel } = state.current;
-      if (!on || intended.current.has(midi)) return;
-      intended.current.add(midi);
+  const press = (midi: number, at = performance.now()): void => {
+    const { enabled: on, velocity: vel } = state.current;
+    if (!on || intended.current.has(midi)) return;
+    intended.current.add(midi);
 
-      // Logged and lit here rather than alongside the attack, so both stay true
-      // across a wake: what the take records is *what was played*, at the
-      // millisecond the key went down, whether or not the audio was ready to
-      // make a sound at the time.
-      if (log.current && !open.current.has(midi))
-        open.current.set(midi, { downMs: at, velocity: vel });
-      setHeldMidis((now) => new Set(now).add(midi));
+    // Logged and lit here rather than alongside the attack, so both stay true
+    // across a wake: what the take records is *what was played*, at the
+    // millisecond the key went down, whether or not the audio was ready to
+    // make a sound at the time.
+    if (log.current && !open.current.has(midi))
+      open.current.set(midi, { downMs: at, velocity: vel });
+    setHeldMidis((now) => new Set(now).add(midi));
 
-      if (LiveKeyboard.started) {
-        strike(midi, vel);
-        return;
-      }
-      // First note of the session: it is also the gesture the browser was
-      // waiting for. Striking after the wake costs this one note a few
-      // milliseconds of audio latency and nothing else — and if the key is
-      // already back up by then, it is not struck at all, because a note whose
-      // attack arrives after its release is a note that never stops.
-      void wake().then(() => {
-        if (intended.current.has(midi)) strike(midi, vel);
-      });
-    },
-    [strike, wake],
-  );
+    if (LiveKeyboard.started) {
+      strike(midi, vel);
+      return;
+    }
+    // First note of the session: it is also the gesture the browser was
+    // waiting for. Striking after the wake costs this one note a few
+    // milliseconds of audio latency and nothing else — and if the key is
+    // already back up by then, it is not struck at all, because a note whose
+    // attack arrives after its release is a note that never stops.
+    void wake().then(() => {
+      if (intended.current.has(midi)) strike(midi, vel);
+    });
+  };
 
   /**
    * Strike a kit piece and flash its pad.
@@ -217,37 +215,34 @@ export function useKeyboardSynth(options: KeyboardSynthOptions): KeyboardSynth {
    * drum that sounds a few milliseconds late, and there is no release that
    * could arrive first and strand it.
    */
-  const hit = useCallback(
-    (piece: DrumPiece): void => {
-      if (!state.current.enabled) return;
-      const vel = state.current.velocity;
+  const hit = (piece: DrumPiece): void => {
+    if (!state.current.enabled) return;
+    const vel = state.current.velocity;
 
-      const running = flashes.current.get(piece);
-      if (running !== undefined) clearTimeout(running);
-      setStruck((now) => (now.has(piece) ? now : new Set(now).add(piece)));
-      flashes.current.set(
-        piece,
-        setTimeout(() => {
-          flashes.current.delete(piece);
-          setStruck((now) => {
-            if (!now.has(piece)) return now;
-            const next = new Set(now);
-            next.delete(piece);
-            return next;
-          });
-        }, FLASH_MS) as unknown as number,
-      );
+    const running = flashes.current.get(piece);
+    if (running !== undefined) clearTimeout(running);
+    setStruck((now) => (now.has(piece) ? now : new Set(now).add(piece)));
+    flashes.current.set(
+      piece,
+      setTimeout(() => {
+        flashes.current.delete(piece);
+        setStruck((now) => {
+          if (!now.has(piece)) return now;
+          const next = new Set(now);
+          next.delete(piece);
+          return next;
+        });
+      }, FLASH_MS) as unknown as number,
+    );
 
-      if (LiveKeyboard.started) {
-        keyboard.current?.hit(piece, vel);
-        return;
-      }
-      void wake().then(() => keyboard.current?.hit(piece, vel));
-    },
-    [wake],
-  );
+    if (LiveKeyboard.started) {
+      keyboard.current?.hit(piece, vel);
+      return;
+    }
+    void wake().then(() => keyboard.current?.hit(piece, vel));
+  };
 
-  const release = useCallback((midi: number, at = performance.now()): void => {
+  const release = (midi: number, at = performance.now()): void => {
     intended.current.delete(midi);
     keyboard.current?.noteOff(midi);
     const started = open.current.get(midi);
@@ -262,7 +257,7 @@ export function useKeyboardSynth(options: KeyboardSynthOptions): KeyboardSynth {
       next.delete(midi);
       return next;
     });
-  }, []);
+  };
 
   /**
    * Push or release the wheel, and record the gesture.
@@ -271,7 +266,7 @@ export function useKeyboardSynth(options: KeyboardSynthOptions): KeyboardSynth {
    * will end up carrying it — at the keyboard a bend belongs to no note in
    * particular. `attachBends` works that out afterwards, from what was ringing.
    */
-  const bend = useCallback((semitones: number): void => {
+  const bend = (semitones: number): void => {
     const at = performance.now();
     if (semitones === 0) {
       keyboard.current?.releaseBend();
@@ -289,9 +284,9 @@ export function useKeyboardSynth(options: KeyboardSynthOptions): KeyboardSynth {
       bendLog.current.push(gesture);
       openBend.current = gesture;
     }
-  }, []);
+  };
 
-  const panic = useCallback(() => {
+  const panic = () => {
     keyboard.current?.panic();
     open.current.clear();
     intended.current.clear();
@@ -301,16 +296,16 @@ export function useKeyboardSynth(options: KeyboardSynthOptions): KeyboardSynth {
     setHeldMidis(new Set());
     setStruck(new Set());
     setBendSemitones(0);
-  }, []);
+  };
 
-  const startLog = useCallback(() => {
+  const startLog = () => {
     log.current = [];
     bendLog.current = [];
     openBend.current = null;
     setLogged(0);
-  }, []);
+  };
 
-  const stopLog = useCallback((endMs = performance.now()) => {
+  const stopLog = (endMs = performance.now()) => {
     const presses = log.current ?? [];
     // Close what is still down. These are real notes: the last chord of a take
     // is usually still under the fingers when the recording is stopped.
@@ -328,105 +323,112 @@ export function useKeyboardSynth(options: KeyboardSynthOptions): KeyboardSynth {
       presses: presses.sort((a, b) => a.downMs - b.downMs || a.midi - b.midi),
       bends,
     };
-  }, []);
+  };
 
-  const use = useCallback((instrument: InstrumentName, slug?: string) => {
+  const use = (instrument: InstrumentName, slug?: string) => {
     keyboard.current?.use(instrument, slug);
-  }, []);
+  };
 
-  const setMonitor = useCallback((id: MonitorId) => {
+  const setMonitor = (id: MonitorId) => {
     keyboard.current?.setMonitor(id);
-  }, []);
+  };
+
+  // Effect events, so the listeners go on once and still call this render's
+  // `press`, `bend` and the rest.
+  const onKeyDown = useEffectEvent((event: KeyboardEvent): void => {
+    const target = event.target as HTMLElement | null;
+    if (target && TYPING.test(target.tagName)) return;
+    if (event.metaKey || event.ctrlKey || event.altKey) return;
+
+    const { octave: oct, onTransport: transport } = state.current;
+
+    switch (event.code) {
+      case "ArrowLeft":
+      case "ArrowRight":
+        event.preventDefault();
+        // Moving the hands releases what they were holding: the keys under
+        // the fingers now mean different notes, so the keyups that arrive
+        // afterwards would be for pitches nobody is playing.
+        panic();
+        setOctave((now) => shiftOctave(now, event.code === "ArrowRight" ? 1 : -1));
+        return;
+      case "ArrowUp":
+      case "ArrowDown":
+        event.preventDefault();
+        setVelocity((now) => stepVelocity(now, event.code === "ArrowUp" ? 1 : -1));
+        return;
+      case "Space":
+        event.preventDefault();
+        transport?.("toggle");
+        return;
+      case "Escape":
+        panic();
+        transport?.("panic");
+        return;
+    }
+
+    // Auto-repeat: the OS sends keydown over and over while a key is held, and
+    // every one of them would be a fresh attack on a note already sounding —
+    // or, for a bend, a fresh gesture logged every 30 ms.
+    if (event.repeat) return;
+
+    // A kit owns the letter keys while it is loaded: `padForCode` answers
+    // first, and a key with no pad on it does nothing rather than falling
+    // through to a pitch the kit has no way to play.
+    const grid = state.current.pads;
+    if (grid && grid.length > 0) {
+      const piece = padForCode(event.code, grid);
+      if (piece === undefined) return;
+      event.preventDefault();
+      hit(piece);
+      return;
+    }
+
+    const direction = bendDirection(event.code);
+    if (direction !== undefined) {
+      event.preventDefault();
+      bend(direction * BEND_SEMITONES);
+      return;
+    }
+
+    const midi = midiForCode(event.code, oct);
+    if (midi === undefined) return;
+    // Claim the key even when the audio is asleep, so space and `/` do not
+    // scroll the page out from under a player who has not pressed Start yet.
+    event.preventDefault();
+    press(midi);
+  });
+
+  const onKeyUp = useEffectEvent((event: KeyboardEvent): void => {
+    // Nothing to lift off a drum, so the pads never take a keyup.
+    const grid = state.current.pads;
+    if (grid && grid.length > 0) return;
+    if (bendDirection(event.code) !== undefined) {
+      bend(0);
+      return;
+    }
+    const midi = midiForCode(event.code, state.current.octave);
+    if (midi !== undefined) release(midi);
+  });
+
+  const onBlur = useEffectEvent(() => panic());
 
   useEffect(() => {
-    const onKeyDown = (event: KeyboardEvent): void => {
-      const target = event.target as HTMLElement | null;
-      if (target && TYPING.test(target.tagName)) return;
-      if (event.metaKey || event.ctrlKey || event.altKey) return;
-
-      const { octave: oct, onTransport: transport } = state.current;
-
-      switch (event.code) {
-        case "ArrowLeft":
-        case "ArrowRight":
-          event.preventDefault();
-          // Moving the hands releases what they were holding: the keys under
-          // the fingers now mean different notes, so the keyups that arrive
-          // afterwards would be for pitches nobody is playing.
-          panic();
-          setOctave((now) => shiftOctave(now, event.code === "ArrowRight" ? 1 : -1));
-          return;
-        case "ArrowUp":
-        case "ArrowDown":
-          event.preventDefault();
-          setVelocity((now) => stepVelocity(now, event.code === "ArrowUp" ? 1 : -1));
-          return;
-        case "Space":
-          event.preventDefault();
-          transport?.("toggle");
-          return;
-        case "Escape":
-          panic();
-          transport?.("panic");
-          return;
-      }
-
-      // Auto-repeat: the OS sends keydown over and over while a key is held, and
-      // every one of them would be a fresh attack on a note already sounding —
-      // or, for a bend, a fresh gesture logged every 30 ms.
-      if (event.repeat) return;
-
-      // A kit owns the letter keys while it is loaded: `padForCode` answers
-      // first, and a key with no pad on it does nothing rather than falling
-      // through to a pitch the kit has no way to play.
-      const grid = state.current.pads;
-      if (grid && grid.length > 0) {
-        const piece = padForCode(event.code, grid);
-        if (piece === undefined) return;
-        event.preventDefault();
-        hit(piece);
-        return;
-      }
-
-      const direction = bendDirection(event.code);
-      if (direction !== undefined) {
-        event.preventDefault();
-        bend(direction * BEND_SEMITONES);
-        return;
-      }
-
-      const midi = midiForCode(event.code, oct);
-      if (midi === undefined) return;
-      // Claim the key even when the audio is asleep, so space and `/` do not
-      // scroll the page out from under a player who has not pressed Start yet.
-      event.preventDefault();
-      press(midi);
-    };
-
-    const onKeyUp = (event: KeyboardEvent): void => {
-      // Nothing to lift off a drum, so the pads never take a keyup.
-      const grid = state.current.pads;
-      if (grid && grid.length > 0) return;
-      if (bendDirection(event.code) !== undefined) {
-        bend(0);
-        return;
-      }
-      const midi = midiForCode(event.code, state.current.octave);
-      if (midi !== undefined) release(midi);
-    };
-
-    window.addEventListener("keydown", onKeyDown);
-    window.addEventListener("keyup", onKeyUp);
+    const down = (event: KeyboardEvent) => onKeyDown(event);
+    const up = (event: KeyboardEvent) => onKeyUp(event);
+    const blur = () => onBlur();
+    window.addEventListener("keydown", down);
+    window.addEventListener("keyup", up);
     // The stuck note that is nobody's bug: the window stops receiving keyups
     // the moment it loses focus, so a chord held through an alt-tab would ring
     // until the tab was closed.
-    window.addEventListener("blur", panic);
+    window.addEventListener("blur", blur);
     return () => {
-      window.removeEventListener("keydown", onKeyDown);
-      window.removeEventListener("keyup", onKeyUp);
-      window.removeEventListener("blur", panic);
+      window.removeEventListener("keydown", down);
+      window.removeEventListener("keyup", up);
+      window.removeEventListener("blur", blur);
     };
-  }, [bend, hit, panic, press, release]);
+  }, []);
 
   // Flash timers are the one thing here that outlives a render, so they are
   // cleared with the graph rather than left to fire into an unmounted page.

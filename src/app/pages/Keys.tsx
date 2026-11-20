@@ -42,7 +42,7 @@
  * [`buildTake`](../../engine/take.ts). That is `transcribe --requantize`, by
  * default, in the page.
  */
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useEffectEvent, useState } from "react";
 import { pianoKeys, shiftOctave } from "@engine/keys";
 import { playability } from "@engine/keys-bench";
 import { defaultMonitor, isMonitorId, type MonitorId } from "@engine/monitor";
@@ -108,35 +108,33 @@ export function Keys() {
   const selected = PLAYABLE.find((entry) => entry.id === voiceId) ?? null;
 
   // Empty for a pitched voice, which is what leaves the letter keys a piano.
-  const pads = useMemo(() => (selected ? drumPads(selected.preset) : []), [selected]);
+  const pads = selected ? drumPads(selected.preset) : [];
 
   const synth = useKeyboardSynth({
     enabled: selected !== null,
     pads,
   });
 
-  const scale = useMemo(() => {
-    return undefined;
-  }, []);
-
-  const keys = useMemo(() => pianoKeys(synth.octave), [synth.octave]);
+  const keys = pianoKeys(synth.octave);
 
   // After `use`, not before: loading a voice rebuilds the chain the monitor
   // hangs off, so the correction has to be re-applied to the graph that exists
   // now rather than the one that did when the toggle was moved.
-  useEffect(() => {
-    synth.setMonitor(chosen);
-  }, [synth, chosen, selected?.id]);
+  // `selected` comes out of a module constant, so it only changes identity when
+  // the voice does.
+  const applyMonitor = useEffectEvent((id: MonitorId) => synth.setMonitor(id));
+  useEffect(() => applyMonitor(chosen), [chosen, selected]);
 
-  useEffect(() => {
-    if (!selected) return;
+  const load = useEffectEvent((entry: (typeof PLAYABLE)[number]) => {
     try {
-      synth.use(selected.instrument, selected.slug);
+      synth.use(entry.instrument, entry.slug);
     } catch (err) {
-      console.error(`Could not load ${selected.id}: ${(err as Error).message}`);
+      console.error(`Could not load ${entry.id}: ${(err as Error).message}`);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selected?.id]);
+  });
+  useEffect(() => {
+    if (selected) load(selected);
+  }, [selected]);
 
   return (
     <main>
@@ -179,7 +177,6 @@ export function Keys() {
         <PianoKeys
           keys={keys}
           held={synth.heldMidis}
-          scale={scale}
           onPress={synth.press}
           onRelease={synth.release}
         />

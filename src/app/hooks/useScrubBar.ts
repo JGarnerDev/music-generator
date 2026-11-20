@@ -15,7 +15,7 @@
  * cancels the frame loop and drops the bar; the remount builds a fresh one into
  * the same (emptied) container.
  */
-import { useCallback, useLayoutEffect, useRef } from "react";
+import { useLayoutEffect, useRef } from "react";
 import { createScrubBar, type ScrubBar } from "../scrub";
 
 export interface ScrubHandle {
@@ -37,14 +37,16 @@ export function useScrubBar(onSeek: (seconds: number) => void): ScrubHandle {
     seek.current = onSeek;
   });
 
-  const ref = useCallback((node: HTMLDivElement | null) => {
+  // React Compiler keeps this one function for the hook's lifetime (it reads
+  // only refs). A new one each render would make React drop and rebuild the bar.
+  const ref = (node: HTMLDivElement | null) => {
     if (!node) {
       bar.current?.reset();
       bar.current = null;
       return;
     }
     bar.current = createScrubBar(node, (seconds) => seek.current(seconds));
-  }, []);
+  };
 
   return {
     ref,

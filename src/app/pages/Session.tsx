@@ -21,7 +21,7 @@
  * Audio comes from `public/audio/` exactly as it does everywhere else — see
  * [`../audio/playback`](../audio/playback.ts). Nothing is synthesised here.
  */
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import type { Composition } from "@engine/composition";
 import { buildLibrary, type LibraryEntry } from "@engine/library";
 import { loopIntroSeconds } from "@engine/arrange";
@@ -107,10 +107,7 @@ export function Session() {
   });
 
   const plan = sessions.plan;
-  const cues = useMemo(
-    () => (plan && rendered ? resolveCues(plan, ENTRIES, rendered) : []),
-    [plan, rendered],
-  );
+  const cues = plan && rendered ? resolveCues(plan, ENTRIES, rendered) : [];
   const header = planHeader(plan, cues);
 
   /* ── Transport ─────────────────────────────────────────────────────────── */
@@ -126,12 +123,15 @@ export function Session() {
     const introSeconds = loop && comp ? loopIntroSeconds(comp) : null;
     const full =
       introSeconds !== null ? rendered?.get(audioName(comp!.name, { loop: false })) : undefined;
+    const intro =
+      introSeconds !== null && full
+        ? { intro: { url: `/audio/${full.file}`, seconds: introSeconds } }
+        : {};
+    const playing = loop ? "Looping." : "Playing.";
     try {
       await playback.play(url, {
         loop,
-        ...(introSeconds !== null && full
-          ? { intro: { url: `/audio/${full.file}`, seconds: introSeconds } }
-          : {}),
+        ...intro,
         onEnded: () => {
           // A one-shot that runs out is not a stop: leave the cue named on
           // screen so you can see what just finished.
@@ -141,7 +141,7 @@ export function Session() {
       });
       setNowPlaying(nowPlayingLabel(label, loop, note));
       scrub.start();
-      setStatus(loop ? "Looping." : "Playing.");
+      setStatus(playing);
     } catch (err) {
       setStatus(`Could not play ${label}: ${(err as Error).message}`);
     }

@@ -9,7 +9,7 @@
  * The promise is cached at module scope, not in state: every page that mounts
  * this hook — and every remount StrictMode causes — shares the one fetch.
  */
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { indexManifest, type ManifestEntry } from "@engine/manifest";
 
 /** Compositions, written by `npm run render`. */
@@ -45,7 +45,7 @@ export type ManifestLookup = (name: string) => Promise<ManifestEntry | undefined
  * "the manifest isn't here yet".
  */
 export function useManifest(): ManifestLookup {
-  return useCallback((name: string) => manifest().then((index) => index.get(name)), []);
+  return (name: string) => manifest().then((index) => index.get(name));
 }
 
 /**
@@ -53,12 +53,12 @@ export function useManifest(): ManifestLookup {
  * is what it takes.
  */
 export function useVoiceManifest(): ManifestLookup {
-  return useCallback((name: string) => manifest(VOICES).then((index) => index.get(name)), []);
+  return (name: string) => manifest(VOICES).then((index) => index.get(name));
 }
 
 /** The same, for the studies bench — `studyAudioName(concept, slug)` takes it. */
 export function useStudyManifest(): ManifestLookup {
-  return useCallback((name: string) => manifest(STUDIES).then((index) => index.get(name)), []);
+  return (name: string) => manifest(STUDIES).then((index) => index.get(name));
 }
 
 /**

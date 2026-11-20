@@ -88,9 +88,10 @@ export function Voices() {
       );
     } catch (err) {
       setStatus(`Could not play ${entry.id}: ${(err as Error).message}`);
-    } finally {
-      setLoading(false);
     }
+    // After the catch rather than in a `finally`: React Compiler skips any
+    // function with a `finally`, and the catch never rethrows.
+    setLoading(false);
   }
 
   /**
@@ -100,14 +101,14 @@ export function Voices() {
    */
   async function approve(entry: VoiceEntry): Promise<void> {
     const backToDraft = entry.preset.status === "approved";
+    const promoted = !backToDraft && makeDefault;
     try {
       const body = await api.post(VOICE_APPROVE_ENDPOINT, {
         id: entry.id,
         draft: backToDraft,
         makeDefault,
       });
-      const demoted = (body.demoted as string[] | undefined) ?? [];
-      const promoted = !backToDraft && makeDefault;
+      const demoted = demotedIds(body);
       setEntries((prev) =>
         prev.map((other) => {
           const isEntry = other.id === entry.id;
@@ -122,7 +123,7 @@ export function Voices() {
           };
         }),
       );
-      setStatus(backToDraft ? draftedMessage(entry.id) : approvedMessage(entry.id, demoted));
+      setStatus(approvalMessage(entry.id, backToDraft, demoted));
     } catch (err) {
       setStatus(`Could not approve ${entry.id}: ${(err as Error).message}`);
     }
@@ -247,4 +248,17 @@ export function Voices() {
       <div id="status">{status}</div>
     </main>
   );
+}
+
+/**
+ * The voices an approval knocked out of their default slot. This and the
+ * message below live out here because React Compiler cannot compile a `??` or
+ * a `? :` inside a `try`.
+ */
+function demotedIds(body: Record<string, unknown>): string[] {
+  return (body.demoted as string[] | undefined) ?? [];
+}
+
+function approvalMessage(id: string, backToDraft: boolean, demoted: string[]): string {
+  return backToDraft ? draftedMessage(id) : approvedMessage(id, demoted);
 }

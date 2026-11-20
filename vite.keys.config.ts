@@ -32,6 +32,7 @@ import { copyFileSync, readdirSync, renameSync, statSync, writeFileSync } from "
 import { join, relative, resolve } from "node:path";
 import { defineConfig, type Plugin } from "vite";
 import react from "@vitejs/plugin-react";
+import { reactCompiler } from "./src/dev/react-compiler";
 
 /** Where the built app lands. Gitignored, like `dist/`. */
 const OUT_DIR = "dist-keys";
@@ -52,7 +53,7 @@ const STATIC_FILES = [
 export default defineConfig({
   base: "./",
   publicDir: false,
-  plugins: [react(), keysApp()],
+  plugins: [react(), reactCompiler(), keysApp()],
   // This build is the one with a service worker on it — see `src/globals.d.ts`.
   define: { __KEYS_APP__: "true" },
   build: {

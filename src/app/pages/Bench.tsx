@@ -110,24 +110,27 @@ export function Bench() {
     const introSeconds = repeat ? loopIntroSeconds(comp) : null;
     const full =
       introSeconds !== null ? await lookup(audioName(comp.name, { loop: false })) : undefined;
+    const intro =
+      introSeconds !== null && full
+        ? { intro: { url: `/audio/${full.file}`, seconds: introSeconds } }
+        : {};
+    const playing =
+      `${repeat ? "Playing loop" : "Playing"} — ${entry.seconds.toFixed(0)}s, ` +
+      `rendered ${new Date(entry.renderedAt).toLocaleDateString()}.`;
     setLoading(true);
     try {
       await playback.play(`/audio/${entry.file}`, {
         loop: repeat,
         onEnded: () => setStatus("Finished."),
-        ...(introSeconds !== null && full
-          ? { intro: { url: `/audio/${full.file}`, seconds: introSeconds } }
-          : {}),
+        ...intro,
       });
-      setStatus(
-        `${repeat ? "Playing loop" : "Playing"} — ${entry.seconds.toFixed(0)}s, ` +
-          `rendered ${new Date(entry.renderedAt).toLocaleDateString()}.`,
-      );
+      setStatus(playing);
     } catch (err) {
       setStatus(`Could not play ${name}: ${(err as Error).message}`);
-    } finally {
-      setLoading(false);
     }
+    // After the catch rather than in a `finally`: React Compiler skips any
+    // function with a `finally`, and the catch never rethrows.
+    setLoading(false);
   }
 
   /**
@@ -157,20 +160,14 @@ export function Bench() {
   async function remove(entry: LibraryEntry): Promise<void> {
     if (!window.confirm(`Move ${entry.id} to compositions/_trash/?`)) return;
     try {
-      const res = await fetch(TRASH_ENDPOINT, {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ path: entry.path.replace(/^.*compositions\//, "compositions/") }),
-      });
-      const body = (await res.json()) as { trashed?: string; error?: string };
-      if (!res.ok) throw new Error(body.error ?? `HTTP ${res.status}`);
+      const trashed = await trash(entry.path);
       setEntries((prev) => prev.filter((e) => e.id !== entry.id));
       if (selectedId === entry.id) {
         setSelectedId(null);
         setCurrent(null);
         setTitle("No composition selected.");
       }
-      setStatus(`Moved ${body.trashed} to compositions/_trash/.`);
+      setStatus(`Moved ${trashed} to compositions/_trash/.`);
     } catch (err) {
       setStatus(`Could not delete ${entry.slug}: ${(err as Error).message}`);
     }
@@ -289,4 +286,20 @@ export function Bench() {
       <div id="status">{status}</div>
     </main>
   );
+}
+
+/**
+ * Ask the dev server to move a composition into `compositions/_trash/`, and say
+ * where it went. Out here so the page's handler has no `throw` of its own, which
+ * React Compiler cannot compile inside a `try`.
+ */
+async function trash(path: string): Promise<string | undefined> {
+  const res = await fetch(TRASH_ENDPOINT, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ path: path.replace(/^.*compositions\//, "compositions/") }),
+  });
+  const body = (await res.json()) as { trashed?: string; error?: string };
+  if (!res.ok) throw new Error(body.error ?? `HTTP ${res.status}`);
+  return body.trashed;
 }

@@ -127,9 +127,10 @@ export function Studies() {
       );
     } catch (err) {
       setStatus(`Could not play ${entry.id}: ${(err as Error).message}`);
-    } finally {
-      setLoading(false);
     }
+    // After the catch rather than in a `finally`: React Compiler skips any
+    // function with a `finally`, and the catch never rethrows.
+    setLoading(false);
   }
 
   /**

@@ -6,7 +6,7 @@
  * still owns the speakers; a `useEffect` that started or stopped it would be run
  * twice by StrictMode and once more by every Fast Refresh, and each of those
  * bumps the token. So audio starts and stops from event handlers only, and this
- * hook is a stable pair of callbacks over the module that already got it right.
+ * hook is a thin set of callbacks over the module that already got it right.
  *
  * No unmount cleanup for the same reason: StrictMode's throwaway unmount would
  * silence a piece the user just started.
@@ -16,7 +16,7 @@
  * state after each call rather than polled, and the module stays the truth: a
  * one-shot reaching its end reports "stopped" through `onEnded`, not a timer.
  */
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import {
   pausePlayback,
   playFile,
@@ -42,36 +42,29 @@ export interface Playback {
 export function usePlayback(): Playback {
   const [state, setState] = useState<PlaybackState>("stopped");
 
-  const controls = useMemo(() => {
-    /** Mirror whatever the module now says, and pass its answer on. */
-    const sync = (result: boolean): boolean => {
-      setState(playbackState());
-      return result;
-    };
-    return {
-      play: async (url: string, opts: PlayFileOptions = {}) => {
-        try {
-          await playFile(url, {
-            ...opts,
-            onEnded: () => {
-              setState(playbackState());
-              opts.onEnded?.();
-            },
-          });
-        } finally {
-          // In `finally` so a file that fails to decode still leaves the
-          // transport reading what the module actually did, not "playing".
-          setState(playbackState());
-        }
-      },
-      pause: () => sync(pausePlayback()),
-      resume: () => sync(resumePlayback()),
-      stop: () => {
-        stopPlayback();
-        setState(playbackState());
-      },
-    };
-  }, []);
+  /** Mirror whatever the module now says, and pass its answer on. */
+  const sync = (result: boolean): boolean => {
+    setState(playbackState());
+    return result;
+  };
 
-  return { ...controls, state };
+  return {
+    state,
+    // Synced on failure too, so a file that fails to decode still leaves the
+    // transport reading what the module actually did, not "playing".
+    play: (url, opts = {}) =>
+      playFile(url, {
+        ...opts,
+        onEnded: () => {
+          setState(playbackState());
+          opts.onEnded?.();
+        },
+      }).finally(() => setState(playbackState())),
+    pause: () => sync(pausePlayback()),
+    resume: () => sync(resumePlayback()),
+    stop: () => {
+      stopPlayback();
+      setState(playbackState());
+    },
+  };
 }

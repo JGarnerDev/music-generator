@@ -9,6 +9,12 @@ updated: 2026-11-20
 
 Grouped `Added` / `Changed` / `Removed` / `Fixed`. New compositions, palettes, voices, plans and renders stay out; they live in git history. The version in [`VERSION`](VERSION) (and `version` in `package.json`) always matches the top entry below.
 
+## [0.3.0] — 2026-11-20
+
+### Changed
+
+- The React apps compile with React Compiler (`src/dev/react-compiler.ts`, in both Vite configs and in Vitest), so hooks and pages drop `useMemo` and `useCallback`. Effects take callbacks through `useEffectEvent`; `useApi` returns a module constant; code the compiler would skip (`try`/`finally`, ternaries inside a `try`) moved into helpers.
+
 ## [0.2.0] — 2026-11-20
 
 ### Added

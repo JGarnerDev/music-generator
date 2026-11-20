@@ -23,6 +23,9 @@ Claude-specific working rules that don't belong in the human-facing README.
   (music). Add a `*.test.ts` beside it. Keep `src/app` (audio glue) thin.
 - **Script the repeatable.** If you do a deterministic chore twice, make it an
   npm script under `scripts/`.
+- **React Compiler** memoizes the React apps (`src/dev/react-compiler.ts`, also in
+  Vitest). Write no `useMemo`, `useCallback` or `memo`; avoid the shapes it
+  skips (hub `PREFERENCES.md`, React Compiler).
 - **Keep this file and the README small.** When a topic outgrows a screen, split
   it into its own frontmatter'd doc and link it.
 - **Versioning** (`VERSION`, `CHANGELOG.md`): a change that breaks something a
