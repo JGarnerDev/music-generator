@@ -46,7 +46,8 @@ export function downmixToMono(channels: readonly Float32Array[]): Float32Array {
  * Upsampling skips the filter: there is nothing above the old Nyquist to fold.
  */
 export function resample(samples: Float32Array, fromRate: number, toRate: number): Float32Array {
-  if (!(fromRate > 0) || !(toRate > 0)) throw new Error(`resample: bad rates ${fromRate} → ${toRate}`);
+  if (!(fromRate > 0) || !(toRate > 0))
+    throw new Error(`resample: bad rates ${fromRate} → ${toRate}`);
   if (fromRate === toRate) return samples;
   if (samples.length === 0) return samples;
 
@@ -77,7 +78,12 @@ export function resample(samples: Float32Array, fromRate: number, toRate: number
  * about a third of a second for a half-minute take, against the ~60s the model
  * itself costs, so an FFT here would be optimising the wrong end.
  */
-export function lowPass(samples: Float32Array, rate: number, cutoffHz: number, taps = 101): Float32Array {
+export function lowPass(
+  samples: Float32Array,
+  rate: number,
+  cutoffHz: number,
+  taps = 101,
+): Float32Array {
   const n = taps % 2 === 0 ? taps + 1 : taps; // odd, so the filter has a true centre
   const half = (n - 1) / 2;
   const fc = cutoffHz / rate; // cycles per sample
@@ -88,7 +94,9 @@ export function lowPass(samples: Float32Array, rate: number, cutoffHz: number, t
     const x = i - half;
     const sinc = x === 0 ? 2 * fc : Math.sin(2 * Math.PI * fc * x) / (Math.PI * x);
     const window =
-      0.42 - 0.5 * Math.cos((2 * Math.PI * i) / (n - 1)) + 0.08 * Math.cos((4 * Math.PI * i) / (n - 1));
+      0.42 -
+      0.5 * Math.cos((2 * Math.PI * i) / (n - 1)) +
+      0.08 * Math.cos((4 * Math.PI * i) / (n - 1));
     kernel[i] = sinc * window;
     sum += kernel[i]!;
   }

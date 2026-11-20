@@ -59,7 +59,9 @@ function ArchiveRow({ entry, playing, ...on }: ArchiveRowProps) {
   return (
     <tr title={entry.path} aria-selected={playing}>
       <td className="cell-play">
-        <IconButton label={`Audition ${entry.slug}`} onClick={() => on.onPlay(entry)}>▶</IconButton>
+        <IconButton label={`Audition ${entry.slug}`} onClick={() => on.onPlay(entry)}>
+          ▶
+        </IconButton>
       </td>
       <td className="cell-name">
         {entry.slug}
@@ -74,10 +76,7 @@ function ArchiveRow({ entry, playing, ...on }: ArchiveRowProps) {
         ))}
       </td>
       <td className="cell-add">
-        <IconButton
-          label={`Add ${entry.slug} to the session`}
-          onClick={() => on.onAdd(entry)}
-        >
+        <IconButton label={`Add ${entry.slug} to the session`} onClick={() => on.onAdd(entry)}>
           ＋
         </IconButton>
       </td>

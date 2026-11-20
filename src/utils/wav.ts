@@ -108,7 +108,10 @@ export function decodeWav(bytes: Uint8Array): PcmAudio {
       if (format === 0xfffe && size >= 40) format = view.getUint16(body + 24, true);
     } else if (id === "data") {
       // A streamed file can declare size 0 and run to the end of the file.
-      data = { start: body, length: size === 0 ? bytes.byteLength - body : Math.min(size, bytes.byteLength - body) };
+      data = {
+        start: body,
+        length: size === 0 ? bytes.byteLength - body : Math.min(size, bytes.byteLength - body),
+      };
     }
     offset = body + size + (size % 2); // chunks are word-aligned
   }

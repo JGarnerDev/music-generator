@@ -47,7 +47,9 @@ describe("the layout", () => {
 
   it("puts the black keys where the black keys are", () => {
     // The row above the home row must land on exactly the accidentals.
-    const blacks = LOWER_MANUAL.filter((k) => isBlack(baseMidi(4) + k.semitone)).map((k) => k.label);
+    const blacks = LOWER_MANUAL.filter((k) => isBlack(baseMidi(4) + k.semitone)).map(
+      (k) => k.label,
+    );
     expect(blacks).toEqual(["S", "D", "G", "H", "J", "L", ";"]);
   });
 

@@ -104,7 +104,9 @@ export function humanize(notes: Note[], opts: HumanizeOptions): Note[] {
     // Per-note seed: identity, not position in the array, so editing one part
     // doesn't re-roll the ones after it. A locked part drops the pitch from the
     // seed, so every part on that lock draws the same shift at a given time.
-    const timeRng = makeRng(seedFromString(lock ? `${lock}|${note.time}` : `${seed}|${note.time}|${note.pitch}`));
+    const timeRng = makeRng(
+      seedFromString(lock ? `${lock}|${note.time}` : `${seed}|${note.time}|${note.pitch}`),
+    );
     const exact = toSixteenths(note.time, perBar);
     const timeShift = lean + centred(timeRng()) * jitter;
     const at = clampToBar(exact + timeShift, exact, perBar, crossBarlines);
@@ -142,7 +144,7 @@ export function humanizeParts<K extends string>(
     out[name] = humanize(notes, {
       ...opts,
       seed: `${opts.seed}|${name}`,
-      lean: (opts.leans?.[name] ?? opts.lean ?? 0),
+      lean: opts.leans?.[name] ?? opts.lean ?? 0,
     });
   }
   return out;

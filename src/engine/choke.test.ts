@@ -3,7 +3,9 @@ import { CHOKE_FLOOR, chokeNotes } from "./choke";
 
 describe("chokeNotes", () => {
   it("keeps the full release when nothing follows", () => {
-    expect(chokeNotes([{ start: 0, duration: 0.5 }], 0.8)).toEqual([{ duration: 0.5, release: 0.8 }]);
+    expect(chokeNotes([{ start: 0, duration: 0.5 }], 0.8)).toEqual([
+      { duration: 0.5, release: 0.8 },
+    ]);
   });
 
   it("keeps the full release when the next onset is further away than the tail", () => {

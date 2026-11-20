@@ -93,7 +93,11 @@ export function secondsPerBeat(bpm: number): number {
  * Only `Nm` reads the meter: a measure is however many beats the bar holds,
  * where `4n` is one beat in any meter.
  */
-export function notationToSeconds(notation: string, bpm: number, meter: Meter = COMMON_TIME): number {
+export function notationToSeconds(
+  notation: string,
+  bpm: number,
+  meter: Meter = COMMON_TIME,
+): number {
   const spb = secondsPerBeat(bpm);
   // unit: n = plain note value, t = triplet of that value, m = measures
   const m = /^(\d+)(n|t|m)(\.)?$/.exec(notation.trim());
@@ -184,7 +188,6 @@ export function barsBeatsToSeconds(time: string, bpm: number, meter: Meter = COM
   for (const p of [bars, beats, sixteenths]) {
     if (!/^\d+(\.\d+)?$/.test(p)) throw new Error(`invalid transport time: "${time}"`);
   }
-  const totalBeats =
-    Number(bars) * beatsPerBar(meter) + Number(beats) + Number(sixteenths) / 4;
+  const totalBeats = Number(bars) * beatsPerBar(meter) + Number(beats) + Number(sixteenths) / 4;
   return totalBeats * secondsPerBeat(bpm);
 }

@@ -108,9 +108,7 @@ export interface ForkOptions extends VoiceOpOptions {
  */
 export function fork(opts: ForkOptions): VoiceOpResult {
   const root = opts.root ?? voicesRoot();
-  const source = opts.from
-    ? loadVoice(opts.from, root)
-    : defaultOf(opts.instrument ?? "", root);
+  const source = opts.from ? loadVoice(opts.from, root) : defaultOf(opts.instrument ?? "", root);
 
   const preset = forkPreset(source.preset, { slug: opts.slug, title: opts.title });
   if (opts.notes) preset.notes = opts.notes;
@@ -143,7 +141,8 @@ function defaultOf(instrument: string, root: string): VoiceEntry {
     throw new Error(`unknown instrument "${instrument}" — pass --from <instrument>/<slug> instead`);
   }
   const entry = resolveVoice(readVoices(root), instrument);
-  if (!entry) throw new Error(`no voice to fork for ${instrument} — pass --from <instrument>/<slug>`);
+  if (!entry)
+    throw new Error(`no voice to fork for ${instrument} — pass --from <instrument>/<slug>`);
   return entry;
 }
 

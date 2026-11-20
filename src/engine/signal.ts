@@ -95,9 +95,7 @@ const TOKENS: Record<string, EffectSpec[]> = {
   ],
   lowpass: [{ kind: "filter", type: "lowpass", frequency: 2600 }],
   highpass: [{ kind: "filter", type: "highpass", frequency: 120 }],
-  "lowpass-sweep": [
-    { kind: "autofilter", frequency: 0.15, base: 320, octaves: 3.5, depth: 0.8 },
-  ],
+  "lowpass-sweep": [{ kind: "autofilter", frequency: 0.15, base: 320, octaves: 3.5, depth: 0.8 }],
   wah: [{ kind: "autofilter", frequency: 1.6, base: 420, octaves: 2.4, depth: 0.9 }],
 
   // --- ambience ------------------------------------------------------------

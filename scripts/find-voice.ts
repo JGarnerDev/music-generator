@@ -84,10 +84,15 @@ function printMatches(): void {
   }
 
   for (const { entry } of matches.slice(0, limit)) {
-    const flags = [entry.preset.default ? "default" : "", entry.preset.status === "approved" ? "" : entry.preset.status]
+    const flags = [
+      entry.preset.default ? "default" : "",
+      entry.preset.status === "approved" ? "" : entry.preset.status,
+    ]
       .filter(Boolean)
       .join(" ");
-    console.log(`${entry.id}${flags ? `  (${flags})` : ""}  ${(entry.preset.tags ?? []).join(" ")}`);
+    console.log(
+      `${entry.id}${flags ? `  (${flags})` : ""}  ${(entry.preset.tags ?? []).join(" ")}`,
+    );
     console.log(`  ${voiceSummary(entry.preset)}`);
   }
   if (matches.length > limit) {
@@ -108,13 +113,23 @@ function printBrief(id: string): void {
   console.log(`tags: ${(voice.preset.tags ?? []).join(" ") || "—"}`);
   console.log(`summary: ${voiceSummary(voice.preset)}`);
   if (chain.length > 1) {
-    console.log(`\nforked from: ${chain.slice(0, -1).map((e) => e.id).join(" → ")}`);
-    console.log("  a fork's notes are written against its parent's — read up the chain if this one assumes something");
+    console.log(
+      `\nforked from: ${chain
+        .slice(0, -1)
+        .map((e) => e.id)
+        .join(" → ")}`,
+    );
+    console.log(
+      "  a fork's notes are written against its parent's — read up the chain if this one assumes something",
+    );
   }
   console.log(`\n${describe(voice)}`);
   console.log(`\nfile: voices/${voice.instrument}/${voice.slug}.json`);
 }
 
 function describe(entry: VoiceEntry): string {
-  return entry.preset.notes?.trim() ?? "No notes yet — nothing recorded about why this one is built the way it is.";
+  return (
+    entry.preset.notes?.trim() ??
+    "No notes yet — nothing recorded about why this one is built the way it is."
+  );
 }

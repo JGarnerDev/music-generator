@@ -1,6 +1,10 @@
 /* Border-box everywhere: the body's padding has to live *inside* its
    100vh, or the page overflows by exactly that padding. */
-*, *::before, *::after { box-sizing: border-box; }
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
 :root {
   color-scheme: dark;
   --bg: #14121a;
@@ -55,7 +59,10 @@ h1 {
   height: 1.4rem;
   line-height: 1.4rem;
 }
-.row { display: flex; gap: 0.6rem; }
+.row {
+  display: flex;
+  gap: 0.6rem;
+}
 
 /* ── Library: tabs + scrollable table ─────────────────────────────── */
 #kindBlurb {
@@ -86,18 +93,32 @@ h1 {
   min-height: 0;
   overflow-y: scroll;
 }
-#libraryWrap::-webkit-scrollbar { width: 10px; }
-#libraryWrap::-webkit-scrollbar-thumb { background: var(--line); border-radius: 999px; }
+#libraryWrap::-webkit-scrollbar {
+  width: 10px;
+}
+#libraryWrap::-webkit-scrollbar-thumb {
+  background: var(--line);
+  border-radius: 999px;
+}
 table#library {
   width: 100%;
   table-layout: fixed; /* column widths come from the cols below, not the content */
   border-collapse: collapse;
   font-size: 0.85rem;
 }
-#library tr { border-bottom: 1px solid #241f38; cursor: pointer; }
-#library tr:last-child { border-bottom: none; }
-#library tr:hover { background: #1d1a2b; }
-#library tr[aria-selected="true"] { background: var(--panel); }
+#library tr {
+  border-bottom: 1px solid #241f38;
+  cursor: pointer;
+}
+#library tr:last-child {
+  border-bottom: none;
+}
+#library tr:hover {
+  background: #1d1a2b;
+}
+#library tr[aria-selected="true"] {
+  background: var(--panel);
+}
 #library td {
   height: 2.2rem;
   padding: 0 0.5rem;
@@ -107,12 +128,30 @@ table#library {
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.col-play, .col-delete { width: 2.4rem; }
-.col-name { width: 48%; }
-td.cell-play, td.cell-delete { text-align: center; padding: 0; }
-td.cell-name { font-weight: 600; }
-td.cell-name .kind { opacity: 0.4; font-weight: 400; font-size: 0.75rem; margin-left: 0.4rem; }
-td.cell-tags { opacity: 0.75; }
+.col-play,
+.col-delete {
+  width: 2.4rem;
+}
+.col-name {
+  width: 48%;
+}
+td.cell-play,
+td.cell-delete {
+  text-align: center;
+  padding: 0;
+}
+td.cell-name {
+  font-weight: 600;
+}
+td.cell-name .kind {
+  opacity: 0.4;
+  font-weight: 400;
+  font-size: 0.75rem;
+  margin-left: 0.4rem;
+}
+td.cell-tags {
+  opacity: 0.75;
+}
 
 /* ── Bench: the selected piece ────────────────────────────────────── */
 #title {
@@ -135,7 +174,11 @@ td.cell-tags { opacity: 0.75; }
   opacity: 0.6;
   cursor: pointer;
 }
-#drop.over { border-color: var(--accent); opacity: 1; background: #221d33; }
+#drop.over {
+  border-color: var(--accent);
+  opacity: 1;
+  background: #221d33;
+}
 button {
   flex: 1 1 0;
   min-width: 0;
@@ -148,8 +191,13 @@ button {
   font: inherit;
   cursor: pointer;
 }
-button:hover:not(:disabled) { background: var(--panel-hi); }
-button:disabled { opacity: 0.4; cursor: not-allowed; }
+button:hover:not(:disabled) {
+  background: var(--panel-hi);
+}
+button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
 /*
  * Two lines reserved, always: status messages run from "Playing…" to a
  * full validation error, and the box must not resize under either.
@@ -168,4 +216,6 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
  * direct child of it — `display: contents` makes the wrapper vanish from layout
  * so every rule above still applies to exactly the box it was written for.
  */
-#root { display: contents; }
+#root {
+  display: contents;
+}

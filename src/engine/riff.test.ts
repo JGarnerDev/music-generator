@@ -68,7 +68,14 @@ describe("motorLine", () => {
     const notes = motorLine({ startBar: 0, roots: ["A1"] });
     expect(notes).toHaveLength(8);
     expect(notes.map((n) => n.time)).toEqual([
-      "0:0:0", "0:0:2", "0:1:0", "0:1:2", "0:2:0", "0:2:2", "0:3:0", "0:3:2",
+      "0:0:0",
+      "0:0:2",
+      "0:1:0",
+      "0:1:2",
+      "0:2:0",
+      "0:2:2",
+      "0:3:0",
+      "0:3:2",
     ]);
     expect(notes.every((n) => n.duration === "8n")).toBe(true);
     expect(notes.every((n) => n.pitch === "A1")).toBe(true);
@@ -156,7 +163,11 @@ describe("tremoloLine", () => {
   });
 
   it("wraps to the next bar after four beats", () => {
-    const notes = tremoloLine({ startBar: 7, pitches: ["A4", "A4", "A4", "A4", "C5"], subdivision: 1 });
+    const notes = tremoloLine({
+      startBar: 7,
+      pitches: ["A4", "A4", "A4", "A4", "C5"],
+      subdivision: 1,
+    });
     expect(notes.map((n) => n.time)).toEqual(["7:0:0", "7:1:0", "7:2:0", "7:3:0", "8:0:0"]);
   });
 

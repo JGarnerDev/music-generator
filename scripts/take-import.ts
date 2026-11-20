@@ -80,7 +80,9 @@ try {
 }
 
 if (existsSync(file) && !opts.force) {
-  fail(`${takeRelativePath(take.name)} already exists — --force to overwrite, or --name to file it beside`);
+  fail(
+    `${takeRelativePath(take.name)} already exists — --force to overwrite, or --name to file it beside`,
+  );
 }
 
 mkdirSync(dirname(file), { recursive: true });
@@ -95,6 +97,7 @@ console.log(`            npm run take:read -- --file ${path} --emit <slug>\n`);
 
 function readFile(path: string): string {
   const full = resolve(process.cwd(), path);
-  if (!existsSync(full)) fail(`no such file: ${relative(process.cwd(), full).split("\\").join("/")}`);
+  if (!existsSync(full))
+    fail(`no such file: ${relative(process.cwd(), full).split("\\").join("/")}`);
   return readFileSync(full, "utf8");
 }

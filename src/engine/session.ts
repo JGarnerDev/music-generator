@@ -82,7 +82,10 @@ export function validateSessionPlan(input: unknown): ValidationIssue[] {
     push("name", "must be a non-empty slug");
   }
   for (const field of ["title", "campaign"] as const) {
-    if (plan[field] !== undefined && (typeof plan[field] !== "string" || String(plan[field]).trim() === "")) {
+    if (
+      plan[field] !== undefined &&
+      (typeof plan[field] !== "string" || String(plan[field]).trim() === "")
+    ) {
       push(field, "must be a non-empty string");
     }
   }
@@ -99,7 +102,7 @@ export function validateSessionPlan(input: unknown): ValidationIssue[] {
     }
     const c = cue as Record<string, unknown>;
     if (typeof c.entry !== "string" || c.entry.trim() === "") {
-      push(`${at}.entry`, "must be a library id, e.g. \"loops/tavern-raid\"");
+      push(`${at}.entry`, 'must be a library id, e.g. "loops/tavern-raid"');
     }
     if (c.note !== undefined && typeof c.note !== "string") {
       push(`${at}.note`, "must be a string");
@@ -174,7 +177,11 @@ export function setCueNote(plan: SessionPlan, index: number, note: string): Sess
 }
 
 /** Force a cue to loop or not; `undefined` hands the decision back to the piece. */
-export function setCueLoop(plan: SessionPlan, index: number, loop: boolean | undefined): SessionPlan {
+export function setCueLoop(
+  plan: SessionPlan,
+  index: number,
+  loop: boolean | undefined,
+): SessionPlan {
   return patchCue(plan, index, (cue) => {
     const { loop: _dropped, ...rest } = cue;
     return loop === undefined ? rest : { ...rest, loop };
@@ -234,7 +241,9 @@ export function resolveCues(
   return plan.cues.map((cue, index) => {
     const entry = byId.get(cue.entry) ?? null;
     const loop = cueLoops(cue, entry);
-    const audio = entry ? rendered.get(audioName(entry.composition.name, { loop })) ?? null : null;
+    const audio = entry
+      ? (rendered.get(audioName(entry.composition.name, { loop })) ?? null)
+      : null;
     const status: CueStatus = !entry ? "missing-piece" : !audio ? "missing-audio" : "ready";
     return {
       index,

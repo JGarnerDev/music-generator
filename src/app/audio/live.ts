@@ -164,7 +164,8 @@ export class LiveKeyboard {
    * a re-render of the page does not cost a graph teardown.
    */
   use(instrument: InstrumentName, slug?: string): void {
-    if (this.current && this.current.instrument === instrument && this.current.slug === slug) return;
+    if (this.current && this.current.instrument === instrument && this.current.slug === slug)
+      return;
     this.dispose();
     // The quality profile is read while the graph is *built*, not while it
     // plays, so the ceiling has to be in force for exactly this call.

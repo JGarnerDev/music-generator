@@ -178,9 +178,7 @@ describe("barSlices", () => {
     const slices = barSlices(["Bb1", "C2"], 0, [3, 4]);
     expect(slices.map((s) => s.duration)).toEqual(["4n.", "4n."]);
     // Two of them exactly fill the bar.
-    expect(notationToSeconds("4n.", 120) * 2).toBeCloseTo(
-      barsBeatsToSeconds("1:0:0", 120, [3, 4]),
-    );
+    expect(notationToSeconds("4n.", 120) * 2).toBeCloseTo(barsBeatsToSeconds("1:0:0", 120, [3, 4]));
   });
 });
 

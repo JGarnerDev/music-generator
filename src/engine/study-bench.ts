@@ -14,17 +14,8 @@
  *   because "unjudged only" would otherwise hide exactly the attempt you are
  *   A/B-ing against.
  */
-import {
-  conceptOf,
-  type ConceptGroup,
-  type Thumb,
-} from "./study";
-import {
-  searchStudies,
-  setsOf,
-  studiesOfGroup,
-  type StudyEntry,
-} from "./study-library";
+import { conceptOf, type ConceptGroup, type Thumb } from "./study";
+import { searchStudies, setsOf, studiesOfGroup, type StudyEntry } from "./study-library";
 
 export interface StudyFilters {
   /** null = the "All" tab. */
@@ -68,15 +59,10 @@ export const ALL_GROUPS_BLURB =
 
 export const NO_STUDY_SELECTED = "No study selected.";
 
-const FAN_OUT =
-  'npm run study:new -- --concept <slug> --axis <axis> --mood "<scene>"';
+const FAN_OUT = 'npm run study:new -- --concept <slug> --axis <axis> --mood "<scene>"';
 
 /** Why the table is empty — a filter, a finished queue, or an empty shelf. */
-export function emptyStudiesMessage(
-  query: string,
-  unjudgedOnly: boolean,
-  total: number,
-): string {
+export function emptyStudiesMessage(query: string, unjudgedOnly: boolean, total: number): string {
   if (query.trim() !== "") return `Nothing matches “${query.trim()}”.`;
   if (unjudgedOnly && total > 0) {
     return "Everything here has a verdict. Untick “unjudged only” to revisit them.";
@@ -144,10 +130,7 @@ export function describeStudy(entry: StudyEntry): StudyDescription {
 }
 
 /** The rest of the set: the attempts this one's thumb means anything against. */
-export function siblingsOf(
-  entries: readonly StudyEntry[],
-  entry: StudyEntry,
-): StudyEntry[] {
+export function siblingsOf(entries: readonly StudyEntry[], entry: StudyEntry): StudyEntry[] {
   const key = `${entry.concept}/${entry.study.set ?? entry.slug}`;
   return setsOf(entries).get(key) ?? [entry];
 }

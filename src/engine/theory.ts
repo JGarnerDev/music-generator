@@ -159,12 +159,7 @@ export function progressionChords(
  *   diminished — bare lowercase in a minor key conventionally covers ii°, and
  *   jazz's minor ii-V-i wants that half-diminished colour.
  */
-function resolveNumeral(
-  rn: string,
-  triads: string[],
-  scale: string[],
-  parallel: string[],
-): string {
+function resolveNumeral(rn: string, triads: string[], scale: string[], parallel: string[]): string {
   const parsed = RomanNumeral.get(rn);
   if (parsed.empty) throw new Error(`bad roman numeral: "${rn}"`);
   const diatonic = triads[parsed.step];

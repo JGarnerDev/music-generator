@@ -71,7 +71,9 @@ try {
       console.log("  no summary — add one with --summary so the archive row says when to pick it");
     }
     if (!result.preset.notes) {
-      console.log("  no notes — add some with --notes so a future fork knows what it is working from");
+      console.log(
+        "  no notes — add some with --notes so a future fork knows what it is working from",
+      );
     }
     // An approved voice nobody can hear is a claim, not a decision.
     const audio = resolve(

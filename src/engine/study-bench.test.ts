@@ -100,7 +100,11 @@ describe("firstSelectable", () => {
   });
 
   it("skips a broken file when falling back, and gives up on an empty shelf", () => {
-    const broken = entry({ id: "a", slug: "a", issues: [{ path: "study", message: "is invalid" }] });
+    const broken = entry({
+      id: "a",
+      slug: "a",
+      issues: [{ path: "study", message: "is invalid" }],
+    });
     expect(firstSelectable([broken], filters({ query: "nothing" }))).toBeNull();
     expect(firstSelectable([], filters())).toBeNull();
   });

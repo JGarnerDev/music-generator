@@ -1,6 +1,13 @@
 import { describe, it, expect } from "vitest";
 import { Note as TonalNote } from "tonal";
-import { approachNotes, arpLine, bassLine, bassPatternFromKick, compLine, BASS_BAND } from "./parts";
+import {
+  approachNotes,
+  arpLine,
+  bassLine,
+  bassPatternFromKick,
+  compLine,
+  BASS_BAND,
+} from "./parts";
 import { voiceLead } from "./theory";
 
 const midi = (pitch: string): number => TonalNote.midi(pitch)!;
@@ -91,12 +98,23 @@ describe("compLine", () => {
       voicings: [["A3", "C4", "E4"]],
       pattern: "....X.......X...",
     });
-    expect(notes.map((n) => n.time)).toEqual(["0:1:0", "0:1:0", "0:1:0", "0:3:0", "0:3:0", "0:3:0"]);
+    expect(notes.map((n) => n.time)).toEqual([
+      "0:1:0",
+      "0:1:0",
+      "0:1:0",
+      "0:3:0",
+      "0:3:0",
+      "0:3:0",
+    ]);
     expect(notes.slice(0, 3).map((n) => n.pitch)).toEqual(["A3", "C4", "E4"]);
   });
 
   it("backs off the upper voices so the stack reads as one chord", () => {
-    const notes = compLine({ startBar: 0, voicings: [["A3", "C4", "E4"]], pattern: "X..............." });
+    const notes = compLine({
+      startBar: 0,
+      voicings: [["A3", "C4", "E4"]],
+      pattern: "X...............",
+    });
     expect(notes[0]!.velocity!).toBeGreaterThan(notes[1]!.velocity!);
     expect(notes[1]!.velocity!).toBeGreaterThan(notes[2]!.velocity!);
   });
@@ -122,14 +140,14 @@ describe("arpLine", () => {
   it("advances one chord tone per struck step, across bars", () => {
     const notes = arpLine({
       startBar: 0,
-      voicings: [["A3", "C4", "E4"], ["F3", "A3", "C4"]],
+      voicings: [
+        ["A3", "C4", "E4"],
+        ["F3", "A3", "C4"],
+      ],
       pattern: "X...X...X...X...",
     });
     // The cursor carries across the bar line: bar 2 starts on the second tone.
-    expect(notes.map((n) => n.pitch)).toEqual([
-      "A3", "C4", "E4", "A3",
-      "A3", "C4", "F3", "A3",
-    ]);
+    expect(notes.map((n) => n.pitch)).toEqual(["A3", "C4", "E4", "A3", "A3", "C4", "F3", "A3"]);
   });
 
   it("descends when told to", () => {

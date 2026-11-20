@@ -28,12 +28,7 @@ import { blendPalettes, withAncestors } from "../src/engine/blend";
 import { composeFromBlend } from "../src/engine/composer";
 import { findPalettes, loadPalettesFromDir } from "../src/engine/palette-loader";
 import { isEmotionPalette, type Palette } from "../src/engine/palette";
-import {
-  FIGURE_NAMES,
-  figureFitsMeter,
-  isFigureName,
-  type FigureName,
-} from "../src/engine/figure";
+import { FIGURE_NAMES, figureFitsMeter, isFigureName, type FigureName } from "../src/engine/figure";
 import type { Knobs, RegisterName, TempoLean } from "../src/engine/knobs";
 import { INSTRUMENT_NAMES, type Composition, type InstrumentName } from "../src/engine/composition";
 import {
@@ -255,7 +250,10 @@ function variantsFor(chosen: StudyAxis, n: number): string[] {
       .filter((name) => figureFitsMeter(name, direction.meter));
     const picked: FigureName[] = [];
     while (picked.length < Math.min(n, shelf.length)) {
-      const candidate = pick(rng, shelf.filter((name) => !picked.includes(name)));
+      const candidate = pick(
+        rng,
+        shelf.filter((name) => !picked.includes(name)),
+      );
       picked.push(candidate);
     }
     return picked;
@@ -283,7 +281,9 @@ function resolveEmotion(): Palette {
   if (opts.palette) {
     const found = palettes.find((p) => p.frontmatter.slug === opts.palette);
     if (!found) {
-      console.error(`No palette "${opts.palette}". Known: ${palettes.map((p) => p.frontmatter.slug).join(", ")}`);
+      console.error(
+        `No palette "${opts.palette}". Known: ${palettes.map((p) => p.frontmatter.slug).join(", ")}`,
+      );
       process.exit(2);
     }
     if (!isEmotionPalette(found)) {
@@ -303,10 +303,15 @@ function resolveEmotion(): Palette {
 
 function layers(): Palette[] {
   const out: Palette[] = [];
-  for (const slug of opts.with.split(",").map((s) => s.trim()).filter(Boolean)) {
+  for (const slug of opts.with
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean)) {
     const found = palettes.find((p) => p.frontmatter.slug === slug);
     if (!found) {
-      console.error(`No palette "${slug}" to layer. Known: ${palettes.map((p) => p.frontmatter.slug).join(", ")}`);
+      console.error(
+        `No palette "${slug}" to layer. Known: ${palettes.map((p) => p.frontmatter.slug).join(", ")}`,
+      );
       process.exit(2);
     }
     out.push(found);
@@ -359,10 +364,15 @@ function requireMood(text: string | undefined): string {
  * is a study whose axis the ear has to go looking for.
  */
 function requireParts(raw: string): InstrumentName[] {
-  const names = raw.split(",").map((s) => s.trim()).filter(Boolean);
+  const names = raw
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
   const unknown = names.filter((name) => !INSTRUMENT_NAMES.includes(name as InstrumentName));
   if (unknown.length > 0) {
-    console.error(`--only: unknown instrument(s) ${unknown.join(", ")}. Known: ${INSTRUMENT_NAMES.join(", ")}`);
+    console.error(
+      `--only: unknown instrument(s) ${unknown.join(", ")}. Known: ${INSTRUMENT_NAMES.join(", ")}`,
+    );
     process.exit(2);
   }
   return names as InstrumentName[];
@@ -432,8 +442,11 @@ function printAxes(): void {
   console.log("Axis shelf — what a set of attempts may differ on:\n");
   for (const entry of STUDY_AXES) {
     console.log(`  ${entry.name.padEnd(16)} ${entry.kind.padEnd(8)} ${entry.blurb}`);
-    if (entry.values) console.log(`  ${"".padEnd(16)} ${"".padEnd(8)} values: ${entry.values.join(", ")}`);
+    if (entry.values)
+      console.log(`  ${"".padEnd(16)} ${"".padEnd(8)} values: ${entry.values.join(", ")}`);
   }
   console.log("\n  knob    — the composer turns it; the attempts differ for real and render now.");
-  console.log("  written — a judgement no field encodes; the attempts are scaffolded for you to write.\n");
+  console.log(
+    "  written — a judgement no field encodes; the attempts are scaffolded for you to write.\n",
+  );
 }

@@ -188,7 +188,9 @@ export function summarizeShape(view: ShapeView): string {
   lines.push(`  contour   ${describeContourLine(contour, positions, placed, perBar)}`);
   lines.push(`  phrases   ${describePhrases(findPhrases(placed), perBar)}`);
   if (shape.startStep > 0) {
-    lines.push(`  pickup    starts ${shape.startStep} step${shape.startStep === 1 ? "" : "s"} into the bar — keep it there`);
+    lines.push(
+      `  pickup    starts ${shape.startStep} step${shape.startStep === 1 ? "" : "s"} into the bar — keep it there`,
+    );
   }
   lines.push(`  rewrite   root it anywhere; snap to the piece's key so the leaps stay legal`);
 

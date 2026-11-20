@@ -43,7 +43,10 @@ describe("grooveNotes", () => {
   });
 
   it("reads accents as dynamics: X > x > o", () => {
-    const notes = grooveNotes({ patterns: { snare: "Xxo............." } }, { startBar: 0, bars: 1 });
+    const notes = grooveNotes(
+      { patterns: { snare: "Xxo............." } },
+      { startBar: 0, bars: 1 },
+    );
     const velocities = notes.map((n) => n.velocity!);
     expect(velocities[0]).toBeGreaterThan(velocities[1]!);
     expect(velocities[1]).toBeGreaterThan(velocities[2]!);
@@ -62,14 +65,14 @@ describe("grooveNotes", () => {
     };
     const notes = grooveNotes(groove, { startBar: 0, bars: 4 });
     expect(notes.filter((n) => n.pitch === "kick")).toHaveLength(4);
-    expect(notes.filter((n) => n.pitch === "crash").map((n) => n.time)).toEqual([
-      "0:0:0",
-      "2:0:0",
-    ]);
+    expect(notes.filter((n) => n.pitch === "crash").map((n) => n.time)).toEqual(["0:0:0", "2:0:0"]);
   });
 
   it("delays only the off-beat sixteenths when swung", () => {
-    const straight = grooveNotes({ patterns: { hat: "xxxx............" } }, { startBar: 0, bars: 1 });
+    const straight = grooveNotes(
+      { patterns: { hat: "xxxx............" } },
+      { startBar: 0, bars: 1 },
+    );
     const swung = grooveNotes(
       { swing: 1, patterns: { hat: "xxxx............" } },
       { startBar: 0, bars: 1 },
@@ -156,7 +159,7 @@ describe("validateGroove", () => {
 
   it("rejects unknown step characters", () => {
     const issues = validateGroove({ patterns: { kick: "X...!...X...x..." } });
-    expect(issues[0]!.message).toContain('may only use');
+    expect(issues[0]!.message).toContain("may only use");
   });
 
   it("rejects swing outside 0..1 and an empty pattern set", () => {
@@ -169,7 +172,9 @@ describe("validateGroove", () => {
 
 describe("grooveBars", () => {
   it("reports the longest lane in bars", () => {
-    expect(grooveBars({ patterns: { kick: "X...............", crash: "X".padEnd(32, ".") } })).toBe(2);
+    expect(grooveBars({ patterns: { kick: "X...............", crash: "X".padEnd(32, ".") } })).toBe(
+      2,
+    );
     expect(grooveBars({ patterns: {} })).toBe(0);
   });
 });

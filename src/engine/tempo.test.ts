@@ -31,7 +31,11 @@ describe("tempoMap", () => {
   it("lets a ramp arrive and a step leave on the same bar", () => {
     const map = tempoMap({
       bpm: 100,
-      tempo: [{ bar: 2, bpm: 100 }, { bar: 4, bpm: 140, ramp: true }, { bar: 4, bpm: 90 }],
+      tempo: [
+        { bar: 2, bpm: 100 },
+        { bar: 4, bpm: 140, ramp: true },
+        { bar: 4, bpm: 90 },
+      ],
     });
     expect(map.bpmAtBeat(16)).toBeCloseTo(90);
     expect(map.bpmAtBeat(15.999)).toBeCloseTo(140, 0);
@@ -45,7 +49,11 @@ describe("tempoMap", () => {
 describe("automation", () => {
   const map = tempoMap({
     bpm: 100,
-    tempo: [{ bar: 2, bpm: 120 }, { bar: 4, bpm: 160, ramp: true }, { bar: 4, bpm: 110 }],
+    tempo: [
+      { bar: 2, bpm: 120 },
+      { bar: 4, bpm: 160, ramp: true },
+      { bar: 4, bpm: 110 },
+    ],
   });
 
   it("is only steps — a ramp arrives as one stair per sixteenth", () => {
@@ -54,7 +62,10 @@ describe("automation", () => {
     expect(events[0]).toEqual({ seconds: 0, bpm: 100, ramp: false });
     // Bars 2–4 are 8 beats of ramp: 32 stairs, then the step to 110.
     expect(events).toHaveLength(1 + 32 + 1);
-    expect(events.at(-1)).toMatchObject({ seconds: expect.closeTo(map.secondsAt("4:0:0"), 9), bpm: 110 });
+    expect(events.at(-1)).toMatchObject({
+      seconds: expect.closeTo(map.secondsAt("4:0:0"), 9),
+      bpm: 110,
+    });
   });
 
   it("lands every stair on the map, so the transport and the loop cut agree", () => {
@@ -84,7 +95,12 @@ describe("automation", () => {
 
 describe("tempoIssues", () => {
   it("accepts steps and ramps", () => {
-    expect(tempoIssues([{ bar: 4, bpm: 140 }, { bar: 8, bpm: 150, ramp: true }])).toEqual([]);
+    expect(
+      tempoIssues([
+        { bar: 4, bpm: 140 },
+        { bar: 8, bpm: 150, ramp: true },
+      ]),
+    ).toEqual([]);
   });
   it("names the bad field", () => {
     expect(tempoIssues([{ bar: 1.5, bpm: 0 }])).toEqual([
@@ -96,24 +112,45 @@ describe("tempoIssues", () => {
 
 describe("sectionTempoChanges", () => {
   it("is empty when no section moves the tempo", () => {
-    expect(sectionTempoChanges(120, [{ start: 0, end: 8 }, { start: 8, end: 16, bpm: 120 }])).toEqual([]);
+    expect(
+      sectionTempoChanges(120, [
+        { start: 0, end: 8 },
+        { start: 8, end: 16, bpm: 120 },
+      ]),
+    ).toEqual([]);
   });
 
   it("steps at a section that states a new bpm, and carries it on", () => {
     expect(
-      sectionTempoChanges(100, [{ start: 0, end: 4 }, { start: 4, end: 8, bpm: 120 }, { start: 8, end: 12 }]),
+      sectionTempoChanges(100, [
+        { start: 0, end: 4 },
+        { start: 4, end: 8, bpm: 120 },
+        { start: 8, end: 12 },
+      ]),
     ).toEqual([{ bar: 4, bpm: 120 }]);
   });
 
   it("anchors a ramp on its first bar so it glides across that section only", () => {
     expect(
-      sectionTempoChanges(100, [{ start: 0, end: 4 }, { start: 4, end: 8, rampTo: 140 }]),
-    ).toEqual([{ bar: 4, bpm: 100 }, { bar: 8, bpm: 140, ramp: true }]);
+      sectionTempoChanges(100, [
+        { start: 0, end: 4 },
+        { start: 4, end: 8, rampTo: 140 },
+      ]),
+    ).toEqual([
+      { bar: 4, bpm: 100 },
+      { bar: 8, bpm: 140, ramp: true },
+    ]);
   });
 
   it("lets the next section step off a ramp's arrival", () => {
     expect(
-      sectionTempoChanges(100, [{ start: 0, end: 4, rampTo: 140 }, { start: 4, end: 8, bpm: 130 }]),
-    ).toEqual([{ bar: 4, bpm: 140, ramp: true }, { bar: 4, bpm: 130 }]);
+      sectionTempoChanges(100, [
+        { start: 0, end: 4, rampTo: 140 },
+        { start: 4, end: 8, bpm: 130 },
+      ]),
+    ).toEqual([
+      { bar: 4, bpm: 140, ramp: true },
+      { bar: 4, bpm: 130 },
+    ]);
   });
 });

@@ -28,27 +28,33 @@ export function studyApi(root?: string): Plugin {
     name: "music-generator:study-api",
     apply: "serve",
     configureServer(server) {
-      postRoute(server, STUDY_VERDICT_ENDPOINT, '{ "id": "hook/dust-a", "thumb": "up" }', (body) => {
-        const id = String(body.id ?? "");
-        if (body.clear === true) {
-          const cleared = unjudge(id, { root });
-          server.config.logger.info(`  ${cleared.id} → back in the queue`);
-          return { id: cleared.id, verdict: null };
-        }
-        const thumb = body.thumb === "up" || body.thumb === "down" ? body.thumb : null;
-        if (!thumb) throw new Error('thumb must be "up" or "down"');
-        const result = judge(id, {
-          root,
-          thumb,
-          tags: Array.isArray(body.tags) ? body.tags.map(String) : [],
-          note: typeof body.note === "string" ? body.note : undefined,
-        });
-        const verdict = result.study.verdict!;
-        server.config.logger.info(
-          `  ${result.id} → ${verdict.thumb}${verdict.tags.length ? ` (${verdict.tags.join(", ")})` : ""}`,
-        );
-        return { id: result.id, verdict };
-      }, MAX_BODY_BYTES);
+      postRoute(
+        server,
+        STUDY_VERDICT_ENDPOINT,
+        '{ "id": "hook/dust-a", "thumb": "up" }',
+        (body) => {
+          const id = String(body.id ?? "");
+          if (body.clear === true) {
+            const cleared = unjudge(id, { root });
+            server.config.logger.info(`  ${cleared.id} → back in the queue`);
+            return { id: cleared.id, verdict: null };
+          }
+          const thumb = body.thumb === "up" || body.thumb === "down" ? body.thumb : null;
+          if (!thumb) throw new Error('thumb must be "up" or "down"');
+          const result = judge(id, {
+            root,
+            thumb,
+            tags: Array.isArray(body.tags) ? body.tags.map(String) : [],
+            note: typeof body.note === "string" ? body.note : undefined,
+          });
+          const verdict = result.study.verdict!;
+          server.config.logger.info(
+            `  ${result.id} → ${verdict.thumb}${verdict.tags.length ? ` (${verdict.tags.join(", ")})` : ""}`,
+          );
+          return { id: result.id, verdict };
+        },
+        MAX_BODY_BYTES,
+      );
     },
   };
 }

@@ -71,7 +71,12 @@ function run(
 ): Note[] {
   return pitches.map((pitch, i) => {
     const step = beat * 4 + i * stride;
-    return note(at(bar + Math.floor(step / 16), Math.floor((step % 16) / 4), step % 4), pitch, duration, velocity);
+    return note(
+      at(bar + Math.floor(step / 16), Math.floor((step % 16) / 4), step % 4),
+      pitch,
+      duration,
+      velocity,
+    );
   });
 }
 

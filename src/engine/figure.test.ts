@@ -81,7 +81,12 @@ describe("figureLine", () => {
   it("reads a step string into timed hits", () => {
     const notes = figureLine("3+3+2", { startBar: 0, roots: ["A1"] });
     expect(notes.map((n) => n.time)).toEqual([
-      "0:0:0", "0:0:3", "0:1:2", "0:2:0", "0:2:3", "0:3:2",
+      "0:0:0",
+      "0:0:3",
+      "0:1:2",
+      "0:2:0",
+      "0:2:3",
+      "0:3:2",
     ]);
   });
 
@@ -102,7 +107,10 @@ describe("figureLine", () => {
   it("puts triplet figures on fractional sixteenths", () => {
     const notes = figureLine("triplet-canter", { startBar: 2, roots: ["A1"] });
     expect(notes.slice(0, 4).map((n) => n.time)).toEqual([
-      "2:0:0", "2:0:2.6667", "2:1:0", "2:1:2.6667",
+      "2:0:0",
+      "2:0:2.6667",
+      "2:1:0",
+      "2:1:2.6667",
     ]);
     expect(notes.slice(0, 2).map((n) => n.duration)).toEqual(["4t", "8t"]);
   });
@@ -119,7 +127,10 @@ describe("figureLine", () => {
       approaches: ["Bb1", null],
     });
     expect(notes.map((n) => `${n.time} ${n.pitch}`)).toEqual([
-      "0:0:0 A1", "0:2:0 Bb1", "1:0:0 A1", "1:2:0 A1",
+      "0:0:0 A1",
+      "0:2:0 Bb1",
+      "1:0:0 A1",
+      "1:2:0 A1",
     ]);
   });
 
@@ -131,7 +142,12 @@ describe("figureLine", () => {
   });
 
   it("ghosts the downbeat where the figure says to", () => {
-    const notes = figureLine("pushed-eighths", { startBar: 0, roots: ["A2"], accent: 0.9, ghost: 0.6 });
+    const notes = figureLine("pushed-eighths", {
+      startBar: 0,
+      roots: ["A2"],
+      accent: 0.9,
+      ghost: 0.6,
+    });
     expect(notes[0]).toMatchObject({ time: "0:0:0", velocity: 0.6 });
     expect(notes[1]).toMatchObject({ time: "0:0:2", velocity: 0.9 });
   });
@@ -144,15 +160,24 @@ describe("figureLine", () => {
     };
     const notes = figureLine(twoBar, { startBar: 0, roots: ["A1", "C2", "A1"] });
     expect(notes.map((n) => `${n.time} ${n.pitch}`)).toEqual([
-      "0:0:0 A1", "1:0:0 C2", "1:2:0 C2", "2:0:0 A1",
+      "0:0:0 A1",
+      "1:0:0 C2",
+      "1:2:0 C2",
+      "2:0:0 A1",
     ]);
   });
 
   it("splits a bar between roots when the entry is an array", () => {
     const notes = figureLine("straight-eighths", { startBar: 0, roots: [["A1", "C2"]] });
     expect(notes.map((n) => `${n.time} ${n.pitch}`)).toEqual([
-      "0:0:0 A1", "0:0:2 A1", "0:1:0 A1", "0:1:2 A1",
-      "0:2:0 C2", "0:2:2 C2", "0:3:0 C2", "0:3:2 C2",
+      "0:0:0 A1",
+      "0:0:2 A1",
+      "0:1:0 A1",
+      "0:1:2 A1",
+      "0:2:0 C2",
+      "0:2:2 C2",
+      "0:3:0 C2",
+      "0:3:2 C2",
     ]);
   });
 
@@ -219,7 +244,13 @@ describe("powerChordFigure", () => {
 });
 
 describe("validateFigure", () => {
-  const base = { steps: "X...x...X...x...", resolution: 4, secondary: -0.07, chordOn: "Xx", summary: "x" };
+  const base = {
+    steps: "X...x...X...x...",
+    resolution: 4,
+    secondary: -0.07,
+    chordOn: "Xx",
+    summary: "x",
+  };
 
   it("accepts a whole number of bars", () => {
     expect(validateFigure({ ...base, steps: base.steps.repeat(2) })).toEqual([]);
@@ -233,7 +264,7 @@ describe("validateFigure", () => {
 
   it("rejects unknown step characters", () => {
     expect(validateFigure({ ...base, steps: "Z...............".repeat(1) })).toMatchObject([
-      { path: "figure.steps", message: expect.stringContaining('may only use') },
+      { path: "figure.steps", message: expect.stringContaining("may only use") },
       { path: "figure.steps", message: expect.stringContaining("at least one hit") },
     ]);
   });

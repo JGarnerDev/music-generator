@@ -29,12 +29,22 @@ describe("toShape", () => {
   });
 
   it("keeps a rest as a large gap rather than losing it", () => {
-    const withRest = notes([[60, 0, 2], [62, 16, 2]]);
+    const withRest = notes([
+      [60, 0, 2],
+      [62, 16, 2],
+    ]);
     expect(toShape(withRest).notes[1]!.gapSteps).toBe(16);
   });
 
   it("remembers where the phrase sits in its bar, so a pickup survives", () => {
-    expect(toShape(notes([[60, 14, 2], [62, 16, 4]])).startStep).toBe(14);
+    expect(
+      toShape(
+        notes([
+          [60, 14, 2],
+          [62, 16, 4],
+        ]),
+      ).startStep,
+    ).toBe(14);
   });
 
   it("measures its length from first onset to last release", () => {
@@ -73,7 +83,14 @@ describe("applyShape", () => {
   it("does not let one snapped note drag the rest of the phrase off pitch", () => {
     // Every interval is a semitone, so without an unsnapped running line the
     // errors would compound and the last note would be nowhere near its target.
-    const chromatic = toShape(notes([[60, 0, 2], [61, 2, 2], [62, 4, 2], [63, 6, 2]]));
+    const chromatic = toShape(
+      notes([
+        [60, 0, 2],
+        [61, 2, 2],
+        [62, 4, 2],
+        [63, 6, 2],
+      ]),
+    );
     expect(applyShape(chromatic, { rootMidi: 60, key: parseKey("C") }).map((n) => n.midi)).toEqual([
       60, 62, 62, 64,
     ]);
@@ -81,8 +98,18 @@ describe("applyShape", () => {
 
   it("breaks a snapping tie in the direction the line was travelling", () => {
     // A tritone up from C lands on F#, equidistant between F and G in C major.
-    const up = toShape(notes([[60, 0, 2], [66, 2, 2]]));
-    const down = toShape(notes([[72, 0, 2], [66, 2, 2]]));
+    const up = toShape(
+      notes([
+        [60, 0, 2],
+        [66, 2, 2],
+      ]),
+    );
+    const down = toShape(
+      notes([
+        [72, 0, 2],
+        [66, 2, 2],
+      ]),
+    );
     expect(applyShape(up, { rootMidi: 60, key: parseKey("C") })[1]!.midi).toBe(67);
     expect(applyShape(down, { rootMidi: 72, key: parseKey("C") })[1]!.midi).toBe(65);
   });
@@ -126,7 +153,15 @@ describe("summarizeShape", () => {
   });
 
   it("calls out a pickup, since re-rooting is where one gets lost", () => {
-    const pickup = summarizeShape({ name: "x", shape: toShape(notes([[60, 14, 2], [62, 16, 4]])) });
+    const pickup = summarizeShape({
+      name: "x",
+      shape: toShape(
+        notes([
+          [60, 14, 2],
+          [62, 16, 4],
+        ]),
+      ),
+    });
     expect(pickup).toContain("pickup    starts 14 steps into the bar");
     expect(summary).not.toContain("pickup");
   });

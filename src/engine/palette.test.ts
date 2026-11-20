@@ -136,7 +136,12 @@ describe("mode names", () => {
 describe("matchPalettes", () => {
   const palettes: Palette[] = [
     parsePalette(rawSad),
-    parsePalette(rawSad.replace("slug: sad", "slug: metal").replace("title: Sad / Bittersweet", "title: Metal").replace(/tags: \[.*\]/, "tags: [badass, intense, metal, aggressive]")),
+    parsePalette(
+      rawSad
+        .replace("slug: sad", "slug: metal")
+        .replace("title: Sad / Bittersweet", "title: Metal")
+        .replace(/tags: \[.*\]/, "tags: [badass, intense, metal, aggressive]"),
+    ),
   ];
 
   it("ranks by number of term hits", () => {
@@ -168,7 +173,9 @@ describe("parsePalette + parent", () => {
 
 describe("validatePaletteSet", () => {
   const genre = (slug: string, extra = ""): Palette =>
-    parsePalette(`---\nkind: genre\nslug: ${slug}\ntitle: ${slug}\ntags: [x]\ntempo: [80, 100]\n${extra}---\nbody`);
+    parsePalette(
+      `---\nkind: genre\nslug: ${slug}\ntitle: ${slug}\ntags: [x]\ntempo: [80, 100]\n${extra}---\nbody`,
+    );
 
   it("accepts a set whose parents resolve to the same kind", () => {
     expect(validatePaletteSet([genre("rock"), genre("desert-rock", "parent: rock\n")])).toEqual([]);
@@ -197,7 +204,9 @@ describe("validatePaletteSet", () => {
   });
 
   it("flags a self-parent and a cycle", () => {
-    expect(validatePaletteSet([genre("rock", "parent: rock\n")])[0]?.message).toContain("is itself");
+    expect(validatePaletteSet([genre("rock", "parent: rock\n")])[0]?.message).toContain(
+      "is itself",
+    );
 
     const cyclic = [genre("a", "parent: b\n"), genre("b", "parent: a\n")];
     expect(validatePaletteSet(cyclic).some((i) => i.message.includes("cycle"))).toBe(true);

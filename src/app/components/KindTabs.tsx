@@ -5,7 +5,12 @@
  * Counts come from [`@engine/library`](../../engine/library.ts); the strip
  * itself is [`Tabs`](./Tabs.tsx), shared with the other two benches.
  */
-import { COMPOSITION_KINDS, countsByKind, type CompositionKind, type LibraryEntry } from "@engine/library";
+import {
+  COMPOSITION_KINDS,
+  countsByKind,
+  type CompositionKind,
+  type LibraryEntry,
+} from "@engine/library";
 import { Tabs } from "jeff-ui";
 
 const TAB_LABELS: Record<CompositionKind, string> = {

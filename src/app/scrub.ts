@@ -26,7 +26,10 @@ export interface ScrubBar {
  * asked for permission: the bar is only interactive while something is loaded,
  * and a seek that the player refuses (nothing loaded) simply does nothing.
  */
-export function createScrubBar(container: HTMLElement, onSeek?: (seconds: number) => void): ScrubBar {
+export function createScrubBar(
+  container: HTMLElement,
+  onSeek?: (seconds: number) => void,
+): ScrubBar {
   container.textContent = "";
   container.classList.add("scrub");
 

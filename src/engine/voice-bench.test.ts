@@ -60,7 +60,10 @@ describe("statusOf", () => {
   });
 
   it("outranks an approved file that no longer validates", () => {
-    const broken = entry({ issues: [{ path: "synth", message: "is required" }] }, { status: "approved" });
+    const broken = entry(
+      { issues: [{ path: "synth", message: "is required" }] },
+      { status: "approved" },
+    );
     expect(statusOf(broken)).toBe("broken");
   });
 });
@@ -68,7 +71,9 @@ describe("statusOf", () => {
 describe("describeVoice", () => {
   it("heads with the title and id, and marks the instrument's default", () => {
     expect(describeVoice(entry()).label).toBe("Molten — lead/molten");
-    expect(describeVoice(entry({}, { default: true })).label).toBe("Molten — lead/molten (default)");
+    expect(describeVoice(entry({}, { default: true })).label).toBe(
+      "Molten — lead/molten (default)",
+    );
   });
 
   it("shows summary and notes a blank line apart", () => {
@@ -138,7 +143,9 @@ describe("status messages", () => {
   });
 
   it("tells a fork what to do next", () => {
-    expect(forkedMessage("lead/molten-2")).toContain("npm run voice:render -- --voice lead/molten-2");
+    expect(forkedMessage("lead/molten-2")).toContain(
+      "npm run voice:render -- --voice lead/molten-2",
+    );
   });
 
   it("explains dead buttons in a built bundle, and an empty shelf either way", () => {

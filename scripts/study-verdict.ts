@@ -76,7 +76,10 @@ try {
     process.exit(2);
   }
 
-  const tags = opts.tags.split(",").map((tag) => tag.trim()).filter(Boolean);
+  const tags = opts.tags
+    .split(",")
+    .map((tag) => tag.trim())
+    .filter(Boolean);
   const result = judge(opts.study, { thumb: opts.thumb, tags, note: opts.note });
   const verdict = result.study.verdict!;
   console.log(

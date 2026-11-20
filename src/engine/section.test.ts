@@ -32,7 +32,9 @@ describe("planSection", () => {
   });
 
   it("spreads intonation across the range without clumping", () => {
-    const detunes = planSection(preset()).map((p) => p.detune).sort((a, b) => a - b);
+    const detunes = planSection(preset())
+      .map((p) => p.detune)
+      .sort((a, b) => a - b);
     expect(detunes[0]).toBeCloseTo(-6);
     expect(detunes[detunes.length - 1]!).toBeCloseTo(6);
     // Evenly dealt: every neighbouring pair is the same distance apart, which is
@@ -61,16 +63,18 @@ describe("planSection", () => {
   });
 
   it("seats players symmetrically inside the stage width", () => {
-    const pans = planSection(preset({ section: { players: 5, detune: 10, timing: 0.02, seats: 0.8 } })).map(
-      (p) => p.pan,
-    );
+    const pans = planSection(
+      preset({ section: { players: 5, detune: 10, timing: 0.02, seats: 0.8 } }),
+    ).map((p) => p.pan);
     expect(pans[0]).toBeCloseTo(-0.8);
     expect(pans[4]).toBeCloseTo(0.8);
     expect(pans[2]).toBeCloseTo(0);
   });
 
   it("collapses to mono seating when the section has no width", () => {
-    const plans = planSection(preset({ section: { players: 4, detune: 10, timing: 0.02, seats: 0 } }));
+    const plans = planSection(
+      preset({ section: { players: 4, detune: 10, timing: 0.02, seats: 0 } }),
+    );
     for (const plan of plans) expect(plan.pan).toBeCloseTo(0);
   });
 
@@ -83,7 +87,10 @@ describe("planSection", () => {
 
   it("gives each player their own vibrato when the voice has one", () => {
     const plans = planSection(
-      preset({ vibrato: { rate: 5.5, depth: 0.04, drift: 0.4 }, section: { players: 4, detune: 10, timing: 0.02 } }),
+      preset({
+        vibrato: { rate: 5.5, depth: 0.04, drift: 0.4 },
+        section: { players: 4, detune: 10, timing: 0.02 },
+      }),
     );
     const rates = plans.map((p) => p.vibrato!.rate);
     expect(new Set(rates).size).toBe(4);
@@ -124,8 +131,13 @@ describe("planSection", () => {
   });
 
   it("scatters body resonances without redesigning the instrument", () => {
-    const body = [{ frequency: 275, q: 5, gain: 5 }, { frequency: 460, q: 3.5, gain: 4 }];
-    const plans = planSection(preset({ body, section: { players: 4, detune: 10, timing: 0.02, bodyVary: 0.02 } }));
+    const body = [
+      { frequency: 275, q: 5, gain: 5 },
+      { frequency: 460, q: 3.5, gain: 4 },
+    ];
+    const plans = planSection(
+      preset({ body, section: { players: 4, detune: 10, timing: 0.02, bodyVary: 0.02 } }),
+    );
     const airModes = plans.map((p) => p.body![0]!.frequency);
     expect(new Set(airModes).size).toBe(4);
     for (const plan of plans) {

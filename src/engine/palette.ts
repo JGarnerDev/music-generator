@@ -55,9 +55,12 @@ const tonality = z.object({
   tonic: z.string().min(1),
   // A mode name, not free text: this scale is what `progressionChords` resolves
   // numerals against, so an unresolvable one should fail at load, not at compose.
-  scale: z.string().min(1).refine(isMode, {
-    message: `must be a mode: ${MODE_NAMES.join(", ")}`,
-  }),
+  scale: z
+    .string()
+    .min(1)
+    .refine(isMode, {
+      message: `must be a mode: ${MODE_NAMES.join(", ")}`,
+    }),
 });
 const progressions = z.array(z.array(z.string().min(1)).min(1)).min(1);
 const tempo = z.tuple([z.number().positive(), z.number().positive()]);
@@ -238,10 +241,7 @@ export type GenreFrontmatter = z.infer<typeof genreSchema>;
 export type TimbreFrontmatter = z.infer<typeof timbreSchema>;
 export type GenericFrontmatter = z.infer<typeof genericSchema>;
 export type PaletteFrontmatter =
-  | EmotionFrontmatter
-  | GenreFrontmatter
-  | TimbreFrontmatter
-  | GenericFrontmatter;
+  EmotionFrontmatter | GenreFrontmatter | TimbreFrontmatter | GenericFrontmatter;
 export type PaletteKind = PaletteFrontmatter["kind"];
 
 export interface Palette<F extends PaletteFrontmatter = PaletteFrontmatter> {
@@ -282,9 +282,7 @@ export function parsePalette(raw: string): Palette {
 }
 
 function formatIssues(error: z.ZodError): string {
-  return error.issues
-    .map((i) => `${i.path.join(".") || "(root)"}: ${i.message}`)
-    .join("; ");
+  return error.issues.map((i) => `${i.path.join(".") || "(root)"}: ${i.message}`).join("; ");
 }
 
 export interface PaletteSetIssue {
@@ -332,7 +330,8 @@ export function validatePaletteSet(palettes: Palette[]): PaletteSetIssue[] {
       continue;
     }
     const cycle = findCycle(slug, bySlug);
-    if (cycle) issues.push({ path: slug, message: `parent chain is a cycle: ${cycle.join(" → ")}` });
+    if (cycle)
+      issues.push({ path: slug, message: `parent chain is a cycle: ${cycle.join(" → ")}` });
   }
 
   return issues;

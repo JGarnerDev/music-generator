@@ -25,7 +25,12 @@ export interface InstrumentTabsProps {
   onPick(instrument: InstrumentName | null): void;
 }
 
-export function InstrumentTabs({ entries, instrument, names = VOICE_INSTRUMENTS, onPick }: InstrumentTabsProps) {
+export function InstrumentTabs({
+  entries,
+  instrument,
+  names = VOICE_INSTRUMENTS,
+  onPick,
+}: InstrumentTabsProps) {
   const counts = countsByInstrument(entries);
   return (
     <Tabs

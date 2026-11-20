@@ -51,8 +51,5 @@ export interface Api {
 }
 
 export function useApi(): Api {
-  return useMemo<Api>(
-    () => ({ post: postJson, get: getJson, canEdit: import.meta.env.DEV }),
-    [],
-  );
+  return useMemo<Api>(() => ({ post: postJson, get: getJson, canEdit: import.meta.env.DEV }), []);
 }

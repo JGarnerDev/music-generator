@@ -150,7 +150,10 @@ function bendVoiceFor(preset: VoicePreset): BendVoice | undefined {
  * of the three, which is why voices built only from it all share a family
  * resemblance no amount of tuning removes.
  */
-function acousticChain(source: Playable | Tone.ToneAudioNode, parts: AcousticParts): Tone.ToneAudioNode {
+function acousticChain(
+  source: Playable | Tone.ToneAudioNode,
+  parts: AcousticParts,
+): Tone.ToneAudioNode {
   let node = source as unknown as Tone.ToneAudioNode;
   if (parts.vibrato) node = vibrato(node, parts.vibrato);
   if (parts.tremolo) node = tremolo(node, parts.tremolo);
@@ -491,7 +494,10 @@ export class Section {
     this.players = plans.map((plan) => this.seat(preset, plan));
   }
 
-  private seat(preset: VoicePreset, plan: PlayerPlan): { synth: Tone.PolySynth; delay: number; effort: number } {
+  private seat(
+    preset: VoicePreset,
+    plan: PlayerPlan,
+  ): { synth: Tone.PolySynth; delay: number; effort: number } {
     // Detune is set on the synth rather than by transposing the note, so the
     // part stays written in notes and a player is out by cents, not by pitch
     // names — and the filter envelope still tracks the note it was written for.
@@ -531,7 +537,12 @@ export class Section {
   ): this {
     const start = time === undefined ? Tone.now() : Tone.Time(time).toSeconds();
     for (const player of this.players) {
-      player.synth.triggerAttackRelease(pitch, duration, start + player.delay, velocity * player.effort);
+      player.synth.triggerAttackRelease(
+        pitch,
+        duration,
+        start + player.delay,
+        velocity * player.effort,
+      );
     }
     return this;
   }
@@ -613,7 +624,10 @@ function build(kind: SynthSpec["kind"], options: Record<string, unknown>): Tone.
     case "fm":
       return new Tone.PolySynth(Tone.FMSynth, options as unknown as Partial<Tone.FMSynthOptions>);
     case "mono":
-      return new Tone.PolySynth(Tone.MonoSynth, options as unknown as Partial<Tone.MonoSynthOptions>);
+      return new Tone.PolySynth(
+        Tone.MonoSynth,
+        options as unknown as Partial<Tone.MonoSynthOptions>,
+      );
     case "synth":
       return new Tone.PolySynth(Tone.Synth, options as unknown as Partial<Tone.SynthOptions>);
   }

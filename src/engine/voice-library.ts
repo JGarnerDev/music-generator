@@ -112,9 +112,7 @@ export function voicesOf(
 }
 
 /** How many voices each instrument has — the counts on the tabs. */
-export function countsByInstrument(
-  entries: readonly VoiceEntry[],
-): Record<InstrumentName, number> {
+export function countsByInstrument(entries: readonly VoiceEntry[]): Record<InstrumentName, number> {
   const counts = Object.fromEntries(VOICE_INSTRUMENTS.map((i) => [i, 0])) as Record<
     InstrumentName,
     number
@@ -332,7 +330,9 @@ export function voiceSummary(preset: VoicePreset): string {
   if (!notes) return "—";
   const firstSentence = /^[\s\S]{0,200}?[.?!](?=\s|$)/.exec(notes)?.[0] ?? notes;
   const salvaged = firstSentence.replace(/\s+/g, " ").trim();
-  return salvaged.length > SUMMARY_MAX ? `${salvaged.slice(0, SUMMARY_MAX - 1).trimEnd()}…` : salvaged;
+  return salvaged.length > SUMMARY_MAX
+    ? `${salvaged.slice(0, SUMMARY_MAX - 1).trimEnd()}…`
+    : salvaged;
 }
 
 /** Table cells are pipe-delimited, so a pipe in prose would end the column. */
@@ -366,7 +366,13 @@ function renderLineage(approved: readonly VoiceEntry[]): string[] {
   const trees = roots.filter((root) => children.has(root.id));
   if (trees.length === 0) return [];
 
-  const lines = ["## Lineage", "", "Who was forked from whom. Read the parent's `notes` before forking a child.", "", "```"];
+  const lines = [
+    "## Lineage",
+    "",
+    "Who was forked from whom. Read the parent's `notes` before forking a child.",
+    "",
+    "```",
+  ];
   const walk = (entry: VoiceEntry, depth: number): void => {
     lines.push(`${"  ".repeat(depth)}${entry.id}`);
     for (const child of children.get(entry.id) ?? []) walk(child, depth + 1);
@@ -396,9 +402,7 @@ export function renderVoiceArchive(
   entries: readonly VoiceEntry[],
   opts: { updated: string },
 ): string {
-  const approved = entries.filter(
-    (e) => e.preset.status === "approved" && e.issues.length === 0,
-  );
+  const approved = entries.filter((e) => e.preset.status === "approved" && e.issues.length === 0);
   const lines = [
     "---",
     "title: Approved voices",
@@ -412,7 +416,7 @@ export function renderVoiceArchive(
     "",
     "Generated — edit the JSON under `voices/`, then re-approve. Each row is a",
     "sound that was auditioned in the voices bench and signed off, so it can be",
-    "named by any track: `{ \"instrument\": \"lead\", \"voice\": \"<slug>\" }`.",
+    'named by any track: `{ "instrument": "lead", "voice": "<slug>" }`.',
     "",
     "**This is the index, not the design record.** Why a voice is built the way it",
     "is — which numbers matter, what happens either side of them — is the `notes`",
@@ -437,7 +441,9 @@ export function renderVoiceArchive(
       // to `entry.path`, which carries Vite's `../../` prefix in the browser.
       const file = `${entry.instrument}/${entry.slug}.json`;
       const name = `[\`${entry.id}\`](./${file})${preset.default ? " **default**" : ""}`;
-      lines.push(`| ${name} | ${cell((preset.tags ?? []).join(" "))} | ${cell(voiceSummary(preset))} |`);
+      lines.push(
+        `| ${name} | ${cell((preset.tags ?? []).join(" "))} | ${cell(voiceSummary(preset))} |`,
+      );
     }
     lines.push("");
   }

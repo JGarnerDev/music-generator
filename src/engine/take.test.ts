@@ -86,7 +86,10 @@ describe("buildTake", () => {
   it("keeps a held chord held", () => {
     // The default that differs from the guitar path: three keys down together
     // are three notes, not one note cutting off the next.
-    const take = buildTake({ ...BASE, presses: [press(60, 0, 4), press(64, 0, 4), press(67, 0, 4)] });
+    const take = buildTake({
+      ...BASE,
+      presses: [press(60, 0, 4), press(64, 0, 4), press(67, 0, 4)],
+    });
     expect(take.notes).toHaveLength(3);
     for (const note of take.notes) expect(note.lengthSteps).toBe(16);
   });
@@ -116,13 +119,26 @@ describe("buildTake", () => {
   });
 
   it("records what it was played on", () => {
-    const take = buildTake({ ...BASE, instrument: "pluck", voice: "sitar-jawari", presses: [press(60, 0)] });
-    expect(take).toMatchObject({ instrument: "pluck", voice: "sitar-jawari", grid: 4, monophonic: false });
+    const take = buildTake({
+      ...BASE,
+      instrument: "pluck",
+      voice: "sitar-jawari",
+      presses: [press(60, 0)],
+    });
+    expect(take).toMatchObject({
+      instrument: "pluck",
+      voice: "sitar-jawari",
+      grid: 4,
+      monophonic: false,
+    });
   });
 });
 
 describe("reading a take back", () => {
-  const take = buildTake({ ...BASE, presses: [press(60, 0), press(64, 1), press(67, 2), press(72, 3)] });
+  const take = buildTake({
+    ...BASE,
+    presses: [press(60, 0), press(64, 1), press(67, 2), press(72, 3)],
+  });
 
   it("summarises in degrees of the key it was played in", () => {
     const summary = summarizeTake(take);
@@ -151,12 +167,22 @@ describe("reading a take back", () => {
   it("drops the played voice when the instrument changes under it", () => {
     // Caught a real one: a piano take emitted onto `lead` kept `soft-triangle`,
     // which is a piano preset, and the render died looking for it.
-    const played = buildTake({ ...BASE, instrument: "piano", voice: "soft-triangle", presses: [press(60, 0)] });
+    const played = buildTake({
+      ...BASE,
+      instrument: "piano",
+      voice: "soft-triangle",
+      presses: [press(60, 0)],
+    });
     expect(takeToComposition(played, { instrument: "lead" }).tracks[0]!.voice).toBeUndefined();
   });
 
   it("keeps the played voice when the instrument stays the same", () => {
-    const played = buildTake({ ...BASE, instrument: "piano", voice: "soft-triangle", presses: [press(60, 0)] });
+    const played = buildTake({
+      ...BASE,
+      instrument: "piano",
+      voice: "soft-triangle",
+      presses: [press(60, 0)],
+    });
     expect(takeToComposition(played).tracks[0]!.voice).toBe("soft-triangle");
   });
 });

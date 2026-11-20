@@ -36,7 +36,16 @@ const SUBJECTS = Object.entries(
     { eager: true, import: "default" },
   ),
 )
-  .map(([path, piece]) => [path.split("/").pop()!.replace(/\.json$/, ""), piece] as const)
+  .map(
+    ([path, piece]) =>
+      [
+        path
+          .split("/")
+          .pop()!
+          .replace(/\.json$/, ""),
+        piece,
+      ] as const,
+  )
   .sort(([a], [b]) => a.localeCompare(b));
 
 /** The piece the single-subject runs profile: the longest one there is. */
@@ -150,11 +159,7 @@ async function timeRender(
   quality: RenderQuality = EXPORT_QUALITY,
 ): Promise<Timing> {
   const original = Tone.getContext();
-  const context = new Tone.OfflineContext(
-    2,
-    seconds,
-    quality.sampleRate ?? original.sampleRate,
-  );
+  const context = new Tone.OfflineContext(2, seconds, quality.sampleRate ?? original.sampleRate);
   Tone.setContext(context);
 
   const buildStart = performance.now();

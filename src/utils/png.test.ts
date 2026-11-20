@@ -4,7 +4,9 @@ import { crc32, encodePng } from "./png";
 
 /** Read a big-endian uint32, the only integer PNG uses. */
 function u32(bytes: Uint8Array, at: number): number {
-  return ((bytes[at]! << 24) | (bytes[at + 1]! << 16) | (bytes[at + 2]! << 8) | bytes[at + 3]!) >>> 0;
+  return (
+    ((bytes[at]! << 24) | (bytes[at + 1]! << 16) | (bytes[at + 2]! << 8) | bytes[at + 3]!) >>> 0
+  );
 }
 
 /** Walk the chunk list: [type, data] in file order. */
@@ -63,8 +65,7 @@ describe("encodePng", () => {
     const raw = new Uint8Array(inflateSync(idat));
     // 2 rows × (1 filter byte + 2 pixels × 4 bytes)
     expect([...raw]).toEqual([
-      0, 255, 0, 0, 255, 0, 0, 255, 128,
-      0, 255, 0, 0, 255, 255, 0, 0, 255,
+      0, 255, 0, 0, 255, 0, 0, 255, 128, 0, 255, 0, 0, 255, 255, 0, 0, 255,
     ]);
   });
 

@@ -143,7 +143,11 @@ describe("tallies", () => {
       verdict: verdict("down", ["cluttered", "breathes"]),
     }),
     "studies/hook/a-c.json": study({ set: "a", variant: "mid" }),
-    "studies/hook/a-d.json": study({ set: "a", variant: "low", verdict: verdict("down", ["cluttered"]) }),
+    "studies/hook/a-d.json": study({
+      set: "a",
+      variant: "low",
+      verdict: verdict("down", ["cluttered"]),
+    }),
   });
 
   // Both counts are kept rather than netted: a tag split evenly is a tag being
@@ -156,7 +160,11 @@ describe("tallies", () => {
   });
 
   it("sorts tags by total mentions, most first", () => {
-    expect(tallyTags(entries).map((t) => t.tag).slice(0, 2)).toEqual(["breathes", "cluttered"]);
+    expect(
+      tallyTags(entries)
+        .map((t) => t.tag)
+        .slice(0, 2),
+    ).toEqual(["breathes", "cluttered"]);
   });
 
   it("ignores unjudged studies", () => {
@@ -193,7 +201,9 @@ describe("renderStudyLedger", () => {
 
   it("writes frontmatter, the signals table and one row per verdict", () => {
     const entries = buildStudyLibrary({
-      "studies/hook/a-a.json": study({ verdict: verdict("up", ["memorable"], "the rest is filler") }),
+      "studies/hook/a-a.json": study({
+        verdict: verdict("up", ["memorable"], "the rest is filler"),
+      }),
       "studies/hook/a-b.json": study({ set: "a", variant: "low" }),
     });
     const md = renderStudyLedger(entries, { updated: "2026-08-15" });
@@ -226,7 +236,9 @@ describe("renderStudyLedger", () => {
       "studies/hook/a-a.json": study({ verdict: verdict("up") }),
       "studies/hook/broken.json": { nope: true },
     });
-    expect(renderStudyLedger(entries, { updated: "2026-08-15" })).toContain("1 judged · 0 waiting · 1 total");
+    expect(renderStudyLedger(entries, { updated: "2026-08-15" })).toContain(
+      "1 judged · 0 waiting · 1 total",
+    );
   });
 });
 

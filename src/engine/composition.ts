@@ -52,7 +52,15 @@ export interface Note {
 export type InstrumentName = "piano" | "epiano" | "pad" | "bass" | "pluck" | "lead" | "drums";
 
 /** The known instrument voices, in a stable order. Source of truth for validation + blending. */
-export const INSTRUMENT_NAMES = ["piano", "epiano", "pad", "bass", "pluck", "lead", "drums"] as const satisfies readonly InstrumentName[];
+export const INSTRUMENT_NAMES = [
+  "piano",
+  "epiano",
+  "pad",
+  "bass",
+  "pluck",
+  "lead",
+  "drums",
+] as const satisfies readonly InstrumentName[];
 
 /**
  * Pitched voices — the ones a chord, a scale ladder or a transpose applies to.

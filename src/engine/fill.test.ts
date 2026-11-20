@@ -138,10 +138,12 @@ describe("validateGroove — fills", () => {
   });
 
   it("wants twelve steps for a fill in 3/4", () => {
-    expect(validateGroove(
-      { patterns: { kick: "X...x...x..." }, fill: { snare: "....x...xxX." }, fillEvery: 4 },
-      [3, 4],
-    )).toEqual([]);
+    expect(
+      validateGroove(
+        { patterns: { kick: "X...x...x..." }, fill: { snare: "....x...xxX." }, fillEvery: 4 },
+        [3, 4],
+      ),
+    ).toEqual([]);
   });
 
   it("insists the two fields come as a pair", () => {

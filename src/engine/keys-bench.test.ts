@@ -25,10 +25,21 @@ import {
 } from "./keys-bench";
 import { buildTake } from "./take";
 
-const SYNTH = { kind: "synth", oscillator: { type: "triangle" }, envelope: {} } as unknown as SynthSpec;
+const SYNTH = {
+  kind: "synth",
+  oscillator: { type: "triangle" },
+  envelope: {},
+} as unknown as SynthSpec;
 
 function preset(over: Partial<VoicePreset> = {}): VoicePreset {
-  return { instrument: "piano", slug: "felt", title: "Felt", status: "approved", synth: SYNTH, ...over };
+  return {
+    instrument: "piano",
+    slug: "felt",
+    title: "Felt",
+    status: "approved",
+    synth: SYNTH,
+    ...over,
+  };
 }
 
 describe("playability", () => {
@@ -140,7 +151,10 @@ describe("takeHeader", () => {
   });
 
   it("says so when no voice was named", () => {
-    const take = buildTake({ ...base, presses: [{ midi: 60, downMs: 0, upMs: 500, velocity: 0.8 }] });
+    const take = buildTake({
+      ...base,
+      presses: [{ midi: 60, downMs: 0, upMs: 500, velocity: 0.8 }],
+    });
     expect(takeHeader(take)).toContain("default voice");
   });
 

@@ -212,22 +212,26 @@ export function neighboursOf(
   entries: readonly LibraryEntry[],
 ): Neighbour[] {
   const meterOf = (c: Pick<Composition, "meter">) => (c.meter ?? [4, 4]).join("/");
-  return entries
-    .map((entry) => {
-      const other = entry.composition;
-      const shared: string[] = [];
-      if (other.key.toLowerCase() === candidate.key.toLowerCase()) shared.push("key");
-      if (Math.abs(other.bpm - candidate.bpm) <= SAME_TEMPO_BPM) shared.push("tempo");
-      if (meterOf(other) === meterOf(candidate)) shared.push("meter");
-      return { entry, shared };
-    })
-    // Meter alone is no signal at all — nearly everything is in 4/4.
-    .filter(({ shared }) => shared.includes("key") && shared.includes("tempo"))
-    .sort((a, b) => b.shared.length - a.shared.length);
+  return (
+    entries
+      .map((entry) => {
+        const other = entry.composition;
+        const shared: string[] = [];
+        if (other.key.toLowerCase() === candidate.key.toLowerCase()) shared.push("key");
+        if (Math.abs(other.bpm - candidate.bpm) <= SAME_TEMPO_BPM) shared.push("tempo");
+        if (meterOf(other) === meterOf(candidate)) shared.push("meter");
+        return { entry, shared };
+      })
+      // Meter alone is no signal at all — nearly everything is in 4/4.
+      .filter(({ shared }) => shared.includes("key") && shared.includes("tempo"))
+      .sort((a, b) => b.shared.length - a.shared.length)
+  );
 }
 
 /** `motifs` entries that name no known leitmotif — a broken quote, worth reporting. */
-export function danglingMotifs(entries: readonly LibraryEntry[]): { entry: LibraryEntry; motif: string }[] {
+export function danglingMotifs(
+  entries: readonly LibraryEntry[],
+): { entry: LibraryEntry; motif: string }[] {
   const known = new Set(entries.filter((e) => e.kind === "leitmotifs").map((e) => e.slug));
   return entries.flatMap((entry) =>
     entry.motifs.filter((m) => !known.has(m)).map((motif) => ({ entry, motif })),

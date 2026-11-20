@@ -24,7 +24,13 @@ export interface VoiceTableProps {
   onPlay(entry: VoiceEntry): void;
 }
 
-export function VoiceTable({ entries, instrument, draftsOnly, selectedId, ...on }: VoiceTableProps) {
+export function VoiceTable({
+  entries,
+  instrument,
+  draftsOnly,
+  selectedId,
+  ...on
+}: VoiceTableProps) {
   const visible = visibleVoices(entries, instrument, draftsOnly);
 
   return (
@@ -84,7 +90,9 @@ function Row({ entry, showInstrument, selected, ...on }: RowProps) {
       </td>
       <td className="cell-title">{entry.preset.title ?? ""}</td>
       <td className="cell-status">
-        <Badge tone={status === "approved" ? "ok" : status === "draft" ? "warn" : "err"}>{status}</Badge>
+        <Badge tone={status === "approved" ? "ok" : status === "draft" ? "warn" : "err"}>
+          {status}
+        </Badge>
         {entry.preset.default ? <Badge tone="accent">default</Badge> : null}
       </td>
     </tr>

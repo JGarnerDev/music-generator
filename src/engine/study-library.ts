@@ -366,7 +366,7 @@ export function renderStudyLedger(
   if (judged.length === 0) {
     lines.push(
       "Nothing judged yet. Fan out a set:",
-      "`npm run study:new -- --concept <slug> --axis <axis> --mood \"<scene>\"`.",
+      '`npm run study:new -- --concept <slug> --axis <axis> --mood "<scene>"`.',
       "",
     );
     return lines.join("\n");
@@ -395,7 +395,10 @@ function renderSignals(entries: readonly StudyEntry[]): string[] {
 
   const concepts = tallyConcepts(entries);
   if (concepts.length > 0) {
-    lines.push("| concept | judged | up | down | strongest signal |", "| --- | --- | --- | --- | --- |");
+    lines.push(
+      "| concept | judged | up | down | strongest signal |",
+      "| --- | --- | --- | --- | --- |",
+    );
     for (const tally of concepts) {
       const top = tally.tags[0];
       const signal = top ? `\`${top.tag}\` (${top.up}↑ / ${top.down}↓)` : "—";

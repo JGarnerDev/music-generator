@@ -157,9 +157,16 @@ export function scheduleComposition(comp: Composition): void {
     // the rest of its notes as steps in that note's pitch — see `@engine/legato`.
     // It needs the bending voice, so a voice that has none (a section) picks
     // every note as written.
-    const runs = voice.bend && track.notes.some((n) => n.legato)
-      ? legatoRuns(track.notes.map((n, i) => ({ ...timed[i]!, midi: Tone.Frequency(n.pitch).toMidi(), legato: n.legato })))
-      : [];
+    const runs =
+      voice.bend && track.notes.some((n) => n.legato)
+        ? legatoRuns(
+            track.notes.map((n, i) => ({
+              ...timed[i]!,
+              midi: Tone.Frequency(n.pitch).toMidi(),
+              legato: n.legato,
+            })),
+          )
+        : [];
     const runAt = new Map<number, LegatoRun>(runs.map((r) => [r.head, r]));
     const absorbed = new Set(runs.flatMap((r) => r.members));
     const played = track.notes.map((_, i) => i).filter((i) => !absorbed.has(i));

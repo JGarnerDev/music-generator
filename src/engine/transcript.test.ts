@@ -29,12 +29,14 @@ const PHRASE = notes([
 
 describe("groupByBar", () => {
   it("buckets notes by the bar their onset falls in", () => {
-    const bars = groupByBar(notes([
-      [60, 0, 4],
-      [62, 15, 1],
-      [64, 16, 4],
-      [65, 50, 4], // bar 4, leaving bar 3 empty
-    ]));
+    const bars = groupByBar(
+      notes([
+        [60, 0, 4],
+        [62, 15, 1],
+        [64, 16, 4],
+        [65, 50, 4], // bar 4, leaving bar 3 empty
+      ]),
+    );
     expect(bars.map((b) => b.length)).toEqual([2, 1, 0, 1]);
   });
 
@@ -50,7 +52,15 @@ describe("groupByBar", () => {
 
 describe("rhythmLane", () => {
   it("marks onsets, sustain and silence", () => {
-    expect(rhythmLane(notes([[60, 0, 4], [62, 8, 2]]), 0)).toBe("x---....x-......");
+    expect(
+      rhythmLane(
+        notes([
+          [60, 0, 4],
+          [62, 8, 2],
+        ]),
+        0,
+      ),
+    ).toBe("x---....x-......");
   });
 
   it("clips a note that rings past the bar line", () => {
@@ -60,7 +70,15 @@ describe("rhythmLane", () => {
   });
 
   it("lets an onset win over another note's sustain", () => {
-    expect(rhythmLane(notes([[60, 0, 8], [64, 4, 4]]), 0)).toBe("x---x---........");
+    expect(
+      rhythmLane(
+        notes([
+          [60, 0, 8],
+          [64, 4, 4],
+        ]),
+        0,
+      ),
+    ).toBe("x---x---........");
   });
 
   it("is all silence for a bar with nothing in it", () => {
@@ -118,7 +136,14 @@ describe("findPhrases", () => {
   });
 
   it("does not split on a rest shorter than the threshold", () => {
-    expect(findPhrases(notes([[60, 0, 2], [62, 5, 2]]))).toHaveLength(1);
+    expect(
+      findPhrases(
+        notes([
+          [60, 0, 2],
+          [62, 5, 2],
+        ]),
+      ),
+    ).toHaveLength(1);
   });
 
   it("measures a phrase from its first onset to its last release", () => {
@@ -139,7 +164,9 @@ describe("summarizeTranscript", () => {
   });
 
   it("heads with what the piece is", () => {
-    expect(summary.split("\n")[0]).toBe("limping-waltz-hook — 8 notes · 1 bar · A minor · 90 BPM · 4/4");
+    expect(summary.split("\n")[0]).toBe(
+      "limping-waltz-hook — 8 notes · 1 bar · A minor · 90 BPM · 4/4",
+    );
   });
 
   it("writes degrees rather than pitches when it knows the key", () => {
@@ -159,7 +186,11 @@ describe("summarizeTranscript", () => {
   });
 
   it("calls out the notes from outside the key", () => {
-    const blue = notes([[57, 0, 4], [63, 4, 4], [64, 8, 4]]); // A, Eb (b5), E
+    const blue = notes([
+      [57, 0, 4],
+      [63, 4, 4],
+      [64, 8, 4],
+    ]); // A, Eb (b5), E
     const withBlue = summarizeTranscript({ name: "x", bpm: 90, key: parseKey("Am"), notes: blue });
     expect(withBlue).toContain("outside   b5 (bar 1)");
   });
@@ -170,7 +201,9 @@ describe("summarizeTranscript", () => {
 
   it("points out a bar that repeats the one before it", () => {
     const twice = [...PHRASE, ...PHRASE.map((n) => ({ ...n, step: n.step + 16 }))];
-    expect(summarizeTranscript({ name: "x", bpm: 90, notes: twice })).toContain("bar 2 repeats the bar before");
+    expect(summarizeTranscript({ name: "x", bpm: 90, notes: twice })).toContain(
+      "bar 2 repeats the bar before",
+    );
   });
 
   it("flags square phrasing, since that is the default worth avoiding", () => {
@@ -184,8 +217,14 @@ describe("summarizeTranscript", () => {
   });
 
   it("does not round a ragged phrase length into a tidy one", () => {
-    const ragged = notes([[60, 0, 2], [62, 2, 2], [64, 4, 21]]); // 25 steps = 6.25 beats
-    expect(summarizeTranscript({ name: "x", bpm: 90, notes: ragged })).toContain("phrases   6.25 beats");
+    const ragged = notes([
+      [60, 0, 2],
+      [62, 2, 2],
+      [64, 4, 21],
+    ]); // 25 steps = 6.25 beats
+    expect(summarizeTranscript({ name: "x", bpm: 90, notes: ragged })).toContain(
+      "phrases   6.25 beats",
+    );
   });
 
   it("reports how much of the grid is actually sounding", () => {
@@ -193,7 +232,9 @@ describe("summarizeTranscript", () => {
   });
 
   it("says so plainly when there is nothing to describe", () => {
-    expect(summarizeTranscript({ name: "empty", bpm: 90, notes: [] })).toBe("empty — nothing detected.");
+    expect(summarizeTranscript({ name: "empty", bpm: 90, notes: [] })).toBe(
+      "empty — nothing detected.",
+    );
   });
 });
 
@@ -258,7 +299,9 @@ describe("confirmChecklist", () => {
   });
 
   it("tells the listener to ignore pitch in shape mode", () => {
-    expect(confirmChecklist({ ...base, mode: "shape" })).toContain("the pitches are meant to differ");
+    expect(confirmChecklist({ ...base, mode: "shape" })).toContain(
+      "the pitches are meant to differ",
+    );
     expect(confirmChecklist(base)).not.toContain("meant to differ");
   });
 

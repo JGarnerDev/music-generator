@@ -161,7 +161,10 @@ function chordAwareMidi(
   if (steps % 7 === 0) return partner;
 
   const tones = chordTones(chordSymbol).map((t) => TonalNote.chroma(t) ?? 0);
-  const anchors = [tones[0]!, tones.find((t) => (t - tones[0]! + 12) % 12 === 7) ?? tones[2] ?? tones[0]!];
+  const anchors = [
+    tones[0]!,
+    tones.find((t) => (t - tones[0]! + 12) % 12 === 7) ?? tones[2] ?? tones[0]!,
+  ];
   const rubs = anchors.some((a) => {
     const d = (((partner - a) % 12) + 12) % 12;
     return d === 1 || d === 11;
@@ -173,7 +176,8 @@ function chordAwareMidi(
   for (let gap = 3; gap <= 9; gap++) {
     const candidate = lead + side * gap;
     if (!tones.includes(((candidate % 12) + 12) % 12)) continue;
-    if (best === undefined || Math.abs(candidate - partner) < Math.abs(best - partner)) best = candidate;
+    if (best === undefined || Math.abs(candidate - partner) < Math.abs(best - partner))
+      best = candidate;
   }
   return best ?? partner;
 }

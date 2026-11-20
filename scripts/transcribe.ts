@@ -50,7 +50,11 @@ import { confirmChecklist, summarizeTranscript } from "../src/engine/transcript"
 import { encodeMp3 } from "../src/utils/mp3";
 import { indexManifest, mergeManifest, renderManifest } from "../src/engine/manifest";
 import { applyShape, type MelodicShape, summarizeShape, toShape } from "../src/engine/shape";
-import { INSTRUMENT_NAMES, validateComposition, type InstrumentName } from "../src/engine/composition";
+import {
+  INSTRUMENT_NAMES,
+  validateComposition,
+  type InstrumentName,
+} from "../src/engine/composition";
 import { pitchToMidi } from "../src/engine/theory";
 
 /** What the model was trained on. Not a preference — feeding it anything else garbles the pitches. */
@@ -80,14 +84,29 @@ program
   .option("--tempo <bpm>", "the tempo it was played at — pass this whenever you know it")
   .option("--key <key>", "tonal centre, e.g. Am, 'D dorian' — enables scale degrees")
   .option("--meter <n/d>", "time signature", "4/4")
-  .option("--mode <literal|shape>", "literal: the notes as played. shape: intervals and rhythm only", "literal")
-  .option("--grid <n>", "quantize resolution in steps per beat: 4 sixteenths, 2 eighths, 1 quarters", "4")
+  .option(
+    "--mode <literal|shape>",
+    "literal: the notes as played. shape: intervals and rhythm only",
+    "literal",
+  )
+  .option(
+    "--grid <n>",
+    "quantize resolution in steps per beat: 4 sixteenths, 2 eighths, 1 quarters",
+    "4",
+  )
   .option("--polyphonic", "keep overlapping notes instead of truncating each at the next onset")
   .option("--min-amplitude <0..1>", "drop notes quieter than this", "0.2")
   .option("--requantize", "reuse the saved detector output instead of re-running the model")
   .option("--out <path>", "where to write the transcription (default: beside the recording)")
-  .option("--emit <slug>", "also write a playable composition, e.g. --emit lioness-hook (needs --key)")
-  .option("--kind <leitmotifs|segments>", "which compositions/ folder --emit writes to", "leitmotifs")
+  .option(
+    "--emit <slug>",
+    "also write a playable composition, e.g. --emit lioness-hook (needs --key)",
+  )
+  .option(
+    "--kind <leitmotifs|segments>",
+    "which compositions/ folder --emit writes to",
+    "leitmotifs",
+  )
   .option("--instrument <name>", "instrument for the emitted track", "lead")
   .option("--voice <slug>", "voice preset for the emitted track (default: the instrument's own)")
   .option("--tag <a,b,c>", "extra tags for the emitted composition")
@@ -129,12 +148,14 @@ const mode = parseMode(opts.mode);
 const grid = parseGrid(opts.grid);
 const key = opts.key ? parseKey(opts.key) : undefined;
 const minAmplitude = Number(opts.minAmplitude);
-if (!(minAmplitude >= 0 && minAmplitude <= 1)) fail(`--min-amplitude must be 0..1, got ${opts.minAmplitude}`);
+if (!(minAmplitude >= 0 && minAmplitude <= 1))
+  fail(`--min-amplitude must be 0..1, got ${opts.minAmplitude}`);
 
 // Checked before the model runs, not after: every one of these is a typo, and a
 // typo that surfaces a minute into a transcription costs that minute twice.
 const emit = opts.emit === undefined ? undefined : planEmit(opts.emit);
-if (opts.confirm && !emit) fail("--confirm needs --emit: there has to be a composition to render and listen to");
+if (opts.confirm && !emit)
+  fail("--confirm needs --emit: there has to be a composition to render and listen to");
 
 /** What gets written beside the recording — and what `--requantize` reads back. */
 interface Transcription {
@@ -193,7 +214,12 @@ if (opts.tempo) {
 
 const quantized = quantizeNotes(cleaned, { bpm, meter, grid, monophonic: !opts.polyphonic });
 const notes = toTrackNotes(quantized, meter, key);
-const degrees = key ? degreesOf(quantized.map((n) => n.midi), key).map(formatDegree) : undefined;
+const degrees = key
+  ? degreesOf(
+      quantized.map((n) => n.midi),
+      key,
+    ).map(formatDegree)
+  : undefined;
 
 const transcription: Transcription = {
   source: opts.file.replace(/\\/g, "/"),
@@ -233,7 +259,9 @@ report();
  */
 async function runDetector(): Promise<DetectedNote[]> {
   const audio = readAudio();
-  process.stderr.write(`transcribing ${opts.file} — ${audio.length / MODEL_SAMPLE_RATE < 60 ? "" : "this will take a while, "}0%`);
+  process.stderr.write(
+    `transcribing ${opts.file} — ${audio.length / MODEL_SAMPLE_RATE < 60 ? "" : "this will take a while, "}0%`,
+  );
 
   const basicPitch = new BasicPitch(tf.loadGraphModel(modelFromDisk()));
   const frames: number[][] = [];
@@ -246,7 +274,8 @@ async function runDetector(): Promise<DetectedNote[]> {
       onsetFrames.push(...o);
       contours.push(...c);
     },
-    (percent) => process.stderr.write(`\rtranscribing ${opts.file} — ${Math.round(percent * 100)}%`),
+    (percent) =>
+      process.stderr.write(`\rtranscribing ${opts.file} — ${Math.round(percent * 100)}%`),
   );
   process.stderr.write("\r\x1b[K");
 
@@ -370,13 +399,21 @@ function planEmit(slug: string): EmitPlan {
   if (!(EMIT_KINDS as readonly string[]).includes(opts.kind)) {
     fail(`--kind must be one of ${EMIT_KINDS.join(", ")}, got "${opts.kind}"`);
   }
-  if (!(INSTRUMENT_NAMES as readonly string[]).includes(opts.instrument) || opts.instrument === "drums") {
-    fail(`--instrument must be a pitched instrument (${INSTRUMENT_NAMES.filter((i) => i !== "drums").join(", ")}), got "${opts.instrument}"`);
+  if (
+    !(INSTRUMENT_NAMES as readonly string[]).includes(opts.instrument) ||
+    opts.instrument === "drums"
+  ) {
+    fail(
+      `--instrument must be a pitched instrument (${INSTRUMENT_NAMES.filter((i) => i !== "drums").join(", ")}), got "${opts.instrument}"`,
+    );
   }
 
   let rootMidi: number | undefined;
   if (opts.root !== undefined) {
-    if (mode !== "shape") fail("--root only means something with --mode shape; without it the pitches are the take's own");
+    if (mode !== "shape")
+      fail(
+        "--root only means something with --mode shape; without it the pitches are the take's own",
+      );
     try {
       rootMidi = pitchToMidi(opts.root);
     } catch {
@@ -385,7 +422,8 @@ function planEmit(slug: string): EmitPlan {
   }
 
   const path = resolve(process.cwd(), "compositions", opts.kind, `${slug}.json`);
-  if (existsSync(path) && !opts.force) fail(`${relative(path)} exists — pass --force to overwrite it`);
+  if (existsSync(path) && !opts.force)
+    fail(`${relative(path)} exists — pass --force to overwrite it`);
 
   return {
     slug,
@@ -394,7 +432,13 @@ function planEmit(slug: string): EmitPlan {
     ...(opts.voice ? { voice: opts.voice } : {}),
     // `transcribed` is provenance worth keeping: it says the notes came from a
     // performance, so the odd unquantizable length is a player, not a mistake.
-    tags: ["transcribed", ...(opts.tag ?? "").split(",").map((t) => t.trim()).filter(Boolean)],
+    tags: [
+      "transcribed",
+      ...(opts.tag ?? "")
+        .split(",")
+        .map((t) => t.trim())
+        .filter(Boolean),
+    ],
     ...(rootMidi === undefined ? {} : { rootMidi }),
   };
 }
@@ -419,7 +463,9 @@ function writeComposition(plan: EmitPlan): void {
 
   const issues = validateComposition(composition);
   if (issues.length > 0) {
-    fail(`the transcription did not make a valid composition:\n${issues.map((i) => `  ${i.path}: ${i.message}`).join("\n")}`);
+    fail(
+      `the transcription did not make a valid composition:\n${issues.map((i) => `  ${i.path}: ${i.message}`).join("\n")}`,
+    );
   }
   writeFileSync(plan.path, `${JSON.stringify(composition, null, 2)}\n`);
 }
@@ -452,7 +498,9 @@ function confirm(plan: EmitPlan): void {
     { stdio: "inherit" },
   );
   if (render.status !== 0) {
-    fail(`render failed — the composition is written, so fix that and run:\n  npm run render -- --file ${file} --force`);
+    fail(
+      `render failed — the composition is written, so fix that and run:\n  npm run render -- --file ${file} --force`,
+    );
   }
   copyTakeToBench(plan);
 }
@@ -470,9 +518,9 @@ function copyTakeToBench(plan: EmitPlan): void {
   // Lame only accepts a fixed set of rates, and takes off a phone or an interface
   // land on all sorts. Anything unexpected is resampled rather than refused.
   const rate = LAME_RATES.has(audio.sampleRate) ? audio.sampleRate : 44100;
-  const channels = (audio.channels.length > 2 ? [downmixToMono(audio.channels)] : audio.channels).map((c) =>
-    rate === audio.sampleRate ? c : resample(c, audio.sampleRate, rate),
-  );
+  const channels = (
+    audio.channels.length > 2 ? [downmixToMono(audio.channels)] : audio.channels
+  ).map((c) => (rate === audio.sampleRate ? c : resample(c, audio.sampleRate, rate)));
 
   const name = `${plan.slug}.take`;
   const mp3 = encodeMp3(channels, { sampleRate: rate, bitrateKbps: 160 });
@@ -510,16 +558,22 @@ function report(): void {
   if (bpmSource === "estimated") {
     console.log(`  tempo     guessed at ${bpm} BPM, confidence ${confidence}`);
     if ((confidence ?? 0) < 0.6) {
-      console.log("            shaky — pass --tempo with --requantize to fix it without re-running the model");
+      console.log(
+        "            shaky — pass --tempo with --requantize to fix it without re-running the model",
+      );
     }
   }
   if (!key && mode !== "shape") {
-    console.log("  key       not given — pass --key for scale degrees, which is what makes the idea transposable");
+    console.log(
+      "  key       not given — pass --key for scale degrees, which is what makes the idea transposable",
+    );
   }
   console.log(`  written   ${relative(outPath)}`);
   if (emit) console.log(`  emitted   ${relative(emit.path)}`);
   if (emit && !opts.confirm) {
-    console.log(`            npm run render -- --file ${relative(emit.path)}   # or re-run with --confirm`);
+    console.log(
+      `            npm run render -- --file ${relative(emit.path)}   # or re-run with --confirm`,
+    );
   }
   if (emit && opts.confirm) {
     console.log(`  bench     ${emit.slug}.take.mp3 — the recording itself, to play against it`);
@@ -540,7 +594,6 @@ function report(): void {
   }
 }
 
-
 // ── flag parsing ────────────────────────────────────────────────────────────
 
 function parseMeter(text: string): Meter {
@@ -553,7 +606,8 @@ function parseMeter(text: string): Meter {
 
 function parseMode(text: string): "literal" | "shape" {
   const value = text.trim().toLowerCase();
-  if (value !== "literal" && value !== "shape") fail(`--mode must be literal or shape, got "${text}"`);
+  if (value !== "literal" && value !== "shape")
+    fail(`--mode must be literal or shape, got "${text}"`);
   return value;
 }
 
@@ -569,7 +623,10 @@ function round(value: number, places: number): number {
 }
 
 function relative(path: string): string {
-  return path.replace(`${process.cwd()}\\`, "").replace(`${process.cwd()}/`, "").replace(/\\/g, "/");
+  return path
+    .replace(`${process.cwd()}\\`, "")
+    .replace(`${process.cwd()}/`, "")
+    .replace(/\\/g, "/");
 }
 
 function fail(message: string): never {

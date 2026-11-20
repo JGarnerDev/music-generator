@@ -153,7 +153,10 @@ async function main(): Promise<void> {
  * afterwards is the only account of the run that is always true.
  */
 function report(queue: Job[], skipped: string[], crash: Error | null): void {
-  const missing = missingOutputs(queue.map((job) => job.name), audioSizes());
+  const missing = missingOutputs(
+    queue.map((job) => job.name),
+    audioSizes(),
+  );
   if (!crash && skipped.length === 0 && missing.length === 0) {
     console.log(`Rendered ${queue.length} file(s) to public/audio/.`);
     return;

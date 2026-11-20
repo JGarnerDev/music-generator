@@ -104,11 +104,7 @@ async function renderOffline(
   quality: RenderQuality,
 ): Promise<Tone.ToneAudioBuffer> {
   const original = Tone.getContext();
-  const context = new Tone.OfflineContext(
-    2,
-    seconds,
-    quality.sampleRate ?? original.sampleRate,
-  );
+  const context = new Tone.OfflineContext(2, seconds, quality.sampleRate ?? original.sampleRate);
   Tone.setContext(context);
   let rendering: Promise<Tone.ToneAudioBuffer>;
   try {

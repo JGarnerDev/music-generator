@@ -201,7 +201,10 @@ const REGISTER_NAMES = Object.keys(REGISTERS) as RegisterName[];
 
 /** The words of a mood, lowercased, punctuation dropped. */
 function words(mood: string): string[] {
-  return mood.toLowerCase().split(/[^a-z]+/).filter(Boolean);
+  return mood
+    .toLowerCase()
+    .split(/[^a-z]+/)
+    .filter(Boolean);
 }
 
 /**

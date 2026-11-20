@@ -54,7 +54,9 @@ const dir = resolve(process.cwd(), "sessions");
 const file = resolve(dir, `${slug}.json`);
 const exists = existsSync(file);
 if (exists && !opts.append && !opts.force) {
-  console.error(`sessions/${slug}.json already exists. Use --append to add cues, or --force to replace it.`);
+  console.error(
+    `sessions/${slug}.json already exists. Use --append to add cues, or --force to replace it.`,
+  );
   process.exit(2);
 }
 
@@ -71,7 +73,10 @@ if (exists && opts.append) {
   if (opts.campaign) plan = { ...plan, campaign: opts.campaign };
 }
 
-const cues = opts.cues.split(",").map((cue) => cue.trim()).filter(Boolean);
+const cues = opts.cues
+  .split(",")
+  .map((cue) => cue.trim())
+  .filter(Boolean);
 for (const cue of cues) plan = addCue(plan, cue);
 
 // Report cues that name nothing on the shelf — a typo now is a silent gap later.

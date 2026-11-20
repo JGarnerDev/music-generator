@@ -49,9 +49,9 @@ describe("harmonize", () => {
   });
 
   it("puts the line under the melody when asked", () => {
-    expect(
-      pitches(harmonize([n("E4")], { tonic: "E", scale: "minor", below: true })),
-    ).toEqual(["C4"]);
+    expect(pitches(harmonize([n("E4")], { tonic: "E", scale: "minor", below: true }))).toEqual([
+      "C4",
+    ]);
   });
 
   it("reads the mode, so dorian and aeolian harmonise differently", () => {

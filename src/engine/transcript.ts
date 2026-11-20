@@ -27,7 +27,10 @@ export interface TranscriptView {
 }
 
 /** Notes bucketed by the bar their onset falls in. Empty bars come back empty, not missing. */
-export function groupByBar(notes: readonly QuantizedNote[], meter: Meter = COMMON_TIME): QuantizedNote[][] {
+export function groupByBar(
+  notes: readonly QuantizedNote[],
+  meter: Meter = COMMON_TIME,
+): QuantizedNote[][] {
   if (notes.length === 0) return [];
   const perBar = stepsPerBar(meter);
   const barCount = Math.floor(Math.max(...notes.map((n) => n.step)) / perBar) + 1;
@@ -162,9 +165,7 @@ export function summarizeTranscript(view: TranscriptView): string {
   const perBar = stepsPerBar(meter);
   const midis = notes.map((n) => n.midi);
   const degrees = key ? degreesOf(midis, key) : undefined;
-  const tokens = degrees
-    ? degrees.map(formatDegree)
-    : midis.map((m) => midiToPitch(m, "sharps"));
+  const tokens = degrees ? degrees.map(formatDegree) : midis.map((m) => midiToPitch(m, "sharps"));
   const bars = groupByBar(notes, meter);
   const contour = describeContour(midis);
   const phrases = findPhrases(notes);
@@ -187,7 +188,10 @@ export function summarizeTranscript(view: TranscriptView): string {
     .map((lane, i) => [lane, i] as const)
     .filter(([lane, i]) => i > 0 && lane === lanes[i - 1])
     .map(([, i]) => `bar ${i + 1}`);
-  if (repeats.length > 0) lines.push(`            ${repeats.join(", ")} repeat${repeats.length === 1 ? "s" : ""} the bar before`);
+  if (repeats.length > 0)
+    lines.push(
+      `            ${repeats.join(", ")} repeat${repeats.length === 1 ? "s" : ""} the bar before`,
+    );
 
   lines.push(`  ${key ? "degrees" : "pitches"}   ${tokens.join(" ")}`);
 
@@ -202,12 +206,16 @@ export function summarizeTranscript(view: TranscriptView): string {
     .filter(({ d }) => !d.inScale)
     .map(({ d, i }) => `${formatDegree(d)} (bar ${Math.floor(notes[i]!.step / perBar) + 1})`);
   if (outside && outside.length > 0) {
-    lines.push(`  outside   ${outside.join(", ")} — the colour, keep ${outside.length === 1 ? "it" : "them"}`);
+    lines.push(
+      `  outside   ${outside.join(", ")} — the colour, keep ${outside.length === 1 ? "it" : "them"}`,
+    );
   }
 
   const sounding = notes.reduce((sum, n) => sum + n.lengthSteps, 0);
   const total = bars.length * perBar;
-  lines.push(`  density   ${notes.length} notes over ${total} steps, ${Math.round((sounding / total) * 100)}% sounding`);
+  lines.push(
+    `  density   ${notes.length} notes over ${total} steps, ${Math.round((sounding / total) * 100)}% sounding`,
+  );
 
   return lines.join("\n");
 }
@@ -259,14 +267,29 @@ export function confirmChecklist(ctx: ConfirmContext): string {
   };
 
   const rows: Array<{ symptom: string; fix: string; note?: string }> = [
-    { symptom: "notes it never played, mostly quiet ones", fix: `--min-amplitude ${amp(ctx.minAmplitude + 0.1)}`, note: `${ctx.minAmplitude} now` },
-    { symptom: "notes it did play are missing", fix: `--min-amplitude ${amp(ctx.minAmplitude - 0.1)}` },
+    {
+      symptom: "notes it never played, mostly quiet ones",
+      fix: `--min-amplitude ${amp(ctx.minAmplitude + 0.1)}`,
+      note: `${ctx.minAmplitude} now`,
+    },
+    {
+      symptom: "notes it did play are missing",
+      fix: `--min-amplitude ${amp(ctx.minAmplitude - 0.1)}`,
+    },
   ];
   if (ctx.grid > 1) {
-    rows.push({ symptom: "rhythm lands on offbeats nobody played", fix: `--grid ${ctx.grid === 4 ? 2 : 1}`, note: "a coarser grid" });
+    rows.push({
+      symptom: "rhythm lands on offbeats nobody played",
+      fix: `--grid ${ctx.grid === 4 ? 2 : 1}`,
+      note: "a coarser grid",
+    });
   }
   if (ctx.grid < 4) {
-    rows.push({ symptom: "a fast run got flattened into fewer notes", fix: `--grid ${ctx.grid === 1 ? 2 : 4}`, note: "a finer grid" });
+    rows.push({
+      symptom: "a fast run got flattened into fewer notes",
+      fix: `--grid ${ctx.grid === 1 ? 2 : 4}`,
+      note: "a finer grid",
+    });
   }
   rows.push({ symptom: "two notes at once came out as one", fix: "--polyphonic" });
   rows.push(tempo);
@@ -285,7 +308,9 @@ export function confirmChecklist(ctx: ConfirmContext): string {
 
   if (ctx.mode === "shape") {
     lines.push("  Shape mode: the pitches are meant to differ — the take is the reference for the");
-    lines.push("  intervals and the rhythm only, so listen to the leaps and the gaps, not the key.");
+    lines.push(
+      "  intervals and the rhythm only, so listen to the leaps and the gaps, not the key.",
+    );
   }
   if (!ctx.hasKey) {
     lines.push("  No --key was given, so the piece is spelled by guesswork. Pass one and it is");
@@ -315,7 +340,10 @@ export function barGrid(
   return groupByBar(notes, meter).map((barNotes, bar) => {
     const cells = new Array<string>(perBar).fill(".");
     for (const note of barNotes) cells[note.step - bar * perBar] = tokens[indexOf.get(note)!]!;
-    const grid = cells.map((c) => c.padEnd(width)).join("").trimEnd();
+    const grid = cells
+      .map((c) => c.padEnd(width))
+      .join("")
+      .trimEnd();
     return `  bar ${String(bar + 1).padStart(2)}  |${grid}`;
   });
 }

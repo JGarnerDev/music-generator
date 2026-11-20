@@ -1,13 +1,13 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from "@playwright/test";
 
-test.describe('Keys App - Piano Interaction', () => {
+test.describe("Keys App - Piano Interaction", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('http://localhost:5173/keys.html');
-    await page.waitForSelector('#piano');
+    await page.goto("http://localhost:5173/keys.html");
+    await page.waitForSelector("#piano");
   });
 
-  test('single key press and release', async ({ page }) => {
-    const firstWhiteKey = page.locator('#piano .key.white').first();
+  test("single key press and release", async ({ page }) => {
+    const firstWhiteKey = page.locator("#piano .key.white").first();
 
     // Use mouse down/up instead
     await firstWhiteKey.hover();
@@ -18,14 +18,14 @@ test.describe('Keys App - Piano Interaction', () => {
     await expect(firstWhiteKey).not.toHaveClass(/down/);
   });
 
-  test('chord: hold two keys simultaneously', async ({ page }) => {
-    const keys = page.locator('#piano .key.white');
+  test("chord: hold two keys simultaneously", async ({ page }) => {
+    const keys = page.locator("#piano .key.white");
     const key1 = keys.nth(0);
     const key2 = keys.nth(2);
 
     const box1 = await key1.boundingBox();
     const box2 = await key2.boundingBox();
-    if (!box1 || !box2) throw new Error('Could not get boxes');
+    if (!box1 || !box2) throw new Error("Could not get boxes");
 
     // Press key1
     await page.mouse.move(box1.x + box1.width / 2, box1.y + box1.height / 2);
@@ -41,12 +41,12 @@ test.describe('Keys App - Piano Interaction', () => {
     await expect(key1).not.toHaveClass(/down/);
   });
 
-  test('drag across multiple keys', async ({ page }) => {
-    const keys = page.locator('#piano .key.white');
+  test("drag across multiple keys", async ({ page }) => {
+    const keys = page.locator("#piano .key.white");
 
     const box1 = await keys.nth(0).boundingBox();
     const box3 = await keys.nth(2).boundingBox();
-    if (!box1 || !box3) throw new Error('Could not get positions');
+    if (!box1 || !box3) throw new Error("Could not get positions");
 
     // Start drag from key1
     await page.mouse.move(box1.x + box1.width / 2, box1.y + box1.height / 2);
@@ -62,12 +62,12 @@ test.describe('Keys App - Piano Interaction', () => {
     await page.mouse.up();
   });
 
-  test('drag across non-adjacent keys', async ({ page }) => {
-    const keys = page.locator('#piano .key.white');
+  test("drag across non-adjacent keys", async ({ page }) => {
+    const keys = page.locator("#piano .key.white");
 
     const box0 = await keys.nth(0).boundingBox();
     const box5 = await keys.nth(5).boundingBox();
-    if (!box0 || !box5) throw new Error('Could not get positions');
+    if (!box0 || !box5) throw new Error("Could not get positions");
 
     // Drag from key 0 to key 5
     await page.mouse.move(box0.x + box0.width / 2, box0.y + box0.height / 2);
@@ -80,13 +80,13 @@ test.describe('Keys App - Piano Interaction', () => {
     await page.mouse.up();
   });
 
-  test('rapid key presses', async ({ page }) => {
-    const keys = page.locator('#piano .key.white');
+  test("rapid key presses", async ({ page }) => {
+    const keys = page.locator("#piano .key.white");
 
     for (let i = 0; i < 3; i++) {
       const key = keys.nth(i);
       const box = await key.boundingBox();
-      if (!box) throw new Error('Could not get position');
+      if (!box) throw new Error("Could not get position");
 
       await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
       await page.mouse.down();
@@ -96,9 +96,9 @@ test.describe('Keys App - Piano Interaction', () => {
     }
   });
 
-  test('voice select changes instrument', async ({ page }) => {
-    const voiceSelect = page.locator('#voice');
-    const options = await page.locator('#voice option').count();
+  test("voice select changes instrument", async ({ page }) => {
+    const voiceSelect = page.locator("#voice");
+    const options = await page.locator("#voice option").count();
 
     expect(options).toBeGreaterThan(1);
 
@@ -107,9 +107,9 @@ test.describe('Keys App - Piano Interaction', () => {
     await page.waitForTimeout(100);
 
     // Play a note
-    const key = page.locator('#piano .key.white').first();
+    const key = page.locator("#piano .key.white").first();
     const box = await key.boundingBox();
-    if (!box) throw new Error('Could not get position');
+    if (!box) throw new Error("Could not get position");
 
     await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
     await page.mouse.down();
@@ -117,19 +117,19 @@ test.describe('Keys App - Piano Interaction', () => {
     await page.mouse.up();
   });
 
-  test('octave controls change octave value', async ({ page }) => {
-    const octaveValue = page.locator('#topControls .value').first();
-    const plusButton = page.locator('#topControls .group').first().locator('button').last();
+  test("octave controls change octave value", async ({ page }) => {
+    const octaveValue = page.locator("#topControls .value").first();
+    const plusButton = page.locator("#topControls .group").first().locator("button").last();
 
     const initialText = await octaveValue.textContent();
-    const initialOctave = parseInt(initialText || '0', 10);
+    const initialOctave = parseInt(initialText || "0", 10);
 
     // Click plus button
     await plusButton.click();
     await page.waitForTimeout(100);
 
     const newText = await octaveValue.textContent();
-    const newOctave = parseInt(newText || '0', 10);
+    const newOctave = parseInt(newText || "0", 10);
 
     expect(newOctave).toBe(initialOctave + 1);
   });

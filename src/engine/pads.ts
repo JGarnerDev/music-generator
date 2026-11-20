@@ -33,13 +33,35 @@ export const PAD_COLUMNS = 4;
  * under the hand, not the letters an AZERTY board would print on it.
  */
 export const PAD_CODES: readonly string[] = [
-  "KeyQ", "KeyW", "KeyE", "KeyR",
-  "KeyA", "KeyS", "KeyD", "KeyF",
-  "KeyZ", "KeyX", "KeyC", "KeyV",
+  "KeyQ",
+  "KeyW",
+  "KeyE",
+  "KeyR",
+  "KeyA",
+  "KeyS",
+  "KeyD",
+  "KeyF",
+  "KeyZ",
+  "KeyX",
+  "KeyC",
+  "KeyV",
 ];
 
 /** What those caps say on a US board — the label a pad prints in its corner. */
-export const PAD_KEY_LABELS: readonly string[] = ["Q", "W", "E", "R", "A", "S", "D", "F", "Z", "X", "C", "V"];
+export const PAD_KEY_LABELS: readonly string[] = [
+  "Q",
+  "W",
+  "E",
+  "R",
+  "A",
+  "S",
+  "D",
+  "F",
+  "Z",
+  "X",
+  "C",
+  "V",
+];
 
 /** One drawn pad: the piece it strikes, what it says, and the key that hits it. */
 export interface DrumPad {

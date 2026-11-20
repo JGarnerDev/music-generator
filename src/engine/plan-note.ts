@@ -45,7 +45,8 @@ export function planBendIssues(notes: readonly PlanNote[], label: string): strin
     const how = note[4];
     if (how === undefined) return;
     if (typeof how === "string") {
-      if (how !== "legato") issues.push(`${label}[${i}][4]: "${String(how)}" is not "legato" or a bend`);
+      if (how !== "legato")
+        issues.push(`${label}[${i}][4]: "${String(how)}" is not "legato" or a bend`);
       return;
     }
     validateBend(how, `${label}[${i}].bend`, (path, message) => issues.push(`${path}: ${message}`));

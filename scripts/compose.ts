@@ -92,7 +92,9 @@ if (opts.palette) {
   // Only emotion palettes are directly composable; genre/timbre feed the blend.
   palette = findPalettes(palettesDir, opts.mood).find(isEmotionPalette);
   if (!palette) {
-    console.error(`No emotion palette matched "${opts.mood}". Pass --palette <slug> to choose one.`);
+    console.error(
+      `No emotion palette matched "${opts.mood}". Pass --palette <slug> to choose one.`,
+    );
     process.exit(2);
   }
   console.log(`Matched palette "${palette.frontmatter.slug}" for mood "${opts.mood}".`);
@@ -108,7 +110,10 @@ if (!isEmotionPalette(palette)) {
 
 // Layer any extra palettes (genre/timbre/…) named via --with onto the emotion.
 const layers: Palette[] = [palette];
-for (const slug of opts.with.split(",").map((s) => s.trim()).filter(Boolean)) {
+for (const slug of opts.with
+  .split(",")
+  .map((s) => s.trim())
+  .filter(Boolean)) {
   const found = palettes.find((p) => p.frontmatter.slug === slug);
   if (!found) {
     const known = palettes.map((p) => p.frontmatter.slug).join(", ");
@@ -170,7 +175,10 @@ function knobOverrides(): Partial<Knobs> {
   const out: Partial<Knobs> = {};
 
   if (opts.figure !== undefined) {
-    const names = opts.figure.split(",").map((s) => s.trim()).filter(Boolean);
+    const names = opts.figure
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
     for (const name of names) {
       if (!isFigureName(name)) {
         console.error(`--figure "${name}" is not on the shelf.`);
@@ -232,7 +240,9 @@ if (neighbours.length > 0) {
     const other = entry.composition;
     console.warn(`  · ${entry.id} — ${other.key} @ ${other.bpm} BPM (shares ${shared.join(", ")})`);
   }
-  console.warn(`  Change something, or mean it: --seed, --figure, --register, a different palette.\n`);
+  console.warn(
+    `  Change something, or mean it: --seed, --figure, --register, a different palette.\n`,
+  );
 }
 
 writeFileSync(out, `${JSON.stringify(comp, null, 2)}\n`, "utf8");

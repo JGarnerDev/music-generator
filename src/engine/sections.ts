@@ -23,18 +23,17 @@ import type { Note } from "./composition";
 import { figureLine, powerChordFigure, type FigureRef } from "./figure";
 import { sustainLine, tremoloLine } from "./riff";
 import { chordPitches, fitToBand, transpose } from "./theory";
-import { COMMON_TIME, beatsPerBar, sixteenthsToNotation, stepsPerBar, type Meter } from "@utils/timing";
+import {
+  COMMON_TIME,
+  beatsPerBar,
+  sixteenthsToNotation,
+  stepsPerBar,
+  type Meter,
+} from "@utils/timing";
 
 /** The arrangement styles a plan section may ask for. */
 export type Style =
-  | "standoff"
-  | "riff"
-  | "motor"
-  | "kit"
-  | "breakdown"
-  | "rebuild"
-  | "climb"
-  | "turnaround";
+  "standoff" | "riff" | "motor" | "kit" | "breakdown" | "rebuild" | "climb" | "turnaround";
 
 export const STYLES = [
   "standoff",

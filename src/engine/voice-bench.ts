@@ -47,7 +47,8 @@ export interface VoiceDescription {
 }
 
 const NO_SUMMARY = "No summary yet — one line on when to pick this, before approving it.";
-const NO_NOTES = "No notes yet — say why it is built this way, so a fork has something to work from.";
+const NO_NOTES =
+  "No notes yet — say why it is built this way, so a fork has something to work from.";
 
 export function describeVoice(entry: VoiceEntry): VoiceDescription {
   const preset = entry.preset;
@@ -108,7 +109,8 @@ export function playingMessage(id: string, audio: PlayedAudio): string {
 }
 
 export function approvedMessage(id: string, demoted: readonly string[]): string {
-  const alsoDemoted = demoted.length > 0 ? `, and ${demoted.join(", ")} is no longer the default` : "";
+  const alsoDemoted =
+    demoted.length > 0 ? `, and ${demoted.join(", ")} is no longer the default` : "";
   return `Approved ${id} — it is in voices/archive.md now${alsoDemoted}.`;
 }
 

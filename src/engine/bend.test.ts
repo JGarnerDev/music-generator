@@ -87,7 +87,9 @@ describe("bendAutomation", () => {
 describe("validateBend", () => {
   it("accepts a bare bend and a full one", () => {
     expect(issues({ semitones: 2 })).toEqual([]);
-    expect(issues({ semitones: -1.5, at: 0.2, over: 0.3, release: true, curve: "meend" })).toEqual([]);
+    expect(issues({ semitones: -1.5, at: 0.2, over: 0.3, release: true, curve: "meend" })).toEqual(
+      [],
+    );
   });
 
   it("rejects a bend that goes nowhere", () => {

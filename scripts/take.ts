@@ -29,7 +29,11 @@
 import { existsSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { join, relative, resolve } from "node:path";
 import { Command } from "commander";
-import { INSTRUMENT_NAMES, validateComposition, type InstrumentName } from "../src/engine/composition";
+import {
+  INSTRUMENT_NAMES,
+  validateComposition,
+  type InstrumentName,
+} from "../src/engine/composition";
 import { summarizeTake, takeToComposition, validateTake, type Take } from "../src/engine/take";
 import { TAKES_DIR, isTakeFile } from "../src/dev/take-store";
 import { parseKey, quantizeNotes } from "../src/engine/transcribe";
@@ -51,8 +55,15 @@ program
   .option("--one-line", "re-read with every note cut at the next onset (a melody, not chords)")
   .option("--key <key>", "read the notes against this key instead of the one the take carries")
   .option("--emit <slug>", "write a playable composition, e.g. --emit tavern-hook")
-  .option("--kind <leitmotifs|segments>", "which compositions/ folder --emit writes to", "leitmotifs")
-  .option("--instrument <name>", "instrument for the emitted track (default: the one it was played on)")
+  .option(
+    "--kind <leitmotifs|segments>",
+    "which compositions/ folder --emit writes to",
+    "leitmotifs",
+  )
+  .option(
+    "--instrument <name>",
+    "instrument for the emitted track (default: the one it was played on)",
+  )
   .option("--voice <slug>", "voice for the emitted track (default: the one it was played on)")
   .option("--tag <a,b,c>", "extra tags for the emitted composition")
   .option("--force", "overwrite an existing composition at --emit")
@@ -99,7 +110,9 @@ console.log(`  recorded  ${new Date(reread.recordedAt).toLocaleString()}`);
 if (opts.emit) {
   const path = emit(reread, opts.emit);
   console.log(`  emitted   ${relative(process.cwd(), path).split("\\").join("/")}`);
-  console.log(`            npm run render -- --file ${relative(process.cwd(), path).split("\\").join("/")}`);
+  console.log(
+    `            npm run render -- --file ${relative(process.cwd(), path).split("\\").join("/")}`,
+  );
 }
 console.log("");
 
@@ -136,7 +149,9 @@ function readTake(path: string): Take {
   }
   const issues = validateTake(parsed);
   if (issues.length > 0) {
-    fail(`${relative(process.cwd(), path)} is not a usable take:\n${issues.map((i) => `  ${i}`).join("\n")}`);
+    fail(
+      `${relative(process.cwd(), path)} is not a usable take:\n${issues.map((i) => `  ${i}`).join("\n")}`,
+    );
   }
   return parsed as Take;
 }
@@ -152,7 +167,9 @@ function applyReread(original: Take): Take {
   const grid = opts.grid === undefined ? original.grid : Number(opts.grid);
   if (grid !== 1 && grid !== 2 && grid !== 4) fail(`--grid must be 4, 2 or 1, got "${opts.grid}"`);
   if (grid > original.grid) {
-    fail(`this take was saved on a ${gridName(original.grid)} grid; --grid ${grid} cannot recover what that rounded off`);
+    fail(
+      `this take was saved on a ${gridName(original.grid)} grid; --grid ${grid} cannot recover what that rounded off`,
+    );
   }
   const monophonic = opts.oneLine ?? original.monophonic;
 
@@ -226,12 +243,20 @@ function emit(source: Take, slug: string): string {
     voice: opts.voice,
     // `played` is provenance worth keeping: it says a human performed these
     // note lengths, so the odd unquantizable one is a player, not a mistake.
-    tags: ["played", ...(opts.tag ?? "").split(",").map((tag) => tag.trim()).filter(Boolean)],
+    tags: [
+      "played",
+      ...(opts.tag ?? "")
+        .split(",")
+        .map((tag) => tag.trim())
+        .filter(Boolean),
+    ],
   });
 
   const issues = validateComposition(composition);
   if (issues.length > 0) {
-    fail(`the take did not make a valid composition:\n${issues.map((i) => `  ${i.path}: ${i.message}`).join("\n")}`);
+    fail(
+      `the take did not make a valid composition:\n${issues.map((i) => `  ${i.path}: ${i.message}`).join("\n")}`,
+    );
   }
   writeFileSync(path, `${JSON.stringify(composition, null, 2)}\n`);
   return path;

@@ -19,11 +19,7 @@ describe("signalChain", () => {
 
   it("expands one word into the several nodes it really is", () => {
     // Fuzz is as much what it removes as what it adds.
-    expect(signalChain(["fuzz"]).map((e) => e.kind)).toEqual([
-      "distortion",
-      "filter",
-      "filter",
-    ]);
+    expect(signalChain(["fuzz"]).map((e) => e.kind)).toEqual(["distortion", "filter", "filter"]);
   });
 
   it("ignores a word with no effect behind it — a timbre is prose first", () => {

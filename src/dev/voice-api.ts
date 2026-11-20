@@ -23,33 +23,45 @@ export function voiceApi(root?: string): Plugin {
     name: "music-generator:voice-api",
     apply: "serve",
     configureServer(server) {
-      postRoute(server, VOICE_APPROVE_ENDPOINT, '{ "id": "lead/molten" }', (body) => {
-        const id = String(body.id ?? "");
-        const result = body.draft
-          ? unapprove(id, { root })
-          : approve(id, {
-              root,
-              makeDefault: body.makeDefault === true,
-              notes: typeof body.notes === "string" ? body.notes : undefined,
-              summary: typeof body.summary === "string" ? body.summary : undefined,
-            });
-        server.config.logger.info(
-          `  ${result.id} → ${result.preset.status}${result.demoted.length ? ` (demoted ${result.demoted.join(", ")})` : ""}`,
-        );
-        return { id: result.id, status: result.preset.status, demoted: result.demoted };
-      }, MAX_BODY_BYTES);
+      postRoute(
+        server,
+        VOICE_APPROVE_ENDPOINT,
+        '{ "id": "lead/molten" }',
+        (body) => {
+          const id = String(body.id ?? "");
+          const result = body.draft
+            ? unapprove(id, { root })
+            : approve(id, {
+                root,
+                makeDefault: body.makeDefault === true,
+                notes: typeof body.notes === "string" ? body.notes : undefined,
+                summary: typeof body.summary === "string" ? body.summary : undefined,
+              });
+          server.config.logger.info(
+            `  ${result.id} → ${result.preset.status}${result.demoted.length ? ` (demoted ${result.demoted.join(", ")})` : ""}`,
+          );
+          return { id: result.id, status: result.preset.status, demoted: result.demoted };
+        },
+        MAX_BODY_BYTES,
+      );
 
-      postRoute(server, VOICE_FORK_ENDPOINT, '{ "from": "lead/molten", "slug": "molten-wide" }', (body) => {
-        const result = fork({
-          root,
-          from: typeof body.from === "string" ? body.from : undefined,
-          instrument: typeof body.instrument === "string" ? body.instrument : undefined,
-          slug: String(body.slug ?? ""),
-          title: typeof body.title === "string" ? body.title : undefined,
-        });
-        server.config.logger.info(`  forked ${result.preset.forkedFrom} → ${result.id}`);
-        return { id: result.id, forkedFrom: result.preset.forkedFrom };
-      }, MAX_BODY_BYTES);
+      postRoute(
+        server,
+        VOICE_FORK_ENDPOINT,
+        '{ "from": "lead/molten", "slug": "molten-wide" }',
+        (body) => {
+          const result = fork({
+            root,
+            from: typeof body.from === "string" ? body.from : undefined,
+            instrument: typeof body.instrument === "string" ? body.instrument : undefined,
+            slug: String(body.slug ?? ""),
+            title: typeof body.title === "string" ? body.title : undefined,
+          });
+          server.config.logger.info(`  forked ${result.preset.forkedFrom} → ${result.id}`);
+          return { id: result.id, forkedFrom: result.preset.forkedFrom };
+        },
+        MAX_BODY_BYTES,
+      );
     },
   };
 }

@@ -92,12 +92,16 @@ function secondsInto(seg: Segment, x: number): number {
 }
 
 function segmentLength(seg: Segment): number {
-  return seg.from === seg.to ? (60 * seg.beats) / seg.from : (120 * seg.beats) / (seg.from + seg.to);
+  return seg.from === seg.to
+    ? (60 * seg.beats) / seg.from
+    : (120 * seg.beats) / (seg.from + seg.to);
 }
 
-export function tempoMap(
-  comp: { bpm: number; tempo?: readonly TempoChange[]; meter?: Meter },
-): TempoMap {
+export function tempoMap(comp: {
+  bpm: number;
+  tempo?: readonly TempoChange[];
+  meter?: Meter;
+}): TempoMap {
   const meter = comp.meter ?? COMMON_TIME;
   const perBar = beatsPerBar(meter);
   // Stable sort: two changes on one bar keep their written order, so a ramp can
@@ -128,7 +132,8 @@ export function tempoMap(
     return segments[0]!;
   };
   const segmentAtSeconds = (s: number): Segment => {
-    for (let i = segments.length - 1; i >= 0; i--) if (s >= segments[i]!.seconds) return segments[i]!;
+    for (let i = segments.length - 1; i >= 0; i--)
+      if (s >= segments[i]!.seconds) return segments[i]!;
     return segments[0]!;
   };
 
@@ -144,7 +149,8 @@ export function tempoMap(
   const beatOf = (time: string): number => notationBeats(time, perBar);
 
   return {
-    constant: segments.every((s) => s.from === s.to) && new Set(segments.map((s) => s.from)).size === 1,
+    constant:
+      segments.every((s) => s.from === s.to) && new Set(segments.map((s) => s.from)).size === 1,
     secondsAtBeat,
     bpmAtBeat: (b) => bpmAtSeconds(secondsAtBeat(b)),
     secondsAt: (time) => secondsAtBeat(beatOf(time)),
@@ -213,7 +219,8 @@ export function tempoIssues(tempo: unknown): [string, string][] {
     if (typeof bpm !== "number" || !Number.isFinite(bpm) || bpm <= 0) {
       issues.push([`${path}.bpm`, "must be a positive number"]);
     }
-    if (ramp !== undefined && typeof ramp !== "boolean") issues.push([`${path}.ramp`, "must be a boolean"]);
+    if (ramp !== undefined && typeof ramp !== "boolean")
+      issues.push([`${path}.ramp`, "must be a boolean"]);
   });
   return issues;
 }

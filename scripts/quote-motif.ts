@@ -78,7 +78,9 @@ if (issues.length > 0) {
 }
 
 const noteCount = quoted.reduce((n, t) => n + t.notes.length, 0);
-const lastBar = Math.max(...quoted.flatMap((t) => t.notes.map((n) => Number(n.time.split(":")[0]))));
+const lastBar = Math.max(
+  ...quoted.flatMap((t) => t.notes.map((n) => Number(n.time.split(":")[0]))),
+);
 console.log(
   `${opts.motif} → ${host.name}: ${noteCount} notes on ${quoted.map((t) => t.instrument).join(", ")}, ` +
     `bars ${opts.atBar}–${lastBar}, in ${host.key}.`,

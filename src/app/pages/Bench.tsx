@@ -108,13 +108,16 @@ export function Bench() {
     // A loop whose body starts after an intro hears the intro once first, from
     // the full render — the `.loop` file alone starts at the body.
     const introSeconds = repeat ? loopIntroSeconds(comp) : null;
-    const full = introSeconds !== null ? await lookup(audioName(comp.name, { loop: false })) : undefined;
+    const full =
+      introSeconds !== null ? await lookup(audioName(comp.name, { loop: false })) : undefined;
     setLoading(true);
     try {
       await playback.play(`/audio/${entry.file}`, {
         loop: repeat,
         onEnded: () => setStatus("Finished."),
-        ...(introSeconds !== null && full ? { intro: { url: `/audio/${full.file}`, seconds: introSeconds } } : {}),
+        ...(introSeconds !== null && full
+          ? { intro: { url: `/audio/${full.file}`, seconds: introSeconds } }
+          : {}),
       });
       setStatus(
         `${repeat ? "Playing loop" : "Playing"} — ${entry.seconds.toFixed(0)}s, ` +
@@ -246,7 +249,11 @@ export function Bench() {
         }}
       />
       <div className="row">
-        <Button id="play" disabled={!current || loading} onClick={() => current && void play(current, looping)}>
+        <Button
+          id="play"
+          disabled={!current || loading}
+          onClick={() => current && void play(current, looping)}
+        >
           ▶ Play
         </Button>
         <Button

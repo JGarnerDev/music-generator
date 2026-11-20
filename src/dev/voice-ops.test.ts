@@ -77,7 +77,10 @@ describe("approve", () => {
   });
 
   it("refuses a voice that is not valid yet", () => {
-    writeVoice(voiceFile("bass/broken", root), { instrument: "bass", slug: "broken" } as VoicePreset);
+    writeVoice(voiceFile("bass/broken", root), {
+      instrument: "bass",
+      slug: "broken",
+    } as VoicePreset);
     expect(() => approve("bass/broken", { root })).toThrow(/not valid/);
   });
 });
@@ -107,7 +110,9 @@ describe("fork", () => {
   });
 
   it("will not overwrite an existing voice", () => {
-    expect(() => fork({ root, from: "bass/saw-round", slug: "saw-round" })).toThrow(/already exists/);
+    expect(() => fork({ root, from: "bass/saw-round", slug: "saw-round" })).toThrow(
+      /already exists/,
+    );
   });
 
   it("says what to do when the instrument has nothing to fork", () => {

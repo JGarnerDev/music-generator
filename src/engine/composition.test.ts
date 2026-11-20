@@ -43,7 +43,9 @@ describe("validateComposition", () => {
   it("flags out-of-range velocity", () => {
     const bad = {
       ...valid,
-      tracks: [{ instrument: "piano", notes: [{ time: "0:0", pitch: "A3", duration: "2n", velocity: 2 }] }],
+      tracks: [
+        { instrument: "piano", notes: [{ time: "0:0", pitch: "A3", duration: "2n", velocity: 2 }] },
+      ],
     };
     const issues = validateComposition(bad);
     expect(issues.some((i) => i.path === "tracks[0].notes[0].velocity")).toBe(true);
@@ -54,7 +56,10 @@ describe("validateComposition", () => {
   });
 
   it("rejects an empty or inverted loop window", () => {
-    for (const loop of [{ startBar: 8, endBar: 8 }, { startBar: 8, endBar: 4 }]) {
+    for (const loop of [
+      { startBar: 8, endBar: 8 },
+      { startBar: 8, endBar: 4 },
+    ]) {
       const issues = validateComposition({ ...valid, loop });
       expect(issues.some((i) => i.path === "loop.endBar")).toBe(true);
     }

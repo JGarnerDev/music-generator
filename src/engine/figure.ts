@@ -91,42 +91,48 @@ export const FIGURES = {
     resolution: 4,
     secondary: -0.07,
     chordOn: "Xx",
-    summary: "Eighth then two sixteenths per beat. Leans forward, wants the next chord — metal, chase, warpath.",
+    summary:
+      "Eighth then two sixteenths per beat. Leans forward, wants the next chord — metal, chase, warpath.",
   },
   "straight-eighths": {
     steps: "X.o.x.o.X.o.x.o.",
     resolution: 4,
     secondary: -0.05,
     chordOn: "Xx",
-    summary: "Unvarying eighths pedalling the root. Refuses to move; the force is repetition — desert/stoner rock, krautrock.",
+    summary:
+      "Unvarying eighths pedalling the root. Refuses to move; the force is repetition — desert/stoner rock, krautrock.",
   },
   "sixteenth-chug": {
     steps: "XoooxoooXoooxooo",
     resolution: 4,
     secondary: -0.05,
     chordOn: "Xx",
-    summary: "Flat-out sixteenths. The straight-eighths motor doubled — heavier without one new note.",
+    summary:
+      "Flat-out sixteenths. The straight-eighths motor doubled — heavier without one new note.",
   },
   "3+3+2": {
     steps: "X..x..x.X..x..x.",
     resolution: 4,
     secondary: -0.07,
     chordOn: "Xx",
-    summary: "Tresillo: dotted-eighth, dotted-eighth, eighth. Displaces the accent off the beat every half bar — djent, latin-leaning metal, anything that should feel lopsided.",
+    summary:
+      "Tresillo: dotted-eighth, dotted-eighth, eighth. Displaces the accent off the beat every half bar — djent, latin-leaning metal, anything that should feel lopsided.",
   },
   "pushed-eighths": {
     steps: "o.X.o.x.o.X.o.x.",
     resolution: 4,
     secondary: -0.07,
     chordOn: "Xx",
-    summary: "Eighths with the weight on the off-beat, downbeats ghosted. The upstroke feel — punk, ska, anything nervy and forward.",
+    summary:
+      "Eighths with the weight on the off-beat, downbeats ghosted. The upstroke feel — punk, ska, anything nervy and forward.",
   },
   "half-time-chug": {
     steps: "X.......x.......",
     resolution: 4,
     secondary: -0.07,
     chordOn: "Xx",
-    summary: "Two held chords a bar, nothing between them. Halves the apparent tempo without touching BPM — doom, sludge, a breakdown that still has weight.",
+    summary:
+      "Two held chords a bar, nothing between them. Halves the apparent tempo without touching BPM — doom, sludge, a breakdown that still has weight.",
   },
   "four-on-floor-stab": {
     steps: "X...x...X...x...",
@@ -134,14 +140,16 @@ export const FIGURES = {
     secondary: -0.07,
     duration: "8n",
     chordOn: "Xx",
-    summary: "Short quarter-note stabs, gaps left open. Drives without filling the bar — disco-leaning rock, anything where the kit needs room.",
+    summary:
+      "Short quarter-note stabs, gaps left open. Drives without filling the bar — disco-leaning rock, anything where the kit needs room.",
   },
   "triplet-canter": {
     steps: "X.ox.oX.ox.o",
     resolution: 3,
     secondary: -0.07,
     chordOn: "Xx",
-    summary: "Long-short on an eighth-triplet grid. The galloping-horse figure — cavalry, spaghetti-western chase, classic NWOBHM.",
+    summary:
+      "Long-short on an eighth-triplet grid. The galloping-horse figure — cavalry, spaghetti-western chase, classic NWOBHM.",
   },
   // --- 12 steps: one bar of 3/4 or 6/8 -------------------------------------
   "waltz-oom-pah": {
@@ -150,21 +158,24 @@ export const FIGURES = {
     secondary: -0.12,
     duration: "4n",
     chordOn: "X",
-    summary: "3/4. Root on one, a lighter answer on three, beat two left to the chords. The bass half of the oom-pah-pah — ballroom, music box, a sad waltz.",
+    summary:
+      "3/4. Root on one, a lighter answer on three, beat two left to the chords. The bass half of the oom-pah-pah — ballroom, music box, a sad waltz.",
   },
   "waltz-drive": {
     steps: "X...x...x...",
     resolution: 4,
     secondary: -0.06,
     chordOn: "Xx",
-    summary: "3/4. All three beats struck evenly. Turns a waltz from a dance into a drive — Shostakovich-ish menace, carousel gone wrong.",
+    summary:
+      "3/4. All three beats struck evenly. Turns a waltz from a dance into a drive — Shostakovich-ish menace, carousel gone wrong.",
   },
   "jig-lilt": {
     steps: "X.o.x.X.o.x.",
     resolution: 4,
     secondary: -0.07,
     chordOn: "Xx",
-    summary: "6/8. Two groups of three eighths, weight on each group's first. The compound-time canter — celtic jigs, sea shanties, a riding theme.",
+    summary:
+      "6/8. Two groups of three eighths, weight on each group's first. The compound-time canter — celtic jigs, sea shanties, a riding theme.",
   },
   "six-eight-stab": {
     steps: "X.....x.....",
@@ -172,7 +183,8 @@ export const FIGURES = {
     secondary: -0.08,
     duration: "4n.",
     chordOn: "Xx",
-    summary: "6/8 at its bare pulse: two dotted quarters, nothing between. Room for a melody to lilt over the top — barcarolle, lullaby, a slow funeral march.",
+    summary:
+      "6/8 at its bare pulse: two dotted quarters, nothing between. Room for a melody to lilt over the top — barcarolle, lullaby, a slow funeral march.",
   },
   // --- 24 steps: one bar of 12/8 -------------------------------------------
   "twelve-eight-shuffle": {
@@ -180,7 +192,8 @@ export const FIGURES = {
     resolution: 4,
     secondary: -0.07,
     chordOn: "Xx",
-    summary: "12/8. Four beats each split in three — the triplet feel written out rather than swung. Slow blues, doo-wop, gospel shuffle.",
+    summary:
+      "12/8. Four beats each split in three — the triplet feel written out rather than swung. Slow blues, doo-wop, gospel shuffle.",
   },
 } as const satisfies Record<string, Figure>;
 
@@ -273,7 +286,9 @@ export function figureLine(figure: FigureRef, opts: FigureOptions): Note[] {
 export function powerChordFigure(figure: FigureRef, opts: FigureOptions): Note[] {
   const { chordOn } = figureFor(figure, opts.meter ?? COMMON_TIME);
   const struck = struckNotes(figure, opts);
-  const voiced = new Set(struck.filter(({ char }) => chordOn.includes(char)).map(({ note }) => note));
+  const voiced = new Set(
+    struck.filter(({ char }) => chordOn.includes(char)).map(({ note }) => note),
+  );
   return withFifths(
     struck.map(({ note }) => note),
     (note) => voiced.has(note),
@@ -351,10 +366,7 @@ export function withFifths(notes: Note[], voiced: (note: Note) => boolean): Note
 
   return notes.flatMap((note) => {
     if (!voiced(note)) return [note];
-    return [
-      note,
-      { ...note, pitch: fifthOf(note.pitch), velocity: (note.velocity ?? 0.9) - 0.05 },
-    ];
+    return [note, { ...note, pitch: fifthOf(note.pitch), velocity: (note.velocity ?? 0.9) - 0.05 }];
   });
 }
 

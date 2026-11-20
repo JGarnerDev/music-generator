@@ -68,7 +68,6 @@ import {
  */
 const DEFAULT_REGISTER: [string, string] = ["G1", "D2"];
 
-
 interface PlanSection {
   id: string;
   style: Style;
@@ -315,7 +314,6 @@ interface PlanSectionContext extends SectionContext {
   melodyInto: keyof Voices;
 }
 
-
 /**
  * Which bucket an instrument's notes go in. Only `pluck` needs saying — the
  * builder has called that bucket `rhythm` since before voices existed, because
@@ -387,7 +385,14 @@ function voiceIsAmped(instrument: string, slug: string | undefined): boolean {
   if (!existsSync(dir)) return false;
   const presets = readdirSync(dir)
     .filter((f) => f.endsWith(".json"))
-    .map((f) => JSON.parse(readFileSync(resolve(dir, f), "utf8")) as { slug?: string; default?: boolean; amp?: unknown });
+    .map(
+      (f) =>
+        JSON.parse(readFileSync(resolve(dir, f), "utf8")) as {
+          slug?: string;
+          default?: boolean;
+          amp?: unknown;
+        },
+    );
   const preset = slug ? presets.find((p) => p.slug === slug) : presets.find((p) => p.default);
   return preset?.amp !== undefined;
 }
@@ -413,7 +418,9 @@ function reportClashes(plan: Plan, built: Composition, meter: Meter): void {
     .map((t) => t.notes);
   const clashes = findClashes(spans, lines, { meter });
   if (clashes.length === 0) {
-    console.log("Clashes: none — no held tune note rubs the chord, and the lead lines never sit a second apart.");
+    console.log(
+      "Clashes: none — no held tune note rubs the chord, and the lead lines never sit a second apart.",
+    );
     return;
   }
   const shown = 16;
@@ -492,7 +499,9 @@ function reportDefaults(plan: Plan, meter: Meter): void {
   // problem one step weaker, so they get their own weaker line.
   const lengths = plan.sections.map((s) => s.chords.length);
   if (lengths.every((n) => n === 8)) {
-    untouched.push("phrase length — every section is 8 bars, which the ear predicts two bars ahead");
+    untouched.push(
+      "phrase length — every section is 8 bars, which the ear predicts two bars ahead",
+    );
   } else if (new Set(lengths).size === 1) {
     untouched.push(
       `phrase length — every section is ${lengths[0]} bars. One phrase of a different length is` +
@@ -544,11 +553,7 @@ function buildComposition(plan: Plan): Composition {
   // The last bar approaches the *loop start*, not the intro — that is the bar
   // that actually follows it on every lap but the first. A bar that changed
   // chord half way through is approached out of its *second* chord.
-  const approaches = approachNotes(
-    bassRoots.map(firstOf),
-    loopStartBar,
-    bassRoots.map(lastOf),
-  );
+  const approaches = approachNotes(bassRoots.map(firstOf), loopStartBar, bassRoots.map(lastOf));
 
   const voices = emptyVoices();
   const melodyInto = melodyBucketOf(plan);
@@ -604,21 +609,26 @@ function buildComposition(plan: Plan): Composition {
   )
     .filter((t) => t.notes.length > 0)
     .flatMap((t) => {
-      const base = { ...voiceFor(plan, t.instrument), gain: gainFor(plan, t.instrument, t.gain ?? 1) };
+      const base = {
+        ...voiceFor(plan, t.instrument),
+        gain: gainFor(plan, t.instrument, t.gain ?? 1),
+      };
       const double = doubleOf(plan, t.instrument);
       // A section that names its own sound gets its own track — see `section-sound.ts`.
-      const parts: Track[] = splitBySound(t.notes, sectionSounds(spans, t.instrument), base).map((part) => ({
-        instrument: t.instrument,
-        gain: part.gain,
-        // Key order kept as it was before sections could re-voice, so a rebuild
-        // of an older plan is byte-identical.
-        notes: performed(plan, t.instrument, part.notes, meter),
-        ...(part.voice === undefined ? {} : { voice: part.voice }),
-        ...(t.instrument === "lead" && plan.twinLead
-          ? { pan: plan.twinLead.leadPan ?? 0.35 }
-          : {}),
-        ...(double ? { pan: double.pairPan ?? 0.6 } : {}),
-      }));
+      const parts: Track[] = splitBySound(t.notes, sectionSounds(spans, t.instrument), base).map(
+        (part) => ({
+          instrument: t.instrument,
+          gain: part.gain,
+          // Key order kept as it was before sections could re-voice, so a rebuild
+          // of an older plan is byte-identical.
+          notes: performed(plan, t.instrument, part.notes, meter),
+          ...(part.voice === undefined ? {} : { voice: part.voice }),
+          ...(t.instrument === "lead" && plan.twinLead
+            ? { pan: plan.twinLead.leadPan ?? 0.35 }
+            : {}),
+          ...(double ? { pan: double.pairPan ?? 0.6 } : {}),
+        }),
+      );
       if (!double) return parts;
       const key = `${t.instrument as DoubledPart}2` as const;
       const doubled: Track[] = splitBySound(t.notes, sectionSounds(spans, key), {
@@ -656,7 +666,8 @@ function buildComposition(plan: Plan): Composition {
     plan.bpm,
     spans.map(({ section, start, end }) => ({ start, end, ...sectionTempoOf(section) })),
   );
-  if (loopStartBar !== null && tempo.length > 0) warnTempoSeam(plan, tempo, loopStartBar, bar, meter);
+  if (loopStartBar !== null && tempo.length > 0)
+    warnTempoSeam(plan, tempo, loopStartBar, bar, meter);
 
   return {
     name: plan.name,
@@ -749,16 +760,30 @@ function sectionSounds(
     const voice = section.voices?.[part];
     const gain = section.gains?.[part];
     if (voice === undefined && gain === undefined) return [];
-    if (voice !== undefined && !existsSync(resolve(process.cwd(), `voices/${instrument}/${voice}.json`))) {
-      console.error(`section "${section.id}": voices.${part}: no such voice "${instrument}/${voice}"`);
+    if (
+      voice !== undefined &&
+      !existsSync(resolve(process.cwd(), `voices/${instrument}/${voice}.json`))
+    ) {
+      console.error(
+        `section "${section.id}": voices.${part}: no such voice "${instrument}/${voice}"`,
+      );
       console.error(`  find one with: npm run voice:find -- --instrument ${instrument}`);
       process.exit(2);
     }
     if (gain !== undefined && !(typeof gain === "number" && gain >= 0 && gain <= 2)) {
-      console.error(`section "${section.id}": gains.${part}: must be a number in 0..2, got ${JSON.stringify(gain)}`);
+      console.error(
+        `section "${section.id}": gains.${part}: must be a number in 0..2, got ${JSON.stringify(gain)}`,
+      );
       process.exit(2);
     }
-    return [{ start, end, ...(voice === undefined ? {} : { voice }), ...(gain === undefined ? {} : { gain }) }];
+    return [
+      {
+        start,
+        end,
+        ...(voice === undefined ? {} : { voice }),
+        ...(gain === undefined ? {} : { gain }),
+      },
+    ];
   });
 }
 
@@ -773,7 +798,10 @@ function doubleOf(plan: Plan, instrument: InstrumentName): Double | undefined {
   }
   const double = plan.doubles[instrument as DoubledPart];
   if (!double) return undefined;
-  if (double.voice && !existsSync(resolve(process.cwd(), `voices/${instrument}/${double.voice}.json`))) {
+  if (
+    double.voice &&
+    !existsSync(resolve(process.cwd(), `voices/${instrument}/${double.voice}.json`))
+  ) {
     console.error(`doubles.${instrument}.voice: no such voice "${instrument}/${double.voice}"`);
     process.exit(2);
   }
@@ -784,8 +812,13 @@ function doubleOf(plan: Plan, instrument: InstrumentName): Double | undefined {
 function sectionTempoOf(section: PlanSection): { bpm?: number; rampTo?: number } {
   for (const field of ["bpm", "rampTo"] as const) {
     const value = section[field];
-    if (value !== undefined && !(typeof value === "number" && value > 0 && Number.isFinite(value))) {
-      console.error(`section "${section.id}": ${field} must be a positive number, got ${JSON.stringify(value)}`);
+    if (
+      value !== undefined &&
+      !(typeof value === "number" && value > 0 && Number.isFinite(value))
+    ) {
+      console.error(
+        `section "${section.id}": ${field} must be a positive number, got ${JSON.stringify(value)}`,
+      );
       process.exit(2);
     }
   }
@@ -799,7 +832,13 @@ function sectionTempoOf(section: PlanSection): { bpm?: number; rampTo?: number }
  * A loop that wraps at a different tempo than it starts at lurches on every lap.
  * Warned rather than refused — a deliberate snap back can be the point.
  */
-function warnTempoSeam(plan: Plan, tempo: TempoChange[], startBar: number, endBar: number, meter: Meter): void {
+function warnTempoSeam(
+  plan: Plan,
+  tempo: TempoChange[],
+  startBar: number,
+  endBar: number,
+  meter: Meter,
+): void {
   const map = tempoMap({ bpm: plan.bpm, tempo, meter });
   const perBar = beatsPerBar(meter);
   const opening = map.bpmAtBeat(startBar * perBar);

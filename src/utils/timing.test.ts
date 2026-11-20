@@ -102,7 +102,10 @@ describe("sixteenthsToTransport", () => {
   });
   it("round-trips through barsBeatsToSeconds", () => {
     for (const step of [0, 3, 7, 16, 45]) {
-      expect(barsBeatsToSeconds(sixteenthsToTransport(step), 120)).toBeCloseTo(step * (60 / 120 / 4), 6);
+      expect(barsBeatsToSeconds(sixteenthsToTransport(step), 120)).toBeCloseTo(
+        step * (60 / 120 / 4),
+        6,
+      );
     }
   });
   it("throws on a fractional or negative step", () => {

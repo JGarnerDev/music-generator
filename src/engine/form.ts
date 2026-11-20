@@ -87,7 +87,13 @@ export function buildForm(opts: FormOptions): FormSection[] {
   const b = progressionChords(tonic, contrastProgression(candidates, primary, rng), scale);
 
   return place([
-    section("intro", intro, { intensity: 0.55, melody: false, invert: false, arp: false, figure: 0 }),
+    section("intro", intro, {
+      intensity: 0.55,
+      melody: false,
+      invert: false,
+      arp: false,
+      figure: 0,
+    }),
     section("A", a, { intensity: 0.85, melody: true, invert: false, arp: false, figure: 0 }),
     section("B", b, { intensity: 0.95, melody: true, invert: true, arp: true, figure: 1 }),
     section("restate", a, { intensity: 1, melody: true, invert: false, arp: true, figure: 0 }),
@@ -104,11 +110,7 @@ export function buildForm(opts: FormOptions): FormSection[] {
  * different order and land somewhere else. A rotation is a weaker contrast than
  * a real second progression, which is a reason to give a palette two.
  */
-export function contrastProgression(
-  candidates: string[][],
-  primary: string[],
-  rng: Rng,
-): string[] {
+export function contrastProgression(candidates: string[][], primary: string[], rng: Rng): string[] {
   const others = candidates.filter((p) => p.join() !== primary.join());
   if (others.length > 0) return pick(rng, others);
   if (primary.length < 2) return primary;

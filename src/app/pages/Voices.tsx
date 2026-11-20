@@ -162,13 +162,12 @@ export function Voices() {
           checked={draftsOnly}
           onChange={setDraftsOnly}
         />
-        <Checkbox
-          label="loop the probe"
-          id="loop"
-          checked={loopWanted}
-          onChange={setLoopWanted}
-        />
-        <span id="probeName" className="chip" title={probe ? `${probe.bpm} BPM, ${probe.key}` : undefined}>
+        <Checkbox label="loop the probe" id="loop" checked={loopWanted} onChange={setLoopWanted} />
+        <span
+          id="probeName"
+          className="chip"
+          title={probe ? `${probe.bpm} BPM, ${probe.key}` : undefined}
+        >
           {probe ? `${probe.name}: ${probe.describe}` : "probe"}
         </span>
       </div>

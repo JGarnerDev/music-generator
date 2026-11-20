@@ -5,7 +5,13 @@ import { DEFAULT_PROBES, PROBE_NAMES, probeComposition, probeFor } from "./probe
 import type { VoicePreset } from "./voice";
 
 const preset = (over: Partial<VoicePreset> = {}): VoicePreset =>
-  ({ instrument: "bass", slug: "round-thumb", title: "Round thumb", status: "draft", ...over }) as VoicePreset;
+  ({
+    instrument: "bass",
+    slug: "round-thumb",
+    title: "Round thumb",
+    status: "draft",
+    ...over,
+  }) as VoicePreset;
 
 describe("probeFor", () => {
   it("gives every instrument an étude", () => {

@@ -105,7 +105,8 @@ export const CONCEPTS: readonly Concept[] = [
     slug: "hook",
     title: "Hook cell",
     group: "melody",
-    blurb: "The 2–4 bars the piece is named after. One signature: an interval, a rhythm, or a rest.",
+    blurb:
+      "The 2–4 bars the piece is named after. One signature: an interval, a rhythm, or a rest.",
     axes: ["note-choice", "phrasing", "contour", "figure"],
   },
   {
@@ -126,14 +127,16 @@ export const CONCEPTS: readonly Concept[] = [
     slug: "countermelody",
     title: "Countermelody",
     group: "melody",
-    blurb: "A second line under the first that stays subordinate. Where it moves and where it waits.",
+    blurb:
+      "A second line under the first that stays subordinate. Where it moves and where it waits.",
     axes: ["interplay", "register", "density"],
   },
   {
     slug: "twin-leads",
     title: "Twin leads",
     group: "melody",
-    blurb: "Two lead lines instead of one — harmonised, answering, or trading. Which reading works.",
+    blurb:
+      "Two lead lines instead of one — harmonised, answering, or trading. Which reading works.",
     axes: ["interplay", "note-choice", "register", "phrasing"],
   },
   {
@@ -154,7 +157,8 @@ export const CONCEPTS: readonly Concept[] = [
     slug: "bend-placement",
     title: "Bend placement",
     group: "melody",
-    blurb: "Which note of a phrase bends and which stay straight. The arrival, the approach, or the peak.",
+    blurb:
+      "Which note of a phrase bends and which stay straight. The arrival, the approach, or the peak.",
     axes: ["gesture", "phrasing", "contour"],
   },
   {
@@ -168,7 +172,8 @@ export const CONCEPTS: readonly Concept[] = [
     slug: "bend-curve",
     title: "Bend curve",
     group: "melody",
-    blurb: "The shape of the travel on identical notes — settling, slow at both ends, or mechanical.",
+    blurb:
+      "The shape of the travel on identical notes — settling, slow at both ends, or mechanical.",
     axes: ["gesture", "tone"],
   },
   {
@@ -521,7 +526,15 @@ export function isAxisName(value: unknown): value is string {
  * shelf of twenty stays scannable while you are still holding the sound in your
  * head.
  */
-export const TAG_FACETS = ["shape", "memory", "surprise", "space", "feel", "pitch", "tone"] as const;
+export const TAG_FACETS = [
+  "shape",
+  "memory",
+  "surprise",
+  "space",
+  "feel",
+  "pitch",
+  "tone",
+] as const;
 
 export type TagFacet = (typeof TAG_FACETS)[number];
 
@@ -541,26 +554,82 @@ export interface VerdictTag {
  * one-word verdict would have lost.
  */
 export const VERDICT_TAGS: readonly VerdictTag[] = [
-  { name: "great-arc", facet: "shape", blurb: "One clear peak, placed late, and the line earns it." },
-  { name: "no-peak", facet: "shape", blurb: "Wanders at one altitude — nothing is the high point." },
-  { name: "peak-too-early", facet: "shape", blurb: "Arrives at the top and then has nowhere to go." },
-  { name: "wrong-register", facet: "shape", blurb: "Sitting in the wrong band against what is under it." },
-  { name: "no-lift", facet: "shape", blurb: "The second section should have risen above the first and doesn't." },
+  {
+    name: "great-arc",
+    facet: "shape",
+    blurb: "One clear peak, placed late, and the line earns it.",
+  },
+  {
+    name: "no-peak",
+    facet: "shape",
+    blurb: "Wanders at one altitude — nothing is the high point.",
+  },
+  {
+    name: "peak-too-early",
+    facet: "shape",
+    blurb: "Arrives at the top and then has nowhere to go.",
+  },
+  {
+    name: "wrong-register",
+    facet: "shape",
+    blurb: "Sitting in the wrong band against what is under it.",
+  },
+  {
+    name: "no-lift",
+    facet: "shape",
+    blurb: "The second section should have risen above the first and doesn't.",
+  },
 
   { name: "memorable", facet: "memory", blurb: "Hummable back after one pass." },
   { name: "forgettable", facet: "memory", blurb: "A passage, not a hook — gone by the end." },
-  { name: "too-busy-to-hum", facet: "memory", blurb: "Good material buried under too many notes to hold." },
+  {
+    name: "too-busy-to-hum",
+    facet: "memory",
+    blurb: "Good material buried under too many notes to hold.",
+  },
 
-  { name: "predictable", facet: "surprise", blurb: "Confirms everything the ear guessed. Wallpaper." },
-  { name: "too-random", facet: "surprise", blurb: "Confirms nothing — the ear stops predicting and disengages." },
-  { name: "earned-surprise", facet: "surprise", blurb: "One break, in the right place, and it lands." },
-  { name: "surprise-too-loud", facet: "surprise", blurb: "The unexpected thing is louder than the idea it interrupts." },
+  {
+    name: "predictable",
+    facet: "surprise",
+    blurb: "Confirms everything the ear guessed. Wallpaper.",
+  },
+  {
+    name: "too-random",
+    facet: "surprise",
+    blurb: "Confirms nothing — the ear stops predicting and disengages.",
+  },
+  {
+    name: "earned-surprise",
+    facet: "surprise",
+    blurb: "One break, in the right place, and it lands.",
+  },
+  {
+    name: "surprise-too-loud",
+    facet: "surprise",
+    blurb: "The unexpected thing is louder than the idea it interrupts.",
+  },
 
-  { name: "breathes", facet: "space", blurb: "Silence around the hook — the parts are not all playing." },
-  { name: "cluttered", facet: "space", blurb: "Everything plays every bar; nothing gets to be the subject." },
-  { name: "too-sparse", facet: "space", blurb: "Space with nothing in it. An absence, not tension." },
+  {
+    name: "breathes",
+    facet: "space",
+    blurb: "Silence around the hook — the parts are not all playing.",
+  },
+  {
+    name: "cluttered",
+    facet: "space",
+    blurb: "Everything plays every bar; nothing gets to be the subject.",
+  },
+  {
+    name: "too-sparse",
+    facet: "space",
+    blurb: "Space with nothing in it. An absence, not tension.",
+  },
 
-  { name: "locks-in", facet: "feel", blurb: "The groove has one consistent asymmetry and holds it." },
+  {
+    name: "locks-in",
+    facet: "feel",
+    blurb: "The groove has one consistent asymmetry and holds it.",
+  },
   { name: "wrong-feel", facet: "feel", blurb: "The subdivision fights the scene." },
   { name: "drags", facet: "feel", blurb: "Slower than the material wants." },
   { name: "rushes", facet: "feel", blurb: "Faster than the material can carry." },
@@ -569,10 +638,26 @@ export const VERDICT_TAGS: readonly VerdictTag[] = [
   // Pitch that moves *within* notes — bends, and whatever else is added that
   // travels. Separate from `feel` (which is about where notes land) because a
   // line can be rhythmically perfect and still slide around like a bad singer.
-  { name: "sings", facet: "pitch", blurb: "The pitch moves like a hand on a string, not like a setting." },
-  { name: "mechanical", facet: "pitch", blurb: "It travels, but it reads as automation — no player in it." },
-  { name: "seasick", facet: "pitch", blurb: "Too much moving. Nothing stands still long enough to be a note." },
-  { name: "undersold", facet: "pitch", blurb: "The gesture is there and too small or too quick to register." },
+  {
+    name: "sings",
+    facet: "pitch",
+    blurb: "The pitch moves like a hand on a string, not like a setting.",
+  },
+  {
+    name: "mechanical",
+    facet: "pitch",
+    blurb: "It travels, but it reads as automation — no player in it.",
+  },
+  {
+    name: "seasick",
+    facet: "pitch",
+    blurb: "Too much moving. Nothing stands still long enough to be a note.",
+  },
+  {
+    name: "undersold",
+    facet: "pitch",
+    blurb: "The gesture is there and too small or too quick to register.",
+  },
 
   { name: "right-tone", facet: "tone", blurb: "The voice is the reason this works." },
   { name: "wrong-tone", facet: "tone", blurb: "Right notes, wrong instrument for them." },
@@ -689,10 +774,7 @@ export function validateStudy(input: unknown): ValidationIssue[] {
   return issues;
 }
 
-function validateVerdict(
-  verdict: unknown,
-  push: (path: string, message: string) => void,
-): void {
+function validateVerdict(verdict: unknown, push: (path: string, message: string) => void): void {
   if (typeof verdict !== "object" || verdict === null) {
     push("verdict", "must be an object");
     return;

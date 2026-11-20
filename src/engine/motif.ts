@@ -103,7 +103,9 @@ export function quoteMotif(motif: Composition, opts: QuoteOptions): Track[] {
 
   return source.map((track) => ({
     ...track,
-    notes: track.notes.map((note) => quoteNote(note, semitones, atBar, sourcePerBar, perBar, intensity)),
+    notes: track.notes.map((note) =>
+      quoteNote(note, semitones, atBar, sourcePerBar, perBar, intensity),
+    ),
   }));
 }
 

@@ -199,12 +199,7 @@ export function Studies() {
             retarget({ ...filters, unjudgedOnly: checked });
           }}
         />
-        <Checkbox
-          label="loop"
-          id="loop"
-          checked={loopWanted}
-          onChange={setLoopWanted}
-        />
+        <Checkbox label="loop" id="loop" checked={loopWanted} onChange={setLoopWanted} />
         <SearchInput
           id="search"
           placeholder="filter by concept, set or variant…"

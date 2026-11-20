@@ -38,10 +38,7 @@ const NEW_SESSION_HINT = 'New session, or: npm run session:new -- --name "Sessio
  * The line above the running order: what this session is, and — the part worth
  * the pixels — how much of it is actually playable.
  */
-export function planHeader(
-  plan: SessionPlan | null,
-  cues: readonly ResolvedCue[],
-): PlanHeader {
+export function planHeader(plan: SessionPlan | null, cues: readonly ResolvedCue[]): PlanHeader {
   if (!plan) return { title: "No session yet", meta: NEW_SESSION_HINT, warn: false };
   const broken = cues.filter((cue) => cue.status !== "ready").length;
   const seconds = cues.reduce((total, cue) => total + (cue.audio?.seconds ?? 0), 0);
@@ -92,9 +89,7 @@ export function loopLabel(loop: boolean): { glyph: string; title: string } {
 }
 
 export function cueEmptyMessage(hasPlan: boolean): string {
-  return hasPlan
-    ? "Empty running order — add cues from the Archive tab."
-    : "No session loaded.";
+  return hasPlan ? "Empty running order — add cues from the Archive tab." : "No session loaded.";
 }
 
 /* ── The archive ──────────────────────────────────────────────────────────── */
@@ -134,10 +129,7 @@ export function archiveEmptyMessage(campaign: string | null, query: string): str
  * session tab — finding a silent cue now costs a render, finding it mid-scene
  * costs the scene.
  */
-export function readinessMessage(
-  plan: SessionPlan | null,
-  cues: readonly ResolvedCue[],
-): string {
+export function readinessMessage(plan: SessionPlan | null, cues: readonly ResolvedCue[]): string {
   if (!plan) return "No sessions yet. Press ＋ New to start one.";
   const broken = cues.filter((cue) => cue.status !== "ready");
   if (broken.length === 0) return `${plan.name}: every cue is rendered and ready.`;
@@ -197,10 +189,7 @@ export interface NewSessionCheck {
  * name with nothing alphanumeric in it slugs to the empty string, and a
  * collision would silently overwrite a running order somebody already built.
  */
-export function checkSessionName(
-  slug: string,
-  existing: readonly string[],
-): NewSessionCheck {
+export function checkSessionName(slug: string, existing: readonly string[]): NewSessionCheck {
   if (slug === "") {
     return { name: null, error: "That name has no letters or numbers in it — try another." };
   }

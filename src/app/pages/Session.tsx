@@ -100,7 +100,9 @@ export function Session() {
       // The archive follows the session's campaign, so opening a plan puts the
       // shelf you will fill it from one tab away rather than one filter away.
       setCampaign(plan?.campaign ?? null);
-      setStatus(readinessMessage(plan, plan && rendered ? resolveCues(plan, ENTRIES, rendered) : []));
+      setStatus(
+        readinessMessage(plan, plan && rendered ? resolveCues(plan, ENTRIES, rendered) : []),
+      );
     },
   });
 
@@ -122,11 +124,14 @@ export function Session() {
   ): Promise<void> {
     // A looping cue with an intro plays it once from the full render first.
     const introSeconds = loop && comp ? loopIntroSeconds(comp) : null;
-    const full = introSeconds !== null ? rendered?.get(audioName(comp!.name, { loop: false })) : undefined;
+    const full =
+      introSeconds !== null ? rendered?.get(audioName(comp!.name, { loop: false })) : undefined;
     try {
       await playback.play(url, {
         loop,
-        ...(introSeconds !== null && full ? { intro: { url: `/audio/${full.file}`, seconds: introSeconds } } : {}),
+        ...(introSeconds !== null && full
+          ? { intro: { url: `/audio/${full.file}`, seconds: introSeconds } }
+          : {}),
         onEnded: () => {
           // A one-shot that runs out is not a stop: leave the cue named on
           // screen so you can see what just finished.
@@ -149,7 +154,13 @@ export function Session() {
     }
     setPlayingCue(cue.index);
     setPlayingEntry(cue.entry?.id ?? null);
-    await start(`/audio/${cue.audio.file}`, cue.loop, cue.label, cue.cue.note, cue.entry?.composition);
+    await start(
+      `/audio/${cue.audio.file}`,
+      cue.loop,
+      cue.label,
+      cue.cue.note,
+      cue.entry?.composition,
+    );
   }
 
   async function playEntry(entry: LibraryEntry): Promise<void> {
@@ -161,7 +172,13 @@ export function Session() {
     }
     setPlayingCue(null);
     setPlayingEntry(entry.id);
-    await start(`/audio/${audio.file}`, looping, entry.composition.name, undefined, entry.composition);
+    await start(
+      `/audio/${audio.file}`,
+      looping,
+      entry.composition.name,
+      undefined,
+      entry.composition,
+    );
   }
 
   /** Play/pause whatever is loaded. Does nothing when nothing is. */
@@ -257,7 +274,10 @@ export function Session() {
         <Select
           id="sessionPick"
           label="Session"
-          options={sessions.all.map((option: SessionPlan) => ({ value: option.name, label: option.title ?? option.name }))}
+          options={sessions.all.map((option: SessionPlan) => ({
+            value: option.name,
+            label: option.title ?? option.name,
+          }))}
           value={plan?.name ?? ""}
           disabled={sessions.all.length === 0}
           onChange={(name) => sessions.select(name)}
@@ -285,12 +305,7 @@ export function Session() {
       {/* Both panels live in the same grid cell, so the tab you are not on takes
           up exactly as much room as the one you are. */}
       <div id="panels">
-        <section
-          id="sessionPanel"
-          role="tabpanel"
-          aria-label="Session"
-          hidden={tab !== "session"}
-        >
+        <section id="sessionPanel" role="tabpanel" aria-label="Session" hidden={tab !== "session"}>
           <div className="planHead">
             <div id="planTitle">{rendered === null ? "loading…" : header.title}</div>
             <div id="planMeta" className={header.warn ? "warn" : undefined}>
@@ -309,12 +324,7 @@ export function Session() {
           />
         </section>
 
-        <section
-          id="archivePanel"
-          role="tabpanel"
-          aria-label="Archive"
-          hidden={tab !== "archive"}
-        >
+        <section id="archivePanel" role="tabpanel" aria-label="Archive" hidden={tab !== "archive"}>
           <div id="filters">
             <CampaignChips entries={ENTRIES} campaign={campaign} onPick={setCampaign} />
             <SearchInput

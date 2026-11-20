@@ -6,7 +6,10 @@ const at = (time: string, pitch = "C4"): Note => ({ time, pitch, duration: "4n" 
 
 describe("splitBySound", () => {
   it("keeps one part when no section asks for a different sound", () => {
-    const parts = splitBySound([at("0:0:0"), at("3:2:0")], [], { voice: "string-section", gain: 0.8 });
+    const parts = splitBySound([at("0:0:0"), at("3:2:0")], [], {
+      voice: "string-section",
+      gain: 0.8,
+    });
     expect(parts).toEqual([
       { voice: "string-section", gain: 0.8, notes: [at("0:0:0"), at("3:2:0")] },
     ]);
@@ -50,7 +53,9 @@ describe("splitBySound", () => {
   });
 
   it("silences a section at gain 0 by dropping its notes", () => {
-    const parts = splitBySound([at("0:0:0"), at("1:0:0")], [{ start: 1, end: 2, gain: 0 }], { gain: 0.8 });
+    const parts = splitBySound([at("0:0:0"), at("1:0:0")], [{ start: 1, end: 2, gain: 0 }], {
+      gain: 0.8,
+    });
     expect(parts).toEqual([{ gain: 0.8, notes: [at("0:0:0")] }]);
   });
 

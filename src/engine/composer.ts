@@ -28,14 +28,7 @@ import { figureLine, validateFigure, type Figure } from "./figure";
 import { chooseKnobs, registerBand, tempoFor, type Knobs } from "./knobs";
 import { buildForm, formBars, type FormName, type FormSection } from "./form";
 import { HOUSE_LEANS, humanize } from "./humanize";
-import {
-  chordPitches,
-  fitToBand,
-  pitchToMidi,
-  scaleLadder,
-  transpose,
-  voiceLead,
-} from "./theory";
+import { chordPitches, fitToBand, pitchToMidi, scaleLadder, transpose, voiceLead } from "./theory";
 import { sixteenthsToNotation, stepsPerBar, type Meter } from "@utils/timing";
 import { makeRng, pick, seedFromString, type Rng } from "@utils/random";
 
@@ -212,12 +205,8 @@ export function composeFromBlend(
   // chord is the one moment every voice arrives together, and jittering it apart
   // turns an arrival into a stumble. The same goes for the closing crash.
   const seed = `${mood}|${opts.seed ?? ""}`;
-  const perform = (
-    notes: Note[],
-    part: string,
-    lean: number,
-    lock?: string,
-  ): Note[] => humanize(notes, { seed: `${seed}|${part}`, lean, lock, meter });
+  const perform = (notes: Note[], part: string, lean: number, lock?: string): Note[] =>
+    humanize(notes, { seed: `${seed}|${part}`, lean, lock, meter });
 
   // The bass shares the kit's lock: it was written on the kick's own rhythm, and
   // letting the two drift apart by a few milliseconds would undo exactly the
@@ -252,12 +241,23 @@ export function composeFromBlend(
       // a mix turns to mud.
       { instrument: "drums", gain: 0.8, notes: drums },
       { instrument: "bass", gain: 0.9, notes: parts.bass, ...fxFor(dir, "bass") },
-      { instrument: dir.padVoice, gain: 0.35, notes: parts.pad, pan: -0.2, ...fxFor(dir, dir.padVoice) },
+      {
+        instrument: dir.padVoice,
+        gain: 0.35,
+        notes: parts.pad,
+        pan: -0.2,
+        ...fxFor(dir, dir.padVoice),
+      },
       { instrument: lead, gain: 0.55, notes: parts.comp, pan: 0.25, ...fxFor(dir, lead) },
       { instrument: lead, gain: 0.45, notes: parts.arp, pan: -0.35, ...fxFor(dir, lead) },
       // The top line gets its own voice: on a guitar blend that is the lead rig
       // rather than the rhythm one, which is a different sound, not a louder one.
-      { instrument: dir.melodyVoice, gain: 0.85, notes: parts.melody, ...fxFor(dir, dir.melodyVoice) },
+      {
+        instrument: dir.melodyVoice,
+        gain: 0.85,
+        notes: parts.melody,
+        ...fxFor(dir, dir.melodyVoice),
+      },
     ]),
   };
 }

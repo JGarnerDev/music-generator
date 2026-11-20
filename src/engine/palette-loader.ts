@@ -50,7 +50,8 @@ export function loadPalettesFromDir(dir: string): Palette[] {
   const issues = validatePaletteSet(palettes);
   if (issues.length > 0) {
     throw new Error(
-      `invalid palette set in ${dir}:\n` + issues.map((i) => `  ${i.path}: ${i.message}`).join("\n"),
+      `invalid palette set in ${dir}:\n` +
+        issues.map((i) => `  ${i.path}: ${i.message}`).join("\n"),
     );
   }
   return palettes;

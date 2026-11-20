@@ -35,7 +35,10 @@ const kitVoice = (over: Record<string, unknown> = {}): unknown => ({
   kit: {
     levels: { kick: 1, snare: 0.8, hat: 0.32 },
     membrane: { kick: { pitch: "C1", decay: 0.4 } },
-    noise: { snare: { hz: 1400, decay: 0.18, type: "white" }, hat: { hz: 7000, decay: 0.04, type: "white" } },
+    noise: {
+      snare: { hz: 1400, decay: 0.18, type: "white" },
+      hat: { hz: 7000, decay: 0.04, type: "white" },
+    },
   },
   ...over,
 });
@@ -101,8 +104,15 @@ describe("validateVoice", () => {
   });
 
   it("checks the identity fields", () => {
-    const issues = validateVoice({ instrument: "kazoo", slug: "Not Kebab", title: "", status: "maybe" });
-    expect(paths(issues)).toEqual(expect.arrayContaining(["instrument", "slug", "title", "status"]));
+    const issues = validateVoice({
+      instrument: "kazoo",
+      slug: "Not Kebab",
+      title: "",
+      status: "maybe",
+    });
+    expect(paths(issues)).toEqual(
+      expect.arrayContaining(["instrument", "slug", "title", "status"]),
+    );
   });
 
   it("rejects a synth block on a drums voice, and a kit on anything else", () => {
@@ -111,8 +121,12 @@ describe("validateVoice", () => {
   });
 
   it("only lets the amped instruments carry an amp", () => {
-    expect(paths(validateVoice(synthVoice({ instrument: "piano", amp } as Partial<VoicePreset>)))).toContain("amp");
-    expect(validateVoice(synthVoice({ instrument: "lead", amp } as Partial<VoicePreset>))).toEqual([]);
+    expect(
+      paths(validateVoice(synthVoice({ instrument: "piano", amp } as Partial<VoicePreset>))),
+    ).toContain("amp");
+    expect(validateVoice(synthVoice({ instrument: "lead", amp } as Partial<VoicePreset>))).toEqual(
+      [],
+    );
     expect(validateVoice(synthVoice({ amp } as Partial<VoicePreset>))).toEqual([]);
   });
 
@@ -151,7 +165,10 @@ describe("validateVoice", () => {
     const issues = validateVoice(
       synthVoice({
         vibrato: { rate: 5.5, depth: 0.05, drift: 0.4 },
-        body: [{ frequency: 275, q: 4, gain: 5 }, { frequency: 460, q: 3, gain: -2 }],
+        body: [
+          { frequency: 275, q: 4, gain: 5 },
+          { frequency: 460, q: 3, gain: -2 },
+        ],
         breath: { level: 0.06, hz: 4200, q: 0.9 },
       } as Partial<VoicePreset>),
     );
@@ -166,85 +183,144 @@ describe("validateVoice", () => {
   });
 
   it("catches a vibrato depth written in cents", () => {
-    const issues = validateVoice(synthVoice({ vibrato: { rate: 5.5, depth: 25 } } as Partial<VoicePreset>));
+    const issues = validateVoice(
+      synthVoice({ vibrato: { rate: 5.5, depth: 25 } } as Partial<VoicePreset>),
+    );
     expect(paths(issues)).toEqual(["vibrato.depth"]);
   });
 
   it("caps a body at four resonances, and needs a real one in each", () => {
     const one = { frequency: 300, q: 3, gain: 4 };
-    expect(paths(validateVoice(synthVoice({ body: [one, one, one, one, one] } as Partial<VoicePreset>)))).toEqual(["body"]);
-    expect(paths(validateVoice(synthVoice({ body: [] } as Partial<VoicePreset>)))).toEqual(["body"]);
     expect(
-      paths(validateVoice(synthVoice({ body: [{ frequency: 0, q: 3, gain: "loud" }] } as unknown as Partial<VoicePreset>))),
+      paths(validateVoice(synthVoice({ body: [one, one, one, one, one] } as Partial<VoicePreset>))),
+    ).toEqual(["body"]);
+    expect(paths(validateVoice(synthVoice({ body: [] } as Partial<VoicePreset>)))).toEqual([
+      "body",
+    ]);
+    expect(
+      paths(
+        validateVoice(
+          synthVoice({
+            body: [{ frequency: 0, q: 3, gain: "loud" }],
+          } as unknown as Partial<VoicePreset>),
+        ),
+      ),
     ).toEqual(["body[0].frequency", "body[0].gain"]);
   });
 
   it("lets a body resonance be a notch but not a negative Q", () => {
-    expect(validateVoice(synthVoice({ body: [{ frequency: 800, q: 2, gain: -6 }] } as Partial<VoicePreset>))).toEqual([]);
-    expect(paths(validateVoice(synthVoice({ body: [{ frequency: 800, q: -2, gain: 6 }] } as Partial<VoicePreset>)))).toEqual([
-      "body[0].q",
-    ]);
+    expect(
+      validateVoice(
+        synthVoice({ body: [{ frequency: 800, q: 2, gain: -6 }] } as Partial<VoicePreset>),
+      ),
+    ).toEqual([]);
+    expect(
+      paths(
+        validateVoice(
+          synthVoice({ body: [{ frequency: 800, q: -2, gain: 6 }] } as Partial<VoicePreset>),
+        ),
+      ),
+    ).toEqual(["body[0].q"]);
   });
 
   it("rejects breath louder than the instrument it is meant to sit inside", () => {
-    const issues = validateVoice(synthVoice({ breath: { level: 3, hz: 4000 } } as Partial<VoicePreset>));
+    const issues = validateVoice(
+      synthVoice({ breath: { level: 3, hz: 4000 } } as Partial<VoicePreset>),
+    );
     expect(paths(issues)).toEqual(["breath.level"]);
   });
 
   it("accepts a tremolo on a pitched voice", () => {
-    expect(validateVoice(synthVoice({ tremolo: { rate: 7.5, depth: 0.5, spread: 90 } } as Partial<VoicePreset>))).toEqual(
-      [],
-    );
+    expect(
+      validateVoice(
+        synthVoice({ tremolo: { rate: 7.5, depth: 0.5, spread: 90 } } as Partial<VoicePreset>),
+      ),
+    ).toEqual([]);
   });
 
   it("rejects a stroke rate that is a wobble or a buzz", () => {
-    expect(paths(validateVoice(synthVoice({ tremolo: { rate: 0.5, depth: 0.5 } } as Partial<VoicePreset>)))).toEqual([
-      "tremolo.rate",
-    ]);
-    expect(paths(validateVoice(synthVoice({ tremolo: { rate: 60, depth: 0.5 } } as Partial<VoicePreset>)))).toEqual([
-      "tremolo.rate",
-    ]);
+    expect(
+      paths(
+        validateVoice(synthVoice({ tremolo: { rate: 0.5, depth: 0.5 } } as Partial<VoicePreset>)),
+      ),
+    ).toEqual(["tremolo.rate"]);
+    expect(
+      paths(
+        validateVoice(synthVoice({ tremolo: { rate: 60, depth: 0.5 } } as Partial<VoicePreset>)),
+      ),
+    ).toEqual(["tremolo.rate"]);
   });
 
   it("catches a tremolo depth written as a percentage", () => {
-    const issues = validateVoice(synthVoice({ tremolo: { rate: 8, depth: 50 } } as Partial<VoicePreset>));
+    const issues = validateVoice(
+      synthVoice({ tremolo: { rate: 8, depth: 50 } } as Partial<VoicePreset>),
+    );
     expect(paths(issues)).toEqual(["tremolo.depth"]);
   });
 
   it("keeps a tremolo off a kit, which has no bow to reverse", () => {
-    expect(paths(validateVoice(kitVoice({ tremolo: { rate: 8, depth: 0.5 } })))).toContain("tremolo");
+    expect(paths(validateVoice(kitVoice({ tremolo: { rate: 8, depth: 0.5 } })))).toContain(
+      "tremolo",
+    );
   });
 
   it("accepts a section on a pitched voice", () => {
     const issues = validateVoice(
       synthVoice({
         instrument: "pad",
-        section: { players: 6, detune: 12, timing: 0.03, seats: 0.7, bodyVary: 0.02, vibratoVary: 0.15 },
+        section: {
+          players: 6,
+          detune: 12,
+          timing: 0.03,
+          seats: 0.7,
+          bodyVary: 0.02,
+          vibratoVary: 0.15,
+        },
       } as Partial<VoicePreset>),
     );
     expect(issues).toEqual([]);
   });
 
   it("rejects a section a player at a time can't be", () => {
-    expect(paths(validateVoice(synthVoice({ section: { players: 1, detune: 10, timing: 0.02 } } as Partial<VoicePreset>)))).toEqual([
-      "section.players",
-    ]);
     expect(
-      paths(validateVoice(synthVoice({ section: { players: 6.5, detune: 10, timing: 0.02 } } as Partial<VoicePreset>))),
+      paths(
+        validateVoice(
+          synthVoice({ section: { players: 1, detune: 10, timing: 0.02 } } as Partial<VoicePreset>),
+        ),
+      ),
     ).toEqual(["section.players"]);
-    expect(paths(validateVoice(synthVoice({ section: { players: 40, detune: 10, timing: 0.02 } } as Partial<VoicePreset>)))).toEqual(
-      ["section.players"],
-    );
+    expect(
+      paths(
+        validateVoice(
+          synthVoice({
+            section: { players: 6.5, detune: 10, timing: 0.02 },
+          } as Partial<VoicePreset>),
+        ),
+      ),
+    ).toEqual(["section.players"]);
+    expect(
+      paths(
+        validateVoice(
+          synthVoice({
+            section: { players: 40, detune: 10, timing: 0.02 },
+          } as Partial<VoicePreset>),
+        ),
+      ),
+    ).toEqual(["section.players"]);
   });
 
   it("catches a timing smear written in milliseconds", () => {
-    const issues = validateVoice(synthVoice({ section: { players: 4, detune: 10, timing: 30 } } as Partial<VoicePreset>));
+    const issues = validateVoice(
+      synthVoice({ section: { players: 4, detune: 10, timing: 30 } } as Partial<VoicePreset>),
+    );
     expect(paths(issues)).toEqual(["section.timing"]);
   });
 
   it("catches section variation amounts written as percentages", () => {
     const issues = validateVoice(
-      synthVoice({ section: { players: 4, detune: 10, timing: 0.02, seats: 60, vibratoVary: 12 } } as Partial<VoicePreset>),
+      synthVoice({
+        section: { players: 4, detune: 10, timing: 0.02, seats: 60, vibratoVary: 12 },
+      } as Partial<VoicePreset>),
     );
     expect(paths(issues)).toEqual(["section.seats", "section.vibratoVary"]);
   });

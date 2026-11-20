@@ -15,7 +15,7 @@ describe("offsetNotes", () => {
     ]);
   });
 
-  it("marks a fifth-entry \"legato\" note as hammered rather than picked", () => {
+  it('marks a fifth-entry "legato" note as hammered rather than picked', () => {
     expect(offsetNotes([["0:0:1", "E5", "16n", 0.7, "legato"]], 4)).toEqual([
       { time: "4:0:1", pitch: "E5", duration: "16n", velocity: 0.7, legato: true },
     ]);
@@ -37,7 +37,10 @@ describe("planBendIssues", () => {
 
   it("names the note and the field when a bend is malformed", () => {
     const issues = planBendIssues(
-      [["0:0:0", "A4", "4n", 0.5], ["0:1:0", "D5", "2n", 0.6, { semitones: 0 }]],
+      [
+        ["0:0:0", "A4", "4n", 0.5],
+        ["0:1:0", "D5", "2n", 0.6, { semitones: 0 }],
+      ],
       "melody",
     );
     expect(issues).toHaveLength(1);
@@ -46,7 +49,7 @@ describe("planBendIssues", () => {
 });
 
 describe("planBendIssues on legato", () => {
-  it("accepts \"legato\" and names any other string", () => {
+  it('accepts "legato" and names any other string', () => {
     expect(planBendIssues([["0:0:0", "E5", "16n", 0.7, "legato"]], "lead")).toEqual([]);
     const bad = [["0:0:0", "E5", "16n", 0.7, "tap"]] as unknown as PlanNote[];
     expect(planBendIssues(bad, "lead")).toEqual(['lead[0][4]: "tap" is not "legato" or a bend']);
@@ -55,7 +58,15 @@ describe("planBendIssues on legato", () => {
 
 describe("withoutBends", () => {
   it("strips the bend so a derived line plays the written pitch", () => {
-    const bent = { time: "0:0:0", pitch: "F#4", duration: "2n", velocity: 0.6, bend: { semitones: 1 } };
-    expect(withoutBends([bent])).toEqual([{ time: "0:0:0", pitch: "F#4", duration: "2n", velocity: 0.6 }]);
+    const bent = {
+      time: "0:0:0",
+      pitch: "F#4",
+      duration: "2n",
+      velocity: 0.6,
+      bend: { semitones: 1 },
+    };
+    expect(withoutBends([bent])).toEqual([
+      { time: "0:0:0", pitch: "F#4", duration: "2n", velocity: 0.6 },
+    ]);
   });
 });

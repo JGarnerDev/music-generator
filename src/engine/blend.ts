@@ -22,11 +22,7 @@
  *     settings so a timbre audibly changes the render.
  */
 import { isEmotionPalette, type Palette, type GenericFrontmatter } from "./palette";
-import {
-  PITCHED_INSTRUMENTS,
-  type InstrumentName,
-  type LoFiSettings,
-} from "./composition";
+import { PITCHED_INSTRUMENTS, type InstrumentName, type LoFiSettings } from "./composition";
 import type { Groove } from "./groove";
 import { modeFamily, sameMode } from "./theory";
 import { COMMON_TIME, type Meter } from "@utils/timing";
@@ -205,9 +201,7 @@ function pickVoice(
   merged: InstrumentName[],
   preference: InstrumentName[],
 ): InstrumentName | undefined {
-  return (
-    named.find((v) => preference.includes(v)) ?? preference.find((v) => merged.includes(v))
-  );
+  return named.find((v) => preference.includes(v)) ?? preference.find((v) => merged.includes(v));
 }
 
 /**

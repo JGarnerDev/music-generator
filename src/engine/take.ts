@@ -189,7 +189,13 @@ export function buildTake(input: BuildTakeInput): Take {
   if (input.key !== undefined) parseKey(input.key); // reject an unusable key here, not four steps later
   const detected = pressesToDetected(input.presses, { startMs });
   if (detected.length === 0) throw new Error("buildTake: nothing was played");
-  const quantized = quantizeNotes(detected, { bpm: input.bpm, meter, grid, offsetSeconds: 0, monophonic });
+  const quantized = quantizeNotes(detected, {
+    bpm: input.bpm,
+    meter,
+    grid,
+    offsetSeconds: 0,
+    monophonic,
+  });
   const notes = attachBends(quantized, input.bends ?? [], { bpm: input.bpm, startMs });
   const guessed = input.key === undefined;
 
@@ -326,7 +332,9 @@ export function summarizeTake(take: Take): string {
   if (bends.length > 0) lines.push(`  bends     ${bends.join(" · ")}`);
 
   if (take.keyGuessed && key) {
-    lines.push(`  key       guessed from the notes — ${formatKey(relativeOf(key))} if that is the wrong end of the pair`);
+    lines.push(
+      `  key       guessed from the notes — ${formatKey(relativeOf(key))} if that is the wrong end of the pair`,
+    );
   }
   return lines.join("\n");
 }
@@ -379,7 +387,8 @@ export function validateTake(input: unknown): string[] {
   if (typeof input !== "object" || input === null) return ["take must be an object"];
   const take = input as Partial<Take>;
 
-  if (typeof take.name !== "string" || take.name.trim() === "") issues.push("name must be a non-empty string");
+  if (typeof take.name !== "string" || take.name.trim() === "")
+    issues.push("name must be a non-empty string");
   if (typeof take.bpm !== "number" || !(take.bpm > 0)) issues.push("bpm must be a positive number");
   if (typeof take.key !== "string") issues.push("key must be a string");
   else {

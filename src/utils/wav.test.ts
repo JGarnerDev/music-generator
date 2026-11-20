@@ -104,14 +104,20 @@ function buildWav(opts: {
 
 describe("isRiffWave", () => {
   it("recognises a file we wrote ourselves", () => {
-    expect(isRiffWave(encodeWav({ sampleRate: 44100, channels: [Float32Array.from([0, 0.5])] }))).toBe(true);
+    expect(
+      isRiffWave(encodeWav({ sampleRate: 44100, channels: [Float32Array.from([0, 0.5])] })),
+    ).toBe(true);
   });
 
   it("rejects the containers a phone or a DAW hands over instead", () => {
     // An m4a starts with an ftyp box, an mp3 with an ID3 tag or a frame sync.
-    expect(isRiffWave(Uint8Array.from([0, 0, 0, 32, 0x66, 0x74, 0x79, 0x70, 0x4d, 0x34, 0x41, 0x20]))).toBe(false);
+    expect(
+      isRiffWave(Uint8Array.from([0, 0, 0, 32, 0x66, 0x74, 0x79, 0x70, 0x4d, 0x34, 0x41, 0x20])),
+    ).toBe(false);
     expect(isRiffWave(Uint8Array.from([0x49, 0x44, 0x33, 4, 0, 0, 0, 0, 0, 0, 0, 0]))).toBe(false);
-    expect(isRiffWave(Uint8Array.from([0x66, 0x4c, 0x61, 0x43, 0, 0, 0, 34, 0, 0, 0, 0]))).toBe(false); // fLaC
+    expect(isRiffWave(Uint8Array.from([0x66, 0x4c, 0x61, 0x43, 0, 0, 0, 34, 0, 0, 0, 0]))).toBe(
+      false,
+    ); // fLaC
   });
 
   it("rejects a RIFF that is not a WAVE, and anything too short to tell", () => {
@@ -125,7 +131,9 @@ describe("isRiffWave", () => {
 describe("decodeWav", () => {
   it("round-trips what encodeWav wrote", () => {
     const source = [0, 0.5, -0.5, 0.25];
-    const decoded = decodeWav(encodeWav({ sampleRate: 44100, channels: [Float32Array.from(source)] }));
+    const decoded = decodeWav(
+      encodeWav({ sampleRate: 44100, channels: [Float32Array.from(source)] }),
+    );
     expect(decoded.sampleRate).toBe(44100);
     expect(decoded.channels).toHaveLength(1);
     for (const [i, expected] of source.entries()) {
@@ -204,7 +212,10 @@ describe("decodeWav", () => {
       format: 1,
       bits: 16,
       sampleRate: 44100,
-      extraChunks: [["LIST", 10], ["bext", 4]],
+      extraChunks: [
+        ["LIST", 10],
+        ["bext", 4],
+      ],
       frames: [[0x4000]],
       writeSample: (view, at, value) => view.setInt16(at, value, true),
     });

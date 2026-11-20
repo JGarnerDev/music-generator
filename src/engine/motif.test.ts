@@ -25,11 +25,12 @@ const theme: Composition = {
   ],
 };
 
-const notesOf = (tracks: { notes: unknown[] }[]) => tracks.flatMap((t) => t.notes) as {
-  time: string;
-  pitch: string;
-  velocity?: number;
-}[];
+const notesOf = (tracks: { notes: unknown[] }[]) =>
+  tracks.flatMap((t) => t.notes) as {
+    time: string;
+    pitch: string;
+    velocity?: number;
+  }[];
 
 describe("quoteMotif", () => {
   it("moves the theme into the host's key", () => {

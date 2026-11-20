@@ -73,7 +73,9 @@ function sweepLooseFiles(): { from: string; to: string }[] {
 
 function singleMove(file: string, kind: string | undefined): { from: string; to: string } {
   if (!isCompositionKind(kind)) {
-    console.error(`--file needs --kind <${COMPOSITION_KINDS.join("|")}> (got ${kind ?? "nothing"}).`);
+    console.error(
+      `--file needs --kind <${COMPOSITION_KINDS.join("|")}> (got ${kind ?? "nothing"}).`,
+    );
     process.exit(2);
   }
   const abs = resolve(process.cwd(), file);

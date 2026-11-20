@@ -409,7 +409,8 @@ describe("renderVoiceArchive", () => {
         "voices/bass/old.json": preset({
           slug: "old",
           status: "approved",
-          notes: "The house bass since the first render. Everything after this sentence is detail nobody choosing a sound needs to read.",
+          notes:
+            "The house bass since the first render. Everything after this sentence is detail nobody choosing a sound needs to read.",
         }),
       }),
     );
@@ -456,7 +457,9 @@ describe("renderVoiceArchive", () => {
         }),
       }),
     );
-    expect(renderVoiceArchive(piped, { updated: "2026-08-14" })).toContain("Fat \\| round \\| loud.");
+    expect(renderVoiceArchive(piped, { updated: "2026-08-14" })).toContain(
+      "Fat \\| round \\| loud.",
+    );
   });
 
   it("says so when nothing is approved yet", () => {

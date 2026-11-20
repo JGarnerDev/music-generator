@@ -396,7 +396,7 @@ export function validateVoice(input: unknown): ValidationIssue[] {
     push("instrument", `unknown instrument "${String(instrument)}"`);
   }
   if (typeof v.slug !== "string" || !/^[a-z0-9]+(-[a-z0-9]+)*$/.test(v.slug)) {
-    push("slug", "must be kebab-case, e.g. \"round-thumb\"");
+    push("slug", 'must be kebab-case, e.g. "round-thumb"');
   }
   if (typeof v.title !== "string" || v.title.trim() === "") {
     push("title", "must be a non-empty string");
@@ -419,7 +419,10 @@ export function validateVoice(input: unknown): ValidationIssue[] {
     // within a year and the archive is 50 kB again — a one-row-per-voice index
     // only stays cheap if a row cannot grow.
     if (v.summary.length > SUMMARY_MAX) {
-      push("summary", `must be ${SUMMARY_MAX} characters or fewer (got ${v.summary.length}) — the long version belongs in notes`);
+      push(
+        "summary",
+        `must be ${SUMMARY_MAX} characters or fewer (got ${v.summary.length}) — the long version belongs in notes`,
+      );
     }
     if (/[\r\n]/.test(v.summary)) push("summary", "must be a single line — it is a table cell");
   }
@@ -437,7 +440,8 @@ export function validateVoice(input: unknown): ValidationIssue[] {
       if (v[field] !== undefined) push(field, `a drums voice has no ${field}`);
     }
   } else {
-    if (v.kit !== undefined) push("kit", `only a drums voice has a kit, not "${String(instrument)}"`);
+    if (v.kit !== undefined)
+      push("kit", `only a drums voice has a kit, not "${String(instrument)}"`);
     validateSynth(v.synth, push);
     if (v.vibrato !== undefined) validateVibrato(v.vibrato, push);
     if (v.body !== undefined) validateBody(v.body, push);
@@ -467,7 +471,7 @@ function validateSynth(synth: unknown, push: Push): void {
   }
   const osc = s.oscillator as Record<string, unknown> | undefined;
   if (typeof osc !== "object" || osc === null || typeof osc.type !== "string") {
-    push("synth.oscillator.type", "must be a string, e.g. \"fatsawtooth\"");
+    push("synth.oscillator.type", 'must be a string, e.g. "fatsawtooth"');
   } else {
     for (const field of ["count", "spread"] as const) {
       if (osc[field] !== undefined && !isFinitePositive(osc[field], true)) {
@@ -498,7 +502,8 @@ function validateEnvelope(envelope: unknown, path: string, push: Push): void {
   }
   const e = envelope as Record<string, unknown>;
   for (const stage of ["attack", "decay", "sustain", "release"] as const) {
-    if (!isFinitePositive(e[stage], true)) push(`${path}.${stage}`, "must be a non-negative number");
+    if (!isFinitePositive(e[stage], true))
+      push(`${path}.${stage}`, "must be a non-negative number");
   }
   if (typeof e.sustain === "number" && e.sustain > 1) {
     push(`${path}.sustain`, "is a level in 0..1, not a time");
@@ -543,7 +548,8 @@ function validateBody(body: unknown, push: Push): void {
       return;
     }
     const r = resonance as Record<string, unknown>;
-    if (!isFinitePositive(r.frequency)) push(`body[${i}].frequency`, "must be a positive number of Hz");
+    if (!isFinitePositive(r.frequency))
+      push(`body[${i}].frequency`, "must be a positive number of Hz");
     if (!isFinitePositive(r.q)) push(`body[${i}].q`, "must be a positive number");
     // Gain is the one field that is legitimately negative: a body has notches.
     if (typeof r.gain !== "number" || !Number.isFinite(r.gain)) {
@@ -560,7 +566,10 @@ function validateBreath(breath: unknown, push: Push): void {
   const b = breath as Record<string, unknown>;
   if (!isFinitePositive(b.level, true)) push("breath.level", "must be a non-negative number");
   if (typeof b.level === "number" && b.level > 1) {
-    push("breath.level", "is a level in 0..1 — noise louder than the instrument is not an instrument");
+    push(
+      "breath.level",
+      "is a level in 0..1 — noise louder than the instrument is not an instrument",
+    );
   }
   if (!isFinitePositive(b.hz)) push("breath.hz", "must be a positive number of Hz");
   for (const field of ["q", "attack", "release"] as const) {
@@ -612,7 +621,11 @@ function validateSection(section: unknown, push: Push): void {
     return;
   }
   const s = section as Record<string, unknown>;
-  if (!Number.isInteger(s.players) || (s.players as number) < MIN_PLAYERS || (s.players as number) > MAX_PLAYERS) {
+  if (
+    !Number.isInteger(s.players) ||
+    (s.players as number) < MIN_PLAYERS ||
+    (s.players as number) > MAX_PLAYERS
+  ) {
     push("section.players", `must be a whole number of players, ${MIN_PLAYERS}–${MAX_PLAYERS}`);
   }
   if (!isFinitePositive(s.detune, true) || (s.detune as number) > MAX_DETUNE) {
@@ -674,7 +687,8 @@ function validateKit(kit: unknown, push: Push): void {
     return;
   }
   for (const [piece, level] of Object.entries(levels)) {
-    if (!isFinitePositive(level, true)) push(`kit.levels.${piece}`, "must be a non-negative number");
+    if (!isFinitePositive(level, true))
+      push(`kit.levels.${piece}`, "must be a non-negative number");
   }
   // A piece that is voiced but has no level (or the reverse) is silent or
   // unbalanced with nothing in the render to say so.
@@ -695,7 +709,9 @@ function isStringArray(value: unknown): value is string[] {
 }
 
 function isFinitePositive(value: unknown, allowZero = false): value is number {
-  return typeof value === "number" && Number.isFinite(value) && (allowZero ? value >= 0 : value > 0);
+  return (
+    typeof value === "number" && Number.isFinite(value) && (allowZero ? value >= 0 : value > 0)
+  );
 }
 
 /**

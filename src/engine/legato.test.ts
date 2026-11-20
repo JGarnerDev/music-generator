@@ -15,7 +15,12 @@ describe("legatoRuns", () => {
 
   it("folds a tap and two pull-offs into one held note with stepped pitch", () => {
     // Eruption shape: picked E, tapped up an octave, pulled off to B, then G#.
-    const [run] = legatoRuns([note(0, 64), note(0.1, 76, true), note(0.2, 71, true), note(0.3, 68, true)]);
+    const [run] = legatoRuns([
+      note(0, 64),
+      note(0.1, 76, true),
+      note(0.2, 71, true),
+      note(0.3, 68, true),
+    ]);
     expect(run).toMatchObject({ head: 0, members: [1, 2, 3] });
     expect(run!.duration).toBeCloseTo(0.4);
     expect(run!.points).toEqual([

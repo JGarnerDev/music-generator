@@ -14,7 +14,12 @@ import {
 import { validateComposition } from "./composition";
 
 /** Build a detected note with sensible defaults, so a test states only what it is about. */
-function hit(midi: number, startSeconds: number, durationSeconds = 0.4, amplitude = 0.7): DetectedNote {
+function hit(
+  midi: number,
+  startSeconds: number,
+  durationSeconds = 0.4,
+  amplitude = 0.7,
+): DetectedNote {
   return { midi, startSeconds, durationSeconds, amplitude };
 }
 
@@ -23,7 +28,11 @@ function hit(midi: number, startSeconds: number, durationSeconds = 0.4, amplitud
  * sixteenth grid, rendered to seconds so the tests can push it back through
  * quantization and expect the grid they started from.
  */
-function play(bpm: number, spec: ReadonlyArray<[number, number, number]>, offset = 0): DetectedNote[] {
+function play(
+  bpm: number,
+  spec: ReadonlyArray<[number, number, number]>,
+  offset = 0,
+): DetectedNote[] {
   const step = 60 / bpm / 4;
   return spec.map(([midi, at, len]) => hit(midi, offset + at * step, len * step));
 }
@@ -56,7 +65,11 @@ describe("cleanDetected", () => {
     // Verbatim from a real detector run: attack, tail, then a new pluck. Judging
     // the pluck against the attack's 0.77 rather than the tail's 0.45 loses it,
     // which is exactly what happened before the decay was tracked per link.
-    const notes = [hit(64, 1.161, 0.3367, 0.773), hit(64, 1.4977, 0.3367, 0.45), hit(64, 1.8344, 0.3264, 0.739)];
+    const notes = [
+      hit(64, 1.161, 0.3367, 0.773),
+      hit(64, 1.4977, 0.3367, 0.45),
+      hit(64, 1.8344, 0.3264, 0.739),
+    ];
     const cleaned = cleanDetected(notes);
     expect(cleaned).toHaveLength(2);
     expect(cleaned[0]!.durationSeconds).toBeCloseTo(0.6734, 4); // attack + its tail
@@ -91,17 +104,23 @@ describe("cleanDetected", () => {
   });
 
   it("sorts into playing order", () => {
-    expect(cleanDetected([hit(64, 2), hit(60, 0), hit(62, 1)]).map((n) => n.midi)).toEqual([60, 62, 64]);
+    expect(cleanDetected([hit(64, 2), hit(60, 0), hit(62, 1)]).map((n) => n.midi)).toEqual([
+      60, 62, 64,
+    ]);
   });
 });
 
 describe("fitGrid", () => {
   it("finds the offset of a phrase that starts off the grid", () => {
-    const onsets = play(120, [
-      [60, 0, 4],
-      [62, 4, 4],
-      [64, 8, 4],
-    ], 0.31).map((n) => n.startSeconds);
+    const onsets = play(
+      120,
+      [
+        [60, 0, 4],
+        [62, 4, 4],
+        [64, 8, 4],
+      ],
+      0.31,
+    ).map((n) => n.startSeconds);
     const fit = fitGrid(onsets, 120);
     expect(fit.offsetSeconds).toBeCloseTo(0.31 % (60 / 120 / 4), 5);
     expect(fit.error).toBeCloseTo(0, 6);
@@ -209,7 +228,8 @@ describe("quantizeNotes", () => {
 
   it("never emits a zero-length note", () => {
     const notes = [hit(60, 0, 0.001), hit(62, 0.5, 0.001)];
-    for (const n of quantizeNotes(notes, { bpm: 120 })) expect(n.lengthSteps).toBeGreaterThanOrEqual(1);
+    for (const n of quantizeNotes(notes, { bpm: 120 }))
+      expect(n.lengthSteps).toBeGreaterThanOrEqual(1);
   });
 
   it("carries amplitude through as velocity, floored so nothing is inaudible", () => {
@@ -262,13 +282,25 @@ describe("toComposition", () => {
       name: "lioness-hook",
       bpm: 96,
       key: "A minor",
-      tracks: [{ instrument: "lead", notes: [{ time: "0:0:0", pitch: "A3" }, { time: "0:1:0", pitch: "C4" }] }],
+      tracks: [
+        {
+          instrument: "lead",
+          notes: [
+            { time: "0:0:0", pitch: "A3" },
+            { time: "0:1:0", pitch: "C4" },
+          ],
+        },
+      ],
     });
   });
 
   it("leaves 4/4 unsaid and states anything else", () => {
-    expect(toComposition(notes, { name: "x", bpm: 96, key: parseKey("Am") })).not.toHaveProperty("meter");
-    expect(toComposition(notes, { name: "x", bpm: 96, key: parseKey("Am"), meter: [7, 8] }).meter).toEqual([7, 8]);
+    expect(toComposition(notes, { name: "x", bpm: 96, key: parseKey("Am") })).not.toHaveProperty(
+      "meter",
+    );
+    expect(
+      toComposition(notes, { name: "x", bpm: 96, key: parseKey("Am"), meter: [7, 8] }).meter,
+    ).toEqual([7, 8]);
   });
 
   it("takes the instrument, voice and tags it is given", () => {
@@ -285,11 +317,15 @@ describe("toComposition", () => {
   });
 
   it("omits an empty tag list rather than writing one", () => {
-    expect(toComposition(notes, { name: "x", bpm: 96, key: parseKey("Am"), tags: [] })).not.toHaveProperty("tags");
+    expect(
+      toComposition(notes, { name: "x", bpm: 96, key: parseKey("Am"), tags: [] }),
+    ).not.toHaveProperty("tags");
   });
 
   it("refuses to write a piece with no notes, which would not validate", () => {
-    expect(() => toComposition([], { name: "x", bpm: 96, key: parseKey("Am") })).toThrow(/no notes/);
+    expect(() => toComposition([], { name: "x", bpm: 96, key: parseKey("Am") })).toThrow(
+      /no notes/,
+    );
   });
 });
 

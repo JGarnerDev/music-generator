@@ -59,7 +59,10 @@ if (kind === "emotion" && !(MODE_NAMES as readonly string[]).includes(opts.scale
   process.exit(2);
 }
 
-const tags = opts.tags.split(",").map((t) => t.trim()).filter(Boolean);
+const tags = opts.tags
+  .split(",")
+  .map((t) => t.trim())
+  .filter(Boolean);
 const tempo = opts.tempo.split(",").map((t) => Number(t.trim()));
 if (tempo.length !== 2 || tempo.some((n) => !Number.isFinite(n) || n <= 0)) {
   console.error(`--tempo must be "min,max" positive numbers, got "${opts.tempo}"`);

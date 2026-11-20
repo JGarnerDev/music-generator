@@ -21,11 +21,7 @@
 import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import type { Plugin } from "vite";
-import {
-  SESSION_DELETE_ENDPOINT,
-  SESSION_LIST_ENDPOINT,
-  SESSION_SAVE_ENDPOINT,
-} from "./endpoints";
+import { SESSION_DELETE_ENDPOINT, SESSION_LIST_ENDPOINT, SESSION_SAVE_ENDPOINT } from "./endpoints";
 import { getRoute, postRoute } from "./http";
 import { isSessionFile, resolveSessionPath } from "./session-store";
 import {
@@ -58,7 +54,9 @@ export function sessionApi(sessionsDir = resolve(process.cwd(), "sessions")): Pl
           const file = resolveSessionPath(sessionsDir, plan.name);
           mkdirSync(sessionsDir, { recursive: true });
           writeFileSync(file, renderSessionPlan(plan), "utf8");
-          server.config.logger.info(`  saved sessions/${plan.name}.json (${plan.cues.length} cues)`);
+          server.config.logger.info(
+            `  saved sessions/${plan.name}.json (${plan.cues.length} cues)`,
+          );
           return { name: plan.name, cues: plan.cues.length };
         },
         MAX_BODY_BYTES,

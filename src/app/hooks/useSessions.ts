@@ -13,7 +13,12 @@
  * one would otherwise be a file write.
  */
 import { useEffect, useRef, useState } from "react";
-import { checkSessionName, deletedMessage, savedMessage, saveFailedMessage } from "@engine/session-bench";
+import {
+  checkSessionName,
+  deletedMessage,
+  savedMessage,
+  saveFailedMessage,
+} from "@engine/session-bench";
 import { emptySession, parseSessions, sessionSlug, type SessionPlan } from "@engine/session";
 import {
   SESSION_DELETE_ENDPOINT,
@@ -136,7 +141,10 @@ export function useSessions({ enabled, onStatus, onOpen }: SessionsOptions): Ses
       scheduleWrite(next);
     },
     create(title: string, campaign: string | null): boolean {
-      const check = checkSessionName(sessionSlug(title), all.map((p) => p.name));
+      const check = checkSessionName(
+        sessionSlug(title),
+        all.map((p) => p.name),
+      );
       if (!check.name) {
         status.current(check.error ?? "");
         return false;

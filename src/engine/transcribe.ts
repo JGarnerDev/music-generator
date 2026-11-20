@@ -18,7 +18,13 @@
  *   but nothing here names a chord. Voicings come back from the detector too
  *   mushy to trust, and a wrong chord symbol is worse than none.
  */
-import { COMMON_TIME, type Meter, sixteenthsToNotation, sixteenthsToTransport, stepsPerBar } from "../utils/timing";
+import {
+  COMMON_TIME,
+  type Meter,
+  sixteenthsToNotation,
+  sixteenthsToTransport,
+  stepsPerBar,
+} from "../utils/timing";
 import type { Composition, InstrumentName, Note } from "./composition";
 import { canonicalMode, midiToPitch, modeFamily, pitchToMidi, scaleNotes } from "./theory";
 
@@ -104,8 +110,19 @@ const CLEAN_DEFAULTS: Required<CleanOptions> = {
  * last pass drops any note under `blipSeconds` that touches a same-pitch
  * neighbour at least `blipRatio` times longer.
  */
-export function cleanDetected(notes: readonly DetectedNote[], options: CleanOptions = {}): DetectedNote[] {
-  const { minDurationSeconds, minAmplitude, midiRange, mergeGapSeconds, mergeSwellRatio, blipSeconds, blipRatio } = {
+export function cleanDetected(
+  notes: readonly DetectedNote[],
+  options: CleanOptions = {},
+): DetectedNote[] {
+  const {
+    minDurationSeconds,
+    minAmplitude,
+    midiRange,
+    mergeGapSeconds,
+    mergeSwellRatio,
+    blipSeconds,
+    blipRatio,
+  } = {
     ...CLEAN_DEFAULTS,
     ...options,
   };
@@ -149,8 +166,10 @@ export function cleanDetected(notes: readonly DetectedNote[], options: CleanOpti
   // The blip pass runs last, so a long note has already been assembled from its
   // tails before anything is measured against its length.
   const touches = (a: DetectedNote, b: DetectedNote) =>
-    Math.max(a.startSeconds - (b.startSeconds + b.durationSeconds), b.startSeconds - (a.startSeconds + a.durationSeconds)) <=
-    blipSeconds;
+    Math.max(
+      a.startSeconds - (b.startSeconds + b.durationSeconds),
+      b.startSeconds - (a.startSeconds + a.durationSeconds),
+    ) <= blipSeconds;
 
   return notesOnly
     .filter(
@@ -272,16 +291,25 @@ export interface QuantizeOptions {
  * of 4 is a pickup, and moving it to the downbeat would be rewriting the idea
  * rather than transcribing it.
  */
-export function quantizeNotes(notes: readonly DetectedNote[], options: QuantizeOptions): QuantizedNote[] {
+export function quantizeNotes(
+  notes: readonly DetectedNote[],
+  options: QuantizeOptions,
+): QuantizedNote[] {
   const { bpm, meter = COMMON_TIME, grid = 4, offsetSeconds, monophonic = true } = options;
   if (!(bpm > 0)) throw new Error(`bpm must be positive, got ${bpm}`);
   if (notes.length === 0) return [];
 
   const sixteenthSeconds = 60 / bpm / 4;
   const coarseness = 4 / grid; // sixteenths per grid line: 1, 2 or 4
-  const offset = offsetSeconds ?? fitGrid(notes.map((n) => n.startSeconds), bpm).offsetSeconds;
+  const offset =
+    offsetSeconds ??
+    fitGrid(
+      notes.map((n) => n.startSeconds),
+      bpm,
+    ).offsetSeconds;
 
-  const snap = (seconds: number) => Math.round((seconds - offset) / sixteenthSeconds / coarseness) * coarseness;
+  const snap = (seconds: number) =>
+    Math.round((seconds - offset) / sixteenthSeconds / coarseness) * coarseness;
 
   const placed = notes
     .map((note) => {
@@ -317,7 +345,11 @@ export function quantizeNotes(notes: readonly DetectedNote[], options: QuantizeO
  * `Bb4` in F minor and `A#4` in B minor. It sounds identical either way — but the
  * JSON is read by humans, and a tune spelled against its key is hard to read.
  */
-export function toTrackNotes(notes: readonly QuantizedNote[], meter: Meter = COMMON_TIME, key?: Key): Note[] {
+export function toTrackNotes(
+  notes: readonly QuantizedNote[],
+  meter: Meter = COMMON_TIME,
+  key?: Key,
+): Note[] {
   const spell = pitchSpeller(key);
   return notes.map((n) => ({
     time: sixteenthsToTransport(n.step, meter),
@@ -350,7 +382,10 @@ export interface CompositionOptions {
  * pad, a lo-fi bed — is something they would have to listen past to hear whether
  * the notes are correct. Arrange it after it has been confirmed, not before.
  */
-export function toComposition(notes: readonly QuantizedNote[], options: CompositionOptions): Composition {
+export function toComposition(
+  notes: readonly QuantizedNote[],
+  options: CompositionOptions,
+): Composition {
   const { name, bpm, key, meter = COMMON_TIME, instrument = "lead", voice, tags } = options;
   if (notes.length === 0) throw new Error("toComposition: no notes to write");
   if (!(bpm > 0)) throw new Error(`bpm must be positive, got ${bpm}`);
@@ -385,9 +420,10 @@ function pitchSpeller(key?: Key): (midi: number) => string {
   if (!key) return (midi) => midiToPitch(midi);
   const scale = scaleNotes(key.tonic, key.mode);
   const byPitchClass = new Map(scale.map((name) => [pitchToMidi(`${name}0`) % 12, name]));
-  const fallback = scale.filter((n) => n.includes("b")).length > scale.filter((n) => n.includes("#")).length
-    ? "flats"
-    : "sharps";
+  const fallback =
+    scale.filter((n) => n.includes("b")).length > scale.filter((n) => n.includes("#")).length
+      ? "flats"
+      : "sharps";
 
   return (midi) => {
     const name = byPitchClass.get(midi % 12);
@@ -425,7 +461,9 @@ export function parseKey(input: string): Key {
   if (!m) throw new Error(`not a key: "${input}"`);
   const tonic = m[1]!.charAt(0).toUpperCase() + m[1]!.slice(1);
   const rest = m[2]!.trim().toLowerCase();
-  const mode = canonicalMode(rest === "" ? "major" : rest === "m" ? "minor" : rest.replace(/\s+/g, "-"));
+  const mode = canonicalMode(
+    rest === "" ? "major" : rest === "m" ? "minor" : rest.replace(/\s+/g, "-"),
+  );
   modeFamily(mode); // throws, listing what is supported — better here than four steps downstream
   return { tonic, mode };
 }
@@ -438,7 +476,20 @@ export function parseKey(input: string): Key {
  * third whether the key writes it Eb or D#, and `b5` is the blue note in every
  * key there is.
  */
-const DEGREE_BY_SEMITONE = ["1", "b2", "2", "b3", "3", "4", "b5", "5", "b6", "6", "b7", "7"] as const;
+const DEGREE_BY_SEMITONE = [
+  "1",
+  "b2",
+  "2",
+  "b3",
+  "3",
+  "4",
+  "b5",
+  "5",
+  "b6",
+  "6",
+  "b7",
+  "7",
+] as const;
 
 /** A note named by its function in a key rather than by its pitch. */
 export interface Degree {
@@ -469,7 +520,7 @@ export function degreesOf(midis: readonly number[], key: Key): Degree[] {
 
   const lowest = Math.min(...midis);
   // The reference tonic: the highest tonic that is still at or below the phrase.
-  const reference = lowest - (((lowest - tonicPc) % 12) + 12) % 12;
+  const reference = lowest - ((((lowest - tonicPc) % 12) + 12) % 12);
 
   return midis.map((midi) => {
     const semitones = (((midi - tonicPc) % 12) + 12) % 12;

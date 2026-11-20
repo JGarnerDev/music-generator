@@ -44,7 +44,10 @@ program
   .option("--all", "render every voice under voices/")
   .option("--wav", "also write full-quality WAVs (gitignored)")
   .option("--bitrate <kbps>", "MP3 bitrate", "160")
-  .option("--audition", "render at audition quality — faster, thinner (see src/app/audio/quality.ts)")
+  .option(
+    "--audition",
+    "render at audition quality — faster, thinner (see src/app/audio/quality.ts)",
+  )
   .option("--jobs <n>", "voices to render in parallel", String(defaultJobs()))
   .option("--force", "re-render voices that already have audio")
   .parse(process.argv);
@@ -93,7 +96,10 @@ async function main(): Promise<void> {
 
   mkdirSync(OUT_DIR, { recursive: true });
   const previous = readPreviousManifest();
-  const queue = plan(wanted.filter((entry) => entry.issues.length === 0), previous);
+  const queue = plan(
+    wanted.filter((entry) => entry.issues.length === 0),
+    previous,
+  );
   if (queue.length === 0) {
     console.log("Every voice is already rendered. Pass --force to render again.");
     return;

@@ -96,7 +96,9 @@ export function armedMessage(bpm: number): string {
 
 /** The click going on or off, which is a thing you do mid-phrase and need confirmed. */
 export function clickMessage(on: boolean, bpm: number): string {
-  return on ? `Click on at ${bpm} BPM.` : "Click off — recording will start the moment you press Record.";
+  return on
+    ? `Click on at ${bpm} BPM.`
+    : "Click off — recording will start the moment you press Record.";
 }
 
 export function recordingMessage(notes: number): string {
@@ -190,8 +192,7 @@ export function stateLine(octave: number, velocity: number, held: number, bendCe
 }
 
 /** The control legend. One line, because it lives under the keyboard and competes with it. */
-export const LEGEND =
-  "← → octave · ↑ ↓ velocity · F K bend · space record · esc panic";
+export const LEGEND = "← → octave · ↑ ↓ velocity · F K bend · space record · esc panic";
 
 /**
  * The same line for a device with no keys on it.
@@ -202,8 +203,7 @@ export const LEGEND =
  * convenience beside the shortcuts, and on a phone they are the whole
  * instrument.
  */
-export const TOUCH_LEGEND =
-  "tap or slide across the keys · turn sideways for more of them";
+export const TOUCH_LEGEND = "tap or slide across the keys · turn sideways for more of them";
 
 /**
  * Which legend to print.
@@ -226,7 +226,9 @@ export function takePath(name: string): string {
  * was snapped, since both change what the notes mean.
  */
 export function takeHeader(take: Take): string {
-  const voice = take.voice ? `${take.instrument}/${take.voice}` : `${take.instrument} (default voice)`;
+  const voice = take.voice
+    ? `${take.instrument}/${take.voice}`
+    : `${take.instrument} (default voice)`;
   const grid = take.grid === 4 ? "sixteenths" : take.grid === 2 ? "eighths" : "quarters";
   const held = take.monophonic ? "cut at the next onset" : "held as played";
   return `${voice} · ${grid} · ${held}`;

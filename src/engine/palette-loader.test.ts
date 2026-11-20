@@ -3,22 +3,17 @@ import { fileURLToPath } from "node:url";
 import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
-import {
-  parsePaletteFiles,
-  loadPalettesFromDir,
-  findPalettes,
-} from "./palette-loader";
+import { parsePaletteFiles, loadPalettesFromDir, findPalettes } from "./palette-loader";
 
-const fixturesDir = join(
-  dirname(fileURLToPath(import.meta.url)),
-  "__fixtures__",
-  "palettes",
-);
+const fixturesDir = join(dirname(fileURLToPath(import.meta.url)), "__fixtures__", "palettes");
 
 describe("parsePaletteFiles", () => {
   it("parses a batch and preserves each palette", () => {
     const palettes = parsePaletteFiles([
-      { filename: "a.md", raw: "---\nslug: a\ntitle: A\ntags: [x]\ntonality:\n  tonic: C\n  scale: major\nprogressions:\n  - [I, IV]\ntempo: [90, 100]\n---\nbody" },
+      {
+        filename: "a.md",
+        raw: "---\nslug: a\ntitle: A\ntags: [x]\ntonality:\n  tonic: C\n  scale: major\nprogressions:\n  - [I, IV]\ntempo: [90, 100]\n---\nbody",
+      },
     ]);
     expect(palettes).toHaveLength(1);
     expect(palettes[0]?.frontmatter.slug).toBe("a");

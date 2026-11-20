@@ -14,7 +14,13 @@
  */
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { DrumPiece, InstrumentName } from "@engine/composition";
-import { BEND_SEMITONES, DEFAULT_OCTAVE, bendDirection, midiForCode, shiftOctave } from "@engine/keys";
+import {
+  BEND_SEMITONES,
+  DEFAULT_OCTAVE,
+  bendDirection,
+  midiForCode,
+  shiftOctave,
+} from "@engine/keys";
 import type { MonitorId } from "@engine/monitor";
 import { padForCode, type DrumPad } from "@engine/pads";
 import { DEFAULT_VELOCITY, stepVelocity, type BendGesture, type KeyPress } from "@engine/take";
@@ -180,7 +186,8 @@ export function useKeyboardSynth(options: KeyboardSynthOptions): KeyboardSynth {
       // across a wake: what the take records is *what was played*, at the
       // millisecond the key went down, whether or not the audio was ready to
       // make a sound at the time.
-      if (log.current && !open.current.has(midi)) open.current.set(midi, { downMs: at, velocity: vel });
+      if (log.current && !open.current.has(midi))
+        open.current.set(midi, { downMs: at, velocity: vel });
       setHeldMidis((now) => new Set(now).add(midi));
 
       if (LiveKeyboard.started) {

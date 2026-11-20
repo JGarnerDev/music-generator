@@ -168,13 +168,9 @@ export function Keys() {
         {pads.length === 0 ? (
           <div className="group" role="group" aria-label="Octave">
             <span className="what">octave</span>
-            <Button onClick={() => synth.setOctave(shiftOctave(synth.octave, -1))}>
-              −
-            </Button>
+            <Button onClick={() => synth.setOctave(shiftOctave(synth.octave, -1))}>−</Button>
             <span className="value">{synth.octave}</span>
-            <Button onClick={() => synth.setOctave(shiftOctave(synth.octave, 1))}>
-              +
-            </Button>
+            <Button onClick={() => synth.setOctave(shiftOctave(synth.octave, 1))}>+</Button>
           </div>
         ) : null}
       </div>

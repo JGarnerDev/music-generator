@@ -44,7 +44,10 @@ program
   .option("--all", "render every study under studies/")
   .option("--wav", "also write full-quality WAVs (gitignored)")
   .option("--bitrate <kbps>", "MP3 bitrate", "160")
-  .option("--audition", "render at audition quality — faster, thinner (see src/app/audio/quality.ts)")
+  .option(
+    "--audition",
+    "render at audition quality — faster, thinner (see src/app/audio/quality.ts)",
+  )
   .option("--jobs <n>", "studies to render in parallel", String(defaultJobs()))
   .option("--force", "re-render studies that already have audio")
   .parse(process.argv);
@@ -97,7 +100,9 @@ async function main(): Promise<void> {
   // until someone writes the varying part. Rendering it would produce four
   // identical files and a set of verdicts about nothing.
   for (const entry of wanted.filter((e) => e.issues.length === 0 && e.study.draft)) {
-    console.error(`  skipped ${entry.id}: still a draft — write the varying part, then drop "draft": true`);
+    console.error(
+      `  skipped ${entry.id}: still a draft — write the varying part, then drop "draft": true`,
+    );
   }
 
   mkdirSync(OUT_DIR, { recursive: true });

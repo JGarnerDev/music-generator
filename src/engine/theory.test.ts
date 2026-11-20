@@ -85,7 +85,12 @@ describe("progressionChords", () => {
   });
 
   it("resolves a Neapolitan bII", () => {
-    expect(progressionChords("A", ["i", "bII", "V", "i"], "minor")).toEqual(["Am", "Bb", "E", "Am"]);
+    expect(progressionChords("A", ["i", "bII", "V", "i"], "minor")).toEqual([
+      "Am",
+      "Bb",
+      "E",
+      "Am",
+    ]);
   });
 
   it("throws on a garbage numeral", () => {

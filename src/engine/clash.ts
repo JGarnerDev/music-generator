@@ -47,7 +47,12 @@ export function chordSpans(
     const parts = typeof entry === "string" ? [entry] : entry;
     parts.forEach((symbol, j) => {
       const start = (startBar + i) * bar + (j * bar) / parts.length;
-      spans.push({ start, end: start + bar / parts.length, symbol, ...(section ? { section } : {}) });
+      spans.push({
+        start,
+        end: start + bar / parts.length,
+        symbol,
+        ...(section ? { section } : {}),
+      });
     });
   });
   return spans;
@@ -88,7 +93,12 @@ export function findClashes(
   const timed = lines.map((notes) =>
     notes.map((n) => {
       const at = beatsOf(String(n.time), bar);
-      return { at, end: at + notationToSeconds(n.duration, 60, meter), midi: pitchToMidi(n.pitch), pitch: n.pitch };
+      return {
+        at,
+        end: at + notationToSeconds(n.duration, 60, meter),
+        midi: pitchToMidi(n.pitch),
+        pitch: n.pitch,
+      };
     }),
   );
   const spanAt = (beat: number) => spans.find((s) => beat >= s.start - 0.02 && beat < s.end - 0.02);
@@ -109,7 +119,7 @@ export function findClashes(
         (c) =>
           c.kind === "rub" &&
           Math.abs(c.at - n.at) < 0.05 &&
-          ((pitchToMidi(c.pitch) - n.midi) % 12 + 12) % 12 === 0,
+          (((pitchToMidi(c.pitch) - n.midi) % 12) + 12) % 12 === 0,
       );
       if (rubbed && !echo) {
         clashes.push({

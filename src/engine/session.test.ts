@@ -31,7 +31,11 @@ const comp = (over: Partial<Composition> = {}): Composition => ({
 });
 
 const library = buildLibrary({
-  "compositions/loops/tavern.json": comp({ name: "tavern", campaign: "redwater", loop: { startBar: 0, endBar: 8 } }),
+  "compositions/loops/tavern.json": comp({
+    name: "tavern",
+    campaign: "redwater",
+    loop: { startBar: 0, endBar: 8 },
+  }),
   "compositions/segments/ambush.json": comp({ name: "ambush", campaign: "redwater" }),
   "compositions/segments/unrendered.json": comp({ name: "unrendered", campaign: "redwater" }),
   "compositions/segments/stray.json": comp({ name: "stray" }),
@@ -52,7 +56,11 @@ const rendered = new Map<string, ManifestEntry>([
   ["ambush", audio("ambush")],
 ]);
 
-const plan = (cues: SessionPlan["cues"]): SessionPlan => ({ name: "night", campaign: "redwater", cues });
+const plan = (cues: SessionPlan["cues"]): SessionPlan => ({
+  name: "night",
+  campaign: "redwater",
+  cues,
+});
 
 describe("sessionSlug", () => {
   it("squeezes a typed name down to a filename", () => {
@@ -73,13 +81,18 @@ describe("validateSessionPlan", () => {
   });
 
   it("reports the cue that is wrong, by index", () => {
-    const issues = validateSessionPlan({ name: "night", cues: [{ entry: "loops/tavern" }, { loop: "yes" }] });
+    const issues = validateSessionPlan({
+      name: "night",
+      cues: [{ entry: "loops/tavern" }, { loop: "yes" }],
+    });
     expect(issues.map((i) => i.path)).toEqual(["cues[1].entry", "cues[1].loop"]);
   });
 
   it("accepts a cue naming a piece that does not exist yet", () => {
     // Plans get written before the music does; that is a missing cue, not a bad plan.
-    expect(validateSessionPlan({ name: "night", cues: [{ entry: "loops/not-written" }] })).toEqual([]);
+    expect(validateSessionPlan({ name: "night", cues: [{ entry: "loops/not-written" }] })).toEqual(
+      [],
+    );
   });
 });
 
@@ -101,8 +114,15 @@ describe("parseSessions", () => {
 
 describe("editing", () => {
   it("appends cues, allowing a theme to recur in one night", () => {
-    const p = addCue(addCue(emptySession("Night One"), "loops/tavern"), "loops/tavern", "again, quieter");
-    expect(p.cues).toEqual([{ entry: "loops/tavern" }, { entry: "loops/tavern", note: "again, quieter" }]);
+    const p = addCue(
+      addCue(emptySession("Night One"), "loops/tavern"),
+      "loops/tavern",
+      "again, quieter",
+    );
+    expect(p.cues).toEqual([
+      { entry: "loops/tavern" },
+      { entry: "loops/tavern", note: "again, quieter" },
+    ]);
   });
 
   it("removes by index and leaves the rest in order", () => {
@@ -219,7 +239,10 @@ describe("renderSessionPlan", () => {
       name: "night",
       title: "Session 14",
       campaign: "redwater",
-      cues: [{ entry: "loops/tavern", note: "arrival" }, { entry: "segments/ambush", loop: false }],
+      cues: [
+        { entry: "loops/tavern", note: "arrival" },
+        { entry: "segments/ambush", loop: false },
+      ],
     });
     expect(json).toBe(
       `{
@@ -242,6 +265,8 @@ describe("renderSessionPlan", () => {
   });
 
   it("omits absent optional fields instead of writing nulls", () => {
-    expect(renderSessionPlan(emptySession("Night One"))).toBe('{\n  "name": "night-one",\n  "cues": []\n}\n');
+    expect(renderSessionPlan(emptySession("Night One"))).toBe(
+      '{\n  "name": "night-one",\n  "cues": []\n}\n',
+    );
   });
 });

@@ -2,7 +2,12 @@ import { describe, expect, it } from "vitest";
 import { chordSpans, findClashes, formatClash } from "./clash";
 import type { Note } from "./composition";
 
-const n = (time: string, pitch: string, duration = "4n"): Note => ({ time, pitch, duration, velocity: 0.8 });
+const n = (time: string, pitch: string, duration = "4n"): Note => ({
+  time,
+  pitch,
+  duration,
+  velocity: 0.8,
+});
 
 describe("chordSpans", () => {
   it("gives each bar its own span, offset by the section's start", () => {

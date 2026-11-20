@@ -88,7 +88,9 @@ function Row({ entry, showKind, selected, quotedBy, canDelete, ...on }: RowProps
   return (
     <tr aria-selected={selected} title={entry.path} onClick={() => on.onSelect(entry)}>
       <td className="cell-play">
-        <IconButton label={`Play ${entry.slug}`} onClick={() => on.onPlay(entry)}>▶</IconButton>
+        <IconButton label={`Play ${entry.slug}`} onClick={() => on.onPlay(entry)}>
+          ▶
+        </IconButton>
       </td>
       <td className="cell-name">
         {entry.slug}
@@ -104,11 +106,7 @@ function Row({ entry, showKind, selected, quotedBy, canDelete, ...on }: RowProps
       </td>
       <td className="cell-delete">
         {canDelete ? (
-          <IconButton
-            label={`Delete ${entry.slug}`}
-            danger
-            onClick={() => on.onDelete(entry)}
-          >
+          <IconButton label={`Delete ${entry.slug}`} danger onClick={() => on.onDelete(entry)}>
             🗑
           </IconButton>
         ) : (

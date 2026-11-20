@@ -14,13 +14,23 @@ function kit(over: Partial<KitSpec> = {}): KitSpec {
   return {
     levels: { kick: 1, snare: 0.8, hat: 0.4 },
     membrane: { kick: { pitch: "C1", decay: 0.3 } },
-    noise: { snare: { type: "white", hz: 1800, decay: 0.2 }, hat: { type: "white", hz: 8000, decay: 0.05 } },
+    noise: {
+      snare: { type: "white", hz: 1800, decay: 0.2 },
+      hat: { type: "white", hz: 8000, decay: 0.05 },
+    },
     ...over,
   } as KitSpec;
 }
 
 function preset(over: Partial<VoicePreset> = {}): VoicePreset {
-  return { instrument: "drums", slug: "club-kit", title: "Club kit", status: "approved", kit: kit(), ...over };
+  return {
+    instrument: "drums",
+    slug: "club-kit",
+    title: "Club kit",
+    status: "approved",
+    kit: kit(),
+    ...over,
+  };
 }
 
 describe("kitPieces", () => {

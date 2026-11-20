@@ -4,17 +4,17 @@
    that token in its own :root block. */
 
 :root {
-  --ui-bg: #14121a;         /* --bg */
-  --ui-surface: #2a2440;    /* --panel */
+  --ui-bg: #14121a; /* --bg */
+  --ui-surface: #2a2440; /* --panel */
   --ui-surface-hi: #362e52; /* --panel-hi */
-  --ui-border: #443a66;     /* --line */
-  --ui-text: #e8e4f0;       /* --ink */
-  --ui-muted: #a39cb5;      /* --ink at the pages' ~0.6 opacity */
+  --ui-border: #443a66; /* --line */
+  --ui-text: #e8e4f0; /* --ink */
+  --ui-muted: #a39cb5; /* --ink at the pages' ~0.6 opacity */
   --ui-accent: #b6a6e6;
-  --ui-ok: #8fd3a6;         /* studies --up, voices --approved */
-  --ui-warn: #e0c07a;       /* --draft, keys --armed */
-  --ui-err: #e08a8a;        /* studies --down */
-  --ui-on-accent: #14121a;  /* the accent is light: dark text on it */
+  --ui-ok: #8fd3a6; /* studies --up, voices --approved */
+  --ui-warn: #e0c07a; /* --draft, keys --armed */
+  --ui-err: #e08a8a; /* studies --down */
+  --ui-on-accent: #14121a; /* the accent is light: dark text on it */
 
   --ui-radius-sm: 4px;
   --ui-radius: 8px;

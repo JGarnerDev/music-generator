@@ -82,7 +82,7 @@ function CueRow({ cue, last, playing, ...on }: CueRowProps) {
     <tr
       className={playable ? undefined : "bad"}
       aria-selected={playing}
-      title={playable ? cue.entry?.path ?? "" : cue.hint}
+      title={playable ? (cue.entry?.path ?? "") : cue.hint}
     >
       <td className="cell-key">
         <span className="key">{hotkeyLabel(cue.index)}</span>
@@ -132,11 +132,7 @@ function CueRow({ cue, last, playing, ...on }: CueRowProps) {
         >
           ↑
         </IconButton>
-        <IconButton
-          label="Move later"
-          disabled={last}
-          onClick={() => on.onMove(cue.index, 1)}
-        >
+        <IconButton label="Move later" disabled={last} onClick={() => on.onMove(cue.index, 1)}>
           ↓
         </IconButton>
       </td>
