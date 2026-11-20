@@ -8,6 +8,7 @@
   --ink: #e8e4f0;
   --accent: #b6a6e6;
   --warn: #ffb4c4;
+  --ui-warn: #ffb4c4;
 }
 /*
  * Same discipline as the composition bench, for a harder reason: this page
@@ -73,36 +74,6 @@ h1 a:hover { opacity: 0.9; }
   font-size: 0.85rem;
 }
 
-/* ── Tabs ─────────────────────────────────────────────────────────── */
-#tabs {
-  display: flex;
-  gap: 0.35rem;
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  padding: 0.4rem;
-}
-.tab {
-  flex: 1 1 0;
-  min-width: 0;
-  height: auto;
-  padding: 0.45rem 0.6rem;
-  background: transparent;
-  border: 1px solid transparent;
-  border-radius: 7px;
-  color: var(--ink);
-  opacity: 0.6;
-  font: inherit;
-  font-size: 0.85rem;
-  cursor: pointer;
-}
-.tab:hover { opacity: 0.9; background: var(--panel); }
-.tab[aria-selected="true"] {
-  opacity: 1;
-  background: var(--panel);
-  border-color: var(--line);
-  color: var(--accent);
-}
-.tab .count { opacity: 0.55; margin-left: 0.35rem; }
 
 /*
  * Both panels live in the same grid cell, so the tab you are not on takes
@@ -192,37 +163,10 @@ td.cell-name .kind { opacity: 0.4; font-weight: 400; font-size: 0.75rem; margin-
 .note.empty { opacity: 0.3; }
 tr.bad .note { color: var(--warn); opacity: 0.85; }
 td.cell-tags { opacity: 0.75; }
-.chip {
-  display: inline-block;
-  padding: 0.05rem 0.4rem;
-  margin: 0 0.2rem 0 0;
-  line-height: 1.35;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  font-size: 0.7rem;
-  opacity: 0.85;
-}
-.chip.campaign { border-color: var(--accent); color: var(--accent); }
-.empty { padding: 1.2rem 0.6rem; text-align: center; opacity: 0.45; font-size: 0.85rem; }
 
 /* ── Archive filters ──────────────────────────────────────────────── */
 #filters { display: flex; gap: 0.5rem; align-items: center; }
 #campaigns { display: flex; gap: 0.3rem; flex: 0 0 auto; }
-.chip-button {
-  flex: 0 0 auto;
-  height: auto;
-  padding: 0.3rem 0.7rem;
-  background: transparent;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  color: var(--ink);
-  opacity: 0.55;
-  font: inherit;
-  font-size: 0.78rem;
-  cursor: pointer;
-}
-.chip-button:hover { opacity: 0.9; background: var(--panel); }
-.chip-button[aria-pressed="true"] { opacity: 1; background: var(--panel); border-color: var(--accent); color: var(--accent); }
 #search {
   flex: 1 1 auto;
   min-width: 0;
@@ -316,22 +260,6 @@ button {
 }
 button:hover:not(:disabled) { background: var(--panel-hi); }
 button:disabled { opacity: 0.4; cursor: not-allowed; }
-.icon {
-  flex: none;
-  height: auto;
-  padding: 0.25rem 0.4rem;
-  background: transparent;
-  border: 1px solid transparent;
-  border-radius: 6px;
-  color: inherit;
-  font: inherit;
-  cursor: pointer;
-  opacity: 0.7;
-}
-.icon:hover:not(:disabled) { background: var(--panel-hi); opacity: 1; }
-.icon:disabled { opacity: 0.2; cursor: not-allowed; }
-.icon.danger:hover:not(:disabled) { background: #4a2233; color: var(--warn); }
-.icon.toggle.on { color: var(--accent); opacity: 1; }
 #status {
   height: 2.6em;
   line-height: 1.3em;

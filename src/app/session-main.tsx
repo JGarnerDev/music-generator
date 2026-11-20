@@ -9,6 +9,8 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { Session } from "./pages/Session";
+import "jeff-ui/tokens.css";
+import "./theme.css";
 import "./session.css";
 
 createRoot(document.getElementById("root")!).render(

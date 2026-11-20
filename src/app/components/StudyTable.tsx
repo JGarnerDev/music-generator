@@ -17,6 +17,7 @@ import {
   type StudyFilters,
 } from "@engine/study-bench";
 import type { StudyEntry } from "@engine/study-library";
+import { Badge, type BadgeTone, EmptyState, IconButton } from "jeff-ui";
 
 export interface StudyTableProps {
   entries: readonly StudyEntry[];
@@ -49,9 +50,9 @@ export function StudyTable({ entries, filters, ...on }: StudyTableProps) {
           ))}
         </tbody>
       </table>
-      <div id="empty" hidden={visible.length > 0}>
+      <EmptyState id="empty" hidden={visible.length > 0}>
         {emptyStudiesMessage(filters.query, filters.unjudgedOnly, entries.length)}
-      </div>
+      </EmptyState>
     </div>
   );
 }
@@ -72,19 +73,9 @@ function Row({ entry, selected, ...on }: RowProps) {
       onClick={() => on.onSelect(entry)}
     >
       <td className="cell-play">
-        <button
-          type="button"
-          className="icon"
-          title={`Play ${entry.id}`}
-          aria-label={`Play ${entry.id}`}
-          // Stops here, or the row's own select handler fires as well.
-          onClick={(event) => {
-            event.stopPropagation();
-            on.onPlay(entry);
-          }}
-        >
+        <IconButton label={`Play ${entry.id}`} onClick={() => on.onPlay(entry)}>
           ▶
-        </button>
+        </IconButton>
       </td>
       <td className="cell-name">
         {rowLabel(entry)}
@@ -95,8 +86,16 @@ function Row({ entry, selected, ...on }: RowProps) {
         {entry.study.variant ?? ""}
       </td>
       <td className="cell-verdict">
-        <span className={chip.variant ? `chip ${chip.variant}` : "chip"}>{chip.text}</span>
+        <Badge tone={verdictTone(chip.variant)}>{chip.text}</Badge>
       </td>
     </tr>
   );
+}
+
+/** A verdict chip's variant (`up`, `down`, `draft`, `broken`) as a Badge tone. */
+function verdictTone(variant: string | undefined): BadgeTone {
+  if (variant === "up") return "ok";
+  if (variant === "down" || variant === "broken") return "err";
+  if (variant === "draft") return "warn";
+  return "muted";
 }

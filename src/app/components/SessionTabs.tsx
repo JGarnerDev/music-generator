@@ -6,7 +6,7 @@
  * this is the one strip over [`Tabs`](./Tabs.tsx) whose value is never null.
  */
 import type { SessionTab } from "@engine/session-bench";
-import { Tabs } from "./Tabs";
+import { Tabs } from "jeff-ui";
 
 export interface SessionTabsProps {
   tab: SessionTab;

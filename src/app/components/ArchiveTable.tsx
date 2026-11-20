@@ -10,7 +10,7 @@
 import { searchEntries, type LibraryEntry } from "@engine/library";
 import { entriesOfCampaign } from "@engine/session";
 import { archiveChips, archiveEmptyMessage } from "@engine/session-bench";
-import { IconButton } from "./IconButton";
+import { Badge, EmptyState, IconButton } from "jeff-ui";
 
 export interface ArchiveTableProps {
   entries: readonly LibraryEntry[];
@@ -40,9 +40,9 @@ export function ArchiveTable({ entries, campaign, query, playing, ...on }: Archi
           ))}
         </tbody>
       </table>
-      <div id="archiveEmpty" className="empty" hidden={visible.length > 0}>
+      <EmptyState id="archiveEmpty" hidden={visible.length > 0}>
         {archiveEmptyMessage(campaign, query)}
-      </div>
+      </EmptyState>
     </div>
   );
 }
@@ -59,7 +59,7 @@ function ArchiveRow({ entry, playing, ...on }: ArchiveRowProps) {
   return (
     <tr title={entry.path} aria-selected={playing}>
       <td className="cell-play">
-        <IconButton glyph="▶" label={`Audition ${entry.slug}`} onClick={() => on.onPlay(entry)} />
+        <IconButton label={`Audition ${entry.slug}`} onClick={() => on.onPlay(entry)}>▶</IconButton>
       </td>
       <td className="cell-name">
         {entry.slug}
@@ -68,17 +68,18 @@ function ArchiveRow({ entry, playing, ...on }: ArchiveRowProps) {
       {/* Cells are clamped to one line, so anything clipped is still readable on hover. */}
       <td className="cell-tags" title={chips.map((chip) => chip.text).join(" · ")}>
         {chips.map((chip) => (
-          <span key={chip.text} className={chip.campaign ? "chip campaign" : "chip"}>
+          <Badge key={chip.text} tone={chip.campaign ? "accent" : "muted"}>
             {chip.text}
-          </span>
+          </Badge>
         ))}
       </td>
       <td className="cell-add">
         <IconButton
-          glyph="＋"
           label={`Add ${entry.slug} to the session`}
           onClick={() => on.onAdd(entry)}
-        />
+        >
+          ＋
+        </IconButton>
       </td>
     </tr>
   );

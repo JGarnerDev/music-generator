@@ -9,6 +9,8 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { Voices } from "./pages/Voices";
+import "jeff-ui/tokens.css";
+import "./theme.css";
 import "./voices.css";
 
 createRoot(document.getElementById("root")!).render(

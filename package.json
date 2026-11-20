@@ -43,6 +43,7 @@
     "@tensorflow/tfjs": "^3.21.0",
     "commander": "^15.0.0",
     "gray-matter": "^4.0.3",
+    "jeff-ui": "file:../jeff-ui-project",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "smplr": "^1.0.0",

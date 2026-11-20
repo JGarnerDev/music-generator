@@ -56,37 +56,6 @@ h1 a:hover { opacity: 0.9; }
 .row { display: flex; gap: 0.6rem; }
 
 /* ── Group tabs ───────────────────────────────────────────────────── */
-#tabs {
-  display: flex;
-  gap: 0.3rem;
-  flex-wrap: wrap;
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  padding: 0.4rem;
-}
-.tab {
-  /* Equal shares, not content-sized: a count going 9 → 10 must not resize tabs. */
-  flex: 1 1 0;
-  min-width: 0;
-  padding: 0.4rem 0.3rem;
-  background: transparent;
-  border: 1px solid transparent;
-  border-radius: 7px;
-  color: var(--ink);
-  opacity: 0.6;
-  font: inherit;
-  font-size: 0.76rem;
-  cursor: pointer;
-  white-space: nowrap;
-}
-.tab:hover { opacity: 0.9; background: var(--panel); }
-.tab[aria-selected="true"] {
-  opacity: 1;
-  background: var(--panel);
-  border-color: var(--line);
-  color: var(--accent);
-}
-.tab .count { opacity: 0.55; margin-left: 0.3rem; }
 #blurb {
   font-size: 0.78rem;
   opacity: 0.5;
@@ -143,32 +112,6 @@ td.cell-name { font-weight: 600; }
 td.cell-name .concept { opacity: 0.4; font-weight: 400; font-size: 0.72rem; margin-left: 0.4rem; }
 td.cell-variant { opacity: 0.75; }
 td.cell-variant .axis { opacity: 0.5; font-size: 0.72rem; margin-right: 0.35rem; }
-.chip {
-  display: inline-block;
-  padding: 0.05rem 0.45rem;
-  line-height: 1.35;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  font-size: 0.7rem;
-  opacity: 0.85;
-}
-.chip.up { border-color: var(--up); color: var(--up); }
-.chip.down { border-color: var(--down); color: var(--down); }
-.chip.draft { border-color: var(--draft); color: var(--draft); }
-.chip.broken { border-color: var(--down); color: var(--down); }
-.icon {
-  flex: none;
-  padding: 0.2rem 0.4rem;
-  background: transparent;
-  border: 1px solid transparent;
-  border-radius: 6px;
-  color: inherit;
-  font: inherit;
-  cursor: pointer;
-  opacity: 0.7;
-}
-.icon:hover { background: var(--panel-hi); opacity: 1; }
-#empty { padding: 1.2rem 0.6rem; text-align: center; opacity: 0.45; font-size: 0.85rem; }
 
 /* ── The attempt under the needle ─────────────────────────────────── */
 #selected {
@@ -265,25 +208,6 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
   opacity: 0.4;
   font-size: 0.7rem;
   text-align: right;
-}
-.tagchip {
-  padding: 0.1rem 0.5rem;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  background: transparent;
-  color: var(--ink);
-  font: inherit;
-  font-size: 0.7rem;
-  opacity: 0.55;
-  cursor: pointer;
-  white-space: nowrap;
-}
-.tagchip:hover { opacity: 0.95; background: var(--panel); }
-.tagchip[aria-pressed="true"] {
-  opacity: 1;
-  background: var(--panel);
-  border-color: var(--accent);
-  color: var(--accent);
 }
 #note {
   width: 100%;

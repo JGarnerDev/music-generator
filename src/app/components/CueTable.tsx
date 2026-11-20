@@ -13,7 +13,7 @@
 import { cueEmptyMessage, hotkeyLabel, loopLabel, noteLabel } from "@engine/session-bench";
 import type { ResolvedCue } from "@engine/session";
 import { formatClock } from "@utils/clock";
-import { IconButton } from "./IconButton";
+import { EmptyState, IconButton } from "jeff-ui";
 
 export interface CueTableProps {
   cues: readonly ResolvedCue[];
@@ -55,9 +55,9 @@ export function CueTable({ cues, hasPlan, playing, ...on }: CueTableProps) {
           ))}
         </tbody>
       </table>
-      <div id="cueEmpty" className="empty" hidden={cues.length > 0}>
+      <EmptyState id="cueEmpty" hidden={cues.length > 0}>
         {cueEmptyMessage(hasPlan)}
-      </div>
+      </EmptyState>
     </div>
   );
 }
@@ -89,11 +89,12 @@ function CueRow({ cue, last, playing, ...on }: CueRowProps) {
       </td>
       <td className="cell-play">
         <IconButton
-          glyph={playable ? "▶" : "⚠"}
           label={playable ? `Play ${cue.label}` : cue.hint}
           disabled={!playable}
           onClick={() => on.onPlay(cue)}
-        />
+        >
+          {playable ? "▶" : "⚠"}
+        </IconButton>
       </td>
       <td className="cell-name">
         {cue.label}
@@ -113,36 +114,40 @@ function CueRow({ cue, last, playing, ...on }: CueRowProps) {
       <td className="cell-len">{cue.audio ? formatClock(cue.audio.seconds) : "—"}</td>
       <td className="cell-loop">
         <IconButton
-          glyph={loop.glyph}
           label={loop.title}
           toggle
           on={cue.loop}
           // Only a piece written with a loop window has a seam-wrapped body to repeat.
           disabled={!cue.entry?.composition.loop}
           onClick={() => on.onToggleLoop(cue)}
-        />
+        >
+          {loop.glyph}
+        </IconButton>
       </td>
       <td className="cell-move">
         <IconButton
-          glyph="↑"
           label="Move earlier"
           disabled={cue.index === 0}
           onClick={() => on.onMove(cue.index, -1)}
-        />
+        >
+          ↑
+        </IconButton>
         <IconButton
-          glyph="↓"
           label="Move later"
           disabled={last}
           onClick={() => on.onMove(cue.index, 1)}
-        />
+        >
+          ↓
+        </IconButton>
       </td>
       <td className="cell-delete">
         <IconButton
-          glyph="✕"
           label={`Remove ${cue.label} from the session`}
           danger
           onClick={() => on.onRemove(cue.index)}
-        />
+        >
+          ✕
+        </IconButton>
       </td>
     </tr>
   );

@@ -61,6 +61,7 @@ import { usePlayback } from "../hooks/usePlayback";
 import { useScrubBar } from "../hooks/useScrubBar";
 import { useSessions } from "../hooks/useSessions";
 import { VOLUME_STEP, useVolume } from "../hooks/useVolume";
+import { IconButton } from "jeff-ui";
 
 // The same eager glob the composition bench uses: Vite bundles every composition
 // at build time, and `src/dev/live-library.ts` makes a *new* file reach the open
@@ -358,18 +359,17 @@ export function Session() {
         </button>
       </div>
       <div id="volumeRow" className={fader.muted ? "muted" : undefined}>
-        <button
+        <IconButton
           id="mute"
-          className="icon"
+          label="Mute"
           title={fader.muted ? "Unmute (m)" : "Mute (m)"}
-          aria-label="Mute"
           onClick={() => {
             const moved = fader.toggleMute();
             setStatus(muteMessage(moved.level, moved.muted));
           }}
         >
           {fader.muted ? "🔇" : "🔊"}
-        </button>
+        </IconButton>
         <input
           id="volume"
           type="range"

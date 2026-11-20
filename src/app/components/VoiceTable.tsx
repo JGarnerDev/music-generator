@@ -12,6 +12,7 @@
 import { emptyVoicesMessage, statusOf, visibleVoices } from "@engine/voice-bench";
 import type { VoiceEntry } from "@engine/voice-library";
 import type { InstrumentName } from "@engine/composition";
+import { Badge, EmptyState, IconButton } from "jeff-ui";
 
 export interface VoiceTableProps {
   entries: readonly VoiceEntry[];
@@ -49,9 +50,9 @@ export function VoiceTable({ entries, instrument, draftsOnly, selectedId, ...on 
           ))}
         </tbody>
       </table>
-      <div id="empty" hidden={visible.length > 0}>
+      <EmptyState id="empty" hidden={visible.length > 0}>
         {emptyVoicesMessage(instrument, draftsOnly)}
-      </div>
+      </EmptyState>
     </div>
   );
 }
@@ -73,19 +74,9 @@ function Row({ entry, showInstrument, selected, ...on }: RowProps) {
       onClick={() => on.onSelect(entry)}
     >
       <td className="cell-play">
-        <button
-          type="button"
-          className="icon"
-          title={`Play ${entry.id}`}
-          aria-label={`Play ${entry.id}`}
-          // Stops here, or the row's own select handler fires as well.
-          onClick={(event) => {
-            event.stopPropagation();
-            on.onPlay(entry);
-          }}
-        >
+        <IconButton label={`Play ${entry.id}`} onClick={() => on.onPlay(entry)}>
           ▶
-        </button>
+        </IconButton>
       </td>
       <td className="cell-slug">
         {entry.slug}
@@ -93,8 +84,8 @@ function Row({ entry, showInstrument, selected, ...on }: RowProps) {
       </td>
       <td className="cell-title">{entry.preset.title ?? ""}</td>
       <td className="cell-status">
-        <span className={`chip ${status}`}>{status}</span>
-        {entry.preset.default ? <span className="chip default">default</span> : null}
+        <Badge tone={status === "approved" ? "ok" : status === "draft" ? "warn" : "err"}>{status}</Badge>
+        {entry.preset.default ? <Badge tone="accent">default</Badge> : null}
       </td>
     </tr>
   );

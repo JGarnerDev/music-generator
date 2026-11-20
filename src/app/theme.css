@@ -1,0 +1,23 @@
+/* music-generator's ink-on-violet palette mapped onto jeff-ui's --ui-* tokens.
+   Imported right after jeff-ui/tokens.css in every page entry, before the
+   page's own CSS. A page that differs (session's pink warn) overrides only
+   that token in its own :root block. */
+
+:root {
+  --ui-bg: #14121a;         /* --bg */
+  --ui-surface: #2a2440;    /* --panel */
+  --ui-surface-hi: #362e52; /* --panel-hi */
+  --ui-border: #443a66;     /* --line */
+  --ui-text: #e8e4f0;       /* --ink */
+  --ui-muted: #a39cb5;      /* --ink at the pages' ~0.6 opacity */
+  --ui-accent: #b6a6e6;
+  --ui-ok: #8fd3a6;         /* studies --up, voices --approved */
+  --ui-warn: #e0c07a;       /* --draft, keys --armed */
+  --ui-err: #e08a8a;        /* studies --down */
+  --ui-on-accent: #14121a;  /* the accent is light: dark text on it */
+
+  --ui-radius-sm: 4px;
+  --ui-radius: 8px;
+  --ui-radius-lg: 10px;
+  --ui-font: ui-monospace, "Cascadia Code", monospace;
+}

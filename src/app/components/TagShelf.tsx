@@ -8,6 +8,7 @@
  * [a fixed list](../../engine/study.ts), never something a verdict can extend.
  */
 import { TAG_FACETS, tagsOfFacet } from "@engine/study";
+import { Chip } from "jeff-ui";
 
 export interface TagShelfProps {
   /** The tags armed for the current selection. */
@@ -23,17 +24,15 @@ export function TagShelf({ picked, disabled, onToggle }: TagShelfProps) {
         <div className="facet" key={facet}>
           <span className="facet-name">{facet}</span>
           {tagsOfFacet(facet).map((tag) => (
-            <button
+            <Chip
               key={tag.name}
-              type="button"
-              className="tagchip"
               title={tag.blurb}
               disabled={disabled}
-              aria-pressed={picked.has(tag.name)}
-              onClick={() => onToggle(tag.name)}
+              pressed={picked.has(tag.name)}
+              onToggle={() => onToggle(tag.name)}
             >
               {tag.name}
-            </button>
+            </Chip>
           ))}
         </div>
       ))}

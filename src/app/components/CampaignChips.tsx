@@ -7,6 +7,7 @@
  */
 import type { LibraryEntry } from "@engine/library";
 import { campaignsOf } from "@engine/session";
+import { Chip } from "jeff-ui";
 
 export interface CampaignChipsProps {
   entries: readonly LibraryEntry[];
@@ -18,23 +19,14 @@ export interface CampaignChipsProps {
 export function CampaignChips({ entries, campaign, onPick }: CampaignChipsProps) {
   return (
     <div id="campaigns">
-      <Chip label="All" selected={campaign === null} onClick={() => onPick(null)} />
+      <Chip pressed={campaign === null} onToggle={() => onPick(null)}>
+        All
+      </Chip>
       {campaignsOf(entries).map((slug) => (
-        <Chip
-          key={slug}
-          label={slug}
-          selected={campaign === slug}
-          onClick={() => onPick(slug)}
-        />
+        <Chip key={slug} pressed={campaign === slug} onToggle={() => onPick(slug)}>
+          {slug}
+        </Chip>
       ))}
     </div>
-  );
-}
-
-function Chip({ label, selected, onClick }: { label: string; selected: boolean; onClick(): void }) {
-  return (
-    <button type="button" className="chip-button" aria-pressed={selected} onClick={onClick}>
-      {label}
-    </button>
   );
 }

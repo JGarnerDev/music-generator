@@ -47,6 +47,8 @@ export default defineConfig({
     },
   },
   resolve: {
+    // jeff-ui is a file: link with its own node_modules; one React only.
+    dedupe: ["react", "react-dom"],
     alias: {
       "@engine": resolve(__dirname, "src/engine"),
       "@utils": resolve(__dirname, "src/utils"),

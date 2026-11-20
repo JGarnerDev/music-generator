@@ -9,7 +9,7 @@
  */
 import { countsByGroup, type StudyEntry } from "@engine/study-library";
 import { CONCEPT_GROUPS, type ConceptGroup } from "@engine/study";
-import { Tabs } from "./Tabs";
+import { Tabs } from "jeff-ui";
 
 export interface GroupTabsProps {
   entries: readonly StudyEntry[];

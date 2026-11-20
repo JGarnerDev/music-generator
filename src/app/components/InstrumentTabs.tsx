@@ -9,7 +9,7 @@
  */
 import { VOICE_INSTRUMENTS, countsByInstrument, type VoiceEntry } from "@engine/voice-library";
 import type { InstrumentName } from "@engine/composition";
-import { Tabs } from "./Tabs";
+import { Tabs } from "jeff-ui";
 
 export interface InstrumentTabsProps {
   entries: readonly VoiceEntry[];

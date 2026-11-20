@@ -19,8 +19,7 @@ import {
   type CompositionKind,
   type LibraryEntry,
 } from "@engine/library";
-import { Chip } from "./Chip";
-import { IconButton } from "./IconButton";
+import { Badge, EmptyState, IconButton } from "jeff-ui";
 
 export interface LibraryTableProps {
   entries: readonly LibraryEntry[];
@@ -65,9 +64,9 @@ export function LibraryTable(props: LibraryTableProps) {
           ))}
         </tbody>
       </table>
-      <div id="empty" hidden={visible.length > 0}>
+      <EmptyState id="empty" hidden={visible.length > 0}>
         {emptyMessage(kind, query)}
-      </div>
+      </EmptyState>
     </div>
   );
 }
@@ -89,7 +88,7 @@ function Row({ entry, showKind, selected, quotedBy, canDelete, ...on }: RowProps
   return (
     <tr aria-selected={selected} title={entry.path} onClick={() => on.onSelect(entry)}>
       <td className="cell-play">
-        <IconButton glyph="▶" label={`Play ${entry.slug}`} onClick={() => on.onPlay(entry)} />
+        <IconButton label={`Play ${entry.slug}`} onClick={() => on.onPlay(entry)}>▶</IconButton>
       </td>
       <td className="cell-name">
         {entry.slug}
@@ -98,17 +97,20 @@ function Row({ entry, showKind, selected, quotedBy, canDelete, ...on }: RowProps
       {/* Cells are clamped to one line, so anything clipped is still readable on hover. */}
       <td className="cell-tags" title={chips.map((chip) => chip.text).join(" · ")}>
         {chips.map((chip) => (
-          <Chip key={chip.text} label={chip} />
+          <Badge key={chip.text} tone={chip.motif ? "accent" : "muted"}>
+            {chip.text}
+          </Badge>
         ))}
       </td>
       <td className="cell-delete">
         {canDelete ? (
           <IconButton
-            glyph="🗑"
             label={`Delete ${entry.slug}`}
             danger
             onClick={() => on.onDelete(entry)}
-          />
+          >
+            🗑
+          </IconButton>
         ) : (
           <span />
         )}

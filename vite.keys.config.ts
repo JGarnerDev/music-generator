@@ -63,6 +63,7 @@ export default defineConfig({
     },
   },
   resolve: {
+    dedupe: ["react", "react-dom"],
     alias: {
       "@engine": resolve(__dirname, "src/engine"),
       "@utils": resolve(__dirname, "src/utils"),
