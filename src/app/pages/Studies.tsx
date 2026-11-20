@@ -33,6 +33,7 @@ import {
 } from "@engine/study-bench";
 import { studyAudioName, type StudyEntry } from "@engine/study-library";
 import { GROUP_BLURBS, type ConceptGroup, type Thumb } from "@engine/study";
+import { Button, Checkbox, PageHeader, SearchInput } from "jeff-ui";
 import { STUDY_VERDICT_ENDPOINT } from "../../dev/endpoints";
 import { GroupTabs } from "../components/GroupTabs";
 import { SetStrip } from "../components/SetStrip";
@@ -179,47 +180,39 @@ export function Studies() {
 
   return (
     <main>
-      <h1>
-        music-generator · studies bench
+      <PageHeader title="music-generator · studies bench">
         <a href="/index.html">compositions →</a>
         <a href="/session.html">session →</a>
         <a href="/voices.html">voices →</a>
         <a href="/keys.html">keys →</a>
-      </h1>
+      </PageHeader>
 
       <GroupTabs entries={entries} group={group} onPick={setGroup} />
       <div id="blurb">{group ? GROUP_BLURBS[group] : ALL_GROUPS_BLURB}</div>
       <div id="filters">
-        <label className="check">
-          <input
-            id="unjudgedOnly"
-            type="checkbox"
-            checked={unjudgedOnly}
-            onChange={(e) => {
-              setUnjudgedOnly(e.target.checked);
-              retarget({ ...filters, unjudgedOnly: e.target.checked });
-            }}
-          />
-          <span>unjudged only</span>
-        </label>
-        <label className="check">
-          <input
-            id="loop"
-            type="checkbox"
-            checked={loopWanted}
-            onChange={(e) => setLoopWanted(e.target.checked)}
-          />
-          <span>loop</span>
-        </label>
-        <input
+        <Checkbox
+          label="unjudged only"
+          id="unjudgedOnly"
+          checked={unjudgedOnly}
+          onChange={(checked) => {
+            setUnjudgedOnly(checked);
+            retarget({ ...filters, unjudgedOnly: checked });
+          }}
+        />
+        <Checkbox
+          label="loop"
+          id="loop"
+          checked={loopWanted}
+          onChange={setLoopWanted}
+        />
+        <SearchInput
           id="search"
-          type="search"
           placeholder="filter by concept, set or variant…"
-          aria-label="Filter studies"
+          label="Filter studies"
           value={query}
-          onChange={(e) => {
-            setQuery(e.target.value);
-            retarget({ ...filters, query: e.target.value });
+          onChange={(value) => {
+            setQuery(value);
+            retarget({ ...filters, query: value });
           }}
         />
       </div>
@@ -239,14 +232,14 @@ export function Studies() {
       <SetStrip entries={entries} entry={selected} onSelect={select} />
 
       <div className="row">
-        <button
+        <Button
           id="play"
           disabled={!can.canPlay || loading}
           onClick={() => selected && void play(selected)}
         >
           ▶ Play
-        </button>
-        <button
+        </Button>
+        <Button
           id="pause"
           disabled={playback.state === "stopped"}
           onClick={() => {
@@ -258,8 +251,8 @@ export function Studies() {
           }}
         >
           {playback.state === "paused" ? "▶ Resume" : "⏸ Pause"}
-        </button>
-        <button
+        </Button>
+        <Button
           id="stop"
           onClick={() => {
             playback.stop();
@@ -267,7 +260,7 @@ export function Studies() {
           }}
         >
           ■ Stop
-        </button>
+        </Button>
       </div>
 
       <TagShelf
@@ -291,28 +284,28 @@ export function Studies() {
         onChange={(e) => setNote(e.target.value)}
       />
       <div className="row">
-        <button
+        <Button
           id="up"
           disabled={!can.canJudge}
           onClick={() => selected && void judge(selected, "up")}
         >
           👍 Keep this approach
-        </button>
-        <button
+        </Button>
+        <Button
           id="down"
           disabled={!can.canJudge}
           onClick={() => selected && void judge(selected, "down")}
         >
           👎 Not this
-        </button>
-        <button
+        </Button>
+        <Button
           id="clear"
           title="Take the verdict back"
           disabled={!can.canClear}
           onClick={() => selected && void clearVerdict(selected)}
         >
           ↩ Clear
-        </button>
+        </Button>
       </div>
       <div id="status">{status}</div>
     </main>

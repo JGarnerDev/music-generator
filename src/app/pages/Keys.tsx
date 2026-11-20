@@ -49,6 +49,7 @@ import { guessKey } from "@engine/key-guess";
 import { defaultMonitor, isMonitorId, type MonitorId } from "@engine/monitor";
 import { drumPads, padPlayable } from "@engine/pads";
 import { type VoiceEntry } from "@engine/voice-library";
+import { Button, Select } from "jeff-ui";
 import { DrumPads } from "../components/DrumPads";
 import { KeysMenu } from "../components/KeysMenu";
 import { PianoKeys } from "../components/PianoKeys";
@@ -152,30 +153,28 @@ export function Keys() {
 
         <div id="voicePick">
           <label htmlFor="voice">voice</label>
-          <select
+          <Select
             id="voice"
+            label="Voice"
+            options={PLAYABLE.map((entry) => ({
+              value: entry.id,
+              label: entry.preset.default ? `${entry.id} (default)` : entry.id,
+            }))}
             value={voiceId ?? ""}
-            onChange={(event) => setVoiceId(event.target.value)}
-          >
-            {PLAYABLE.map((entry) => (
-              <option key={entry.id} value={entry.id}>
-                {entry.id}
-                {entry.preset.default ? " (default)" : ""}
-              </option>
-            ))}
-          </select>
+            onChange={setVoiceId}
+          />
         </div>
 
         {pads.length === 0 ? (
           <div className="group" role="group" aria-label="Octave">
             <span className="what">octave</span>
-            <button type="button" onClick={() => synth.setOctave(shiftOctave(synth.octave, -1))}>
+            <Button onClick={() => synth.setOctave(shiftOctave(synth.octave, -1))}>
               −
-            </button>
+            </Button>
             <span className="value">{synth.octave}</span>
-            <button type="button" onClick={() => synth.setOctave(shiftOctave(synth.octave, 1))}>
+            <Button onClick={() => synth.setOctave(shiftOctave(synth.octave, 1))}>
               +
-            </button>
+            </Button>
           </div>
         ) : null}
       </div>

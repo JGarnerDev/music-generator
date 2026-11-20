@@ -33,6 +33,7 @@ import {
 import { INSTRUMENT_BLURBS, voiceAudioName, type VoiceEntry } from "@engine/voice-library";
 import { probeFor } from "@engine/probe";
 import type { InstrumentName } from "@engine/composition";
+import { Button, Checkbox, PageHeader } from "jeff-ui";
 import { VOICE_APPROVE_ENDPOINT, VOICE_FORK_ENDPOINT } from "../../dev/endpoints";
 import { InstrumentTabs } from "../components/InstrumentTabs";
 import { VoiceTable } from "../components/VoiceTable";
@@ -145,35 +146,28 @@ export function Voices() {
 
   return (
     <main>
-      <h1>
-        music-generator · voice bench
+      <PageHeader title="music-generator · voice bench">
         <a href="/index.html">compositions →</a>
         <a href="/session.html">session →</a>
         <a href="/studies.html">studies →</a>
         <a href="/keys.html">keys →</a>
-      </h1>
+      </PageHeader>
 
       <InstrumentTabs entries={entries} instrument={instrument} onPick={setInstrument} />
       <div id="blurb">{instrument ? INSTRUMENT_BLURBS[instrument] : ALL_INSTRUMENTS_BLURB}</div>
       <div id="filters">
-        <label className="check">
-          <input
-            id="draftsOnly"
-            type="checkbox"
-            checked={draftsOnly}
-            onChange={(e) => setDraftsOnly(e.target.checked)}
-          />
-          <span>drafts only</span>
-        </label>
-        <label className="check">
-          <input
-            id="loop"
-            type="checkbox"
-            checked={loopWanted}
-            onChange={(e) => setLoopWanted(e.target.checked)}
-          />
-          <span>loop the probe</span>
-        </label>
+        <Checkbox
+          label="drafts only"
+          id="draftsOnly"
+          checked={draftsOnly}
+          onChange={setDraftsOnly}
+        />
+        <Checkbox
+          label="loop the probe"
+          id="loop"
+          checked={loopWanted}
+          onChange={setLoopWanted}
+        />
         <span id="probeName" className="chip" title={probe ? `${probe.bpm} BPM, ${probe.key}` : undefined}>
           {probe ? `${probe.name}: ${probe.describe}` : "probe"}
         </span>
@@ -195,14 +189,14 @@ export function Voices() {
       <div id="notes">{described ? described.notes : ""}</div>
 
       <div className="row">
-        <button
+        <Button
           id="play"
           disabled={!selected || broken || loading}
           onClick={() => selected && void play(selected)}
         >
           ▶ Play
-        </button>
-        <button
+        </Button>
+        <Button
           id="pause"
           disabled={playback.state === "stopped"}
           onClick={() => {
@@ -216,8 +210,8 @@ export function Voices() {
           }}
         >
           {playback.state === "paused" ? "▶ Resume" : "⏸ Pause"}
-        </button>
-        <button
+        </Button>
+        <Button
           id="stop"
           onClick={() => {
             playback.stop();
@@ -225,33 +219,30 @@ export function Voices() {
           }}
         >
           ■ Stop
-        </button>
+        </Button>
       </div>
 
       <div className="row">
-        <button
+        <Button
           id="approve"
           disabled={!selected || broken || !api.canEdit}
           onClick={() => selected && void approve(selected)}
         >
           {approveLabel(selected)}
-        </button>
-        <label className="check">
-          <input
-            id="makeDefault"
-            type="checkbox"
-            checked={makeDefault}
-            onChange={(e) => setMakeDefault(e.target.checked)}
-          />
-          <span>as default</span>
-        </label>
-        <button
+        </Button>
+        <Checkbox
+          label="as default"
+          id="makeDefault"
+          checked={makeDefault}
+          onChange={setMakeDefault}
+        />
+        <Button
           id="fork"
           disabled={!selected || broken || !api.canEdit}
           onClick={() => selected && void fork(selected)}
         >
           ⑂ Fork
-        </button>
+        </Button>
       </div>
 
       <div id="status">{status}</div>

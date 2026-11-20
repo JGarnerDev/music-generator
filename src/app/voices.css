@@ -50,8 +50,6 @@ h1 {
   height: 1.4rem;
   line-height: 1.4rem;
 }
-h1 a { color: inherit; opacity: 0.45; text-decoration: none; font-size: 0.8rem; float: right; margin-left: 0.8rem; }
-h1 a:hover { opacity: 0.9; }
 .row { display: flex; gap: 0.6rem; }
 
 /* ── Instrument tabs ──────────────────────────────────────────────── */
@@ -135,15 +133,6 @@ button {
 button:hover:not(:disabled) { background: var(--panel-hi); }
 button:disabled { opacity: 0.4; cursor: not-allowed; }
 #approve { border-color: var(--approved); color: var(--approved); }
-.check {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  font-size: 0.8rem;
-  opacity: 0.8;
-  cursor: pointer;
-  white-space: nowrap;
-}
 #filters { display: flex; gap: 1rem; align-items: center; height: 1.4rem; }
 /* Two lines reserved: status runs from "Playing" to a full render hint. */
 #status {

@@ -23,6 +23,7 @@ import {
 } from "@engine/library";
 import { loopIntroSeconds } from "@engine/arrange";
 import { audioName } from "@engine/manifest";
+import { Button, Checkbox, PageHeader, SearchInput } from "jeff-ui";
 import { TRASH_ENDPOINT } from "../../dev/endpoints";
 import { KindTabs } from "../components/KindTabs";
 import { LibraryTable } from "../components/LibraryTable";
@@ -184,23 +185,21 @@ export function Bench() {
 
   return (
     <main>
-      <h1>
-        music-generator · workshop bench
+      <PageHeader title="music-generator · workshop bench">
         <a href="/session.html">session →</a>
         <a href="/voices.html">voices →</a>
         <a href="/studies.html">studies →</a>
         <a href="/keys.html">keys →</a>
-      </h1>
+      </PageHeader>
 
       <KindTabs entries={entries} kind={kind} onPick={setKind} />
       <div id="kindBlurb">{kind ? KIND_BLURBS[kind] : "Everything in compositions/."}</div>
-      <input
+      <SearchInput
         id="search"
-        type="search"
         placeholder="filter by name, tag or motif…"
-        aria-label="Filter compositions"
+        label="Filter compositions"
         value={query}
-        onChange={(e) => setQuery(e.target.value)}
+        onChange={setQuery}
       />
       <LibraryTable
         entries={entries}
@@ -247,10 +246,10 @@ export function Bench() {
         }}
       />
       <div className="row">
-        <button id="play" disabled={!current || loading} onClick={() => current && void play(current, looping)}>
+        <Button id="play" disabled={!current || loading} onClick={() => current && void play(current, looping)}>
           ▶ Play
-        </button>
-        <button
+        </Button>
+        <Button
           id="stop"
           onClick={() => {
             playback.stop();
@@ -258,31 +257,28 @@ export function Bench() {
           }}
         >
           ■ Stop
-        </button>
+        </Button>
       </div>
       <div className="row">
-        <button id="export" disabled={!current} onClick={() => void exportAudio(false)}>
+        <Button id="export" disabled={!current} onClick={() => void exportAudio(false)}>
           ⬇ Download
-        </button>
-        <button
+        </Button>
+        <Button
           id="exportLoop"
           title="Seamless loop body only"
           disabled={!hasLoop}
           onClick={() => void exportAudio(true)}
         >
           ⬇ Download Loop
-        </button>
+        </Button>
       </div>
-      <label id="loopRow" className={hasLoop ? "check" : "check disabled"}>
-        <input
-          id="loop"
-          type="checkbox"
-          checked={loopWanted}
-          disabled={!hasLoop}
-          onChange={(e) => setLoopWanted(e.target.checked)}
-        />
-        <span>Loop playback (intro once, then repeat the body)</span>
-      </label>
+      <Checkbox
+        id="loop"
+        label="Loop playback (intro once, then repeat the body)"
+        checked={loopWanted}
+        disabled={!hasLoop}
+        onChange={setLoopWanted}
+      />
       <div id="status">{status}</div>
     </main>
   );

@@ -61,7 +61,7 @@ import { usePlayback } from "../hooks/usePlayback";
 import { useScrubBar } from "../hooks/useScrubBar";
 import { useSessions } from "../hooks/useSessions";
 import { VOLUME_STEP, useVolume } from "../hooks/useVolume";
-import { IconButton } from "jeff-ui";
+import { Button, IconButton, PageHeader, SearchInput, Select } from "jeff-ui";
 
 // The same eager glob the composition bench uses: Vite bundles every composition
 // at build time, and `src/dev/live-library.ts` makes a *new* file reach the open
@@ -247,38 +247,32 @@ export function Session() {
 
   return (
     <main>
-      <h1>
-        music-generator · session board
+      <PageHeader title="music-generator · session board">
         <a href="/">bench →</a>
         <a href="/voices.html">voices →</a>
         <a href="/keys.html">keys →</a>
-      </h1>
+      </PageHeader>
 
       <div id="pickerRow">
-        <select
+        <Select
           id="sessionPick"
-          aria-label="Session"
+          label="Session"
+          options={sessions.all.map((option: SessionPlan) => ({ value: option.name, label: option.title ?? option.name }))}
           value={plan?.name ?? ""}
           disabled={sessions.all.length === 0}
-          onChange={(e) => sessions.select(e.target.value)}
-        >
-          {sessions.all.map((option: SessionPlan) => (
-            <option key={option.name} value={option.name}>
-              {option.title ?? option.name}
-            </option>
-          ))}
-        </select>
-        <button id="newSession" title="Start a new session" onClick={newSession}>
+          onChange={(name) => sessions.select(name)}
+        />
+        <Button id="newSession" title="Start a new session" onClick={newSession}>
           ＋ New
-        </button>
-        <button
+        </Button>
+        <Button
           id="deleteSession"
           title="Delete this session plan"
           disabled={!plan}
           onClick={deleteSession}
         >
           🗑
-        </button>
+        </Button>
       </div>
 
       <SessionTabs
@@ -323,13 +317,12 @@ export function Session() {
         >
           <div id="filters">
             <CampaignChips entries={ENTRIES} campaign={campaign} onPick={setCampaign} />
-            <input
+            <SearchInput
               id="search"
-              type="search"
               placeholder="filter by name or tag…"
-              aria-label="Filter the archive"
+              label="Filter the archive"
               value={query}
-              onChange={(e) => setQuery(e.target.value)}
+              onChange={setQuery}
             />
           </div>
           <ArchiveTable
@@ -351,12 +344,12 @@ export function Session() {
           see hooks/useScrubBar.ts for why it is not JSX. */}
       <div id="scrub" className="scrub idle" ref={scrub.ref} />
       <div className="row">
-        <button id="toggle" disabled={playback.state === "stopped"} onClick={togglePlayback}>
+        <Button id="toggle" disabled={playback.state === "stopped"} onClick={togglePlayback}>
           {playback.state === "playing" ? "⏸ Pause" : "▶ Play"}
-        </button>
-        <button id="stop" disabled={playback.state === "stopped"} onClick={stop}>
+        </Button>
+        <Button id="stop" disabled={playback.state === "stopped"} onClick={stop}>
           ■ Stop
-        </button>
+        </Button>
       </div>
       <div id="volumeRow" className={fader.muted ? "muted" : undefined}>
         <IconButton

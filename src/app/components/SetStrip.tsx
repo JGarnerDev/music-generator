@@ -9,6 +9,7 @@
  */
 import { siblingLabel, siblingsOf } from "@engine/study-bench";
 import type { StudyEntry } from "@engine/study-library";
+import { Button } from "jeff-ui";
 
 export interface SetStripProps {
   entries: readonly StudyEntry[];
@@ -26,16 +27,15 @@ export function SetStrip({ entries, entry, onSelect }: SetStripProps) {
       {siblingsOf(entries, entry).map((sibling) => {
         const thumb = sibling.study.verdict?.thumb;
         return (
-          <button
+          <Button
             key={sibling.id}
-            type="button"
             className={thumb ? `sib ${thumb}` : "sib"}
             aria-current={sibling.id === entry.id}
             title={sibling.study.approach ?? sibling.id}
             onClick={() => onSelect(sibling)}
           >
             {siblingLabel(sibling)}
-          </button>
+          </Button>
         );
       })}
     </div>

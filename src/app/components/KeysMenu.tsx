@@ -15,6 +15,7 @@
  */
 import { useEffect, useRef, useState } from "react";
 import { MONITOR_PROFILES, type MonitorId } from "@engine/monitor";
+import { IconButton } from "jeff-ui";
 
 export interface KeysMenuProps {
   monitor: MonitorId;
@@ -45,16 +46,15 @@ export function KeysMenu({ monitor, onMonitor }: KeysMenuProps) {
 
   return (
     <div className="menu" ref={root}>
-      <button
-        type="button"
+      <IconButton
+        label="Settings"
         className={open ? "hamburger on" : "hamburger"}
-        aria-label="Settings"
         aria-expanded={open}
         aria-haspopup="menu"
         onClick={() => setOpen((now) => !now)}
       >
         <span aria-hidden="true">☰</span>
-      </button>
+      </IconButton>
 
       {open ? (
         <div className="panel" role="menu" aria-label="Settings">

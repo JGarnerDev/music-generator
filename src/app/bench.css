@@ -55,8 +55,6 @@ h1 {
   height: 1.4rem;
   line-height: 1.4rem;
 }
-h1 a { color: inherit; opacity: 0.45; text-decoration: none; font-size: 0.8rem; float: right; margin-left: 0.8rem; }
-h1 a:hover { opacity: 0.9; }
 .row { display: flex; gap: 0.6rem; }
 
 /* ── Library: tabs + scrollable table ─────────────────────────────── */
@@ -163,16 +161,6 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
   opacity: 0.7;
   font-size: 0.9rem;
 }
-.check {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  height: 1.4rem;
-  font-size: 0.85rem;
-  opacity: 0.8;
-  cursor: pointer;
-}
-.check.disabled { opacity: 0.35; cursor: not-allowed; }
 
 /*
  * The only rule that is not a verbatim move out of index.html's <style>.
