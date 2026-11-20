@@ -1,0 +1,16 @@
+{
+  // Shared across Organized projects (source: hub new-project starter).
+  // Errors block the commit (.githooks/pre-commit). How to avoid each: .claude/rules/LINT.md
+  "plugins": ["typescript", "unicorn", "oxc", "react", "import", "vitest"],
+  "categories": {
+    "correctness": "error"
+  },
+  "rules": {
+    // Off: style preferences, not bugs.
+    "unicorn/no-new-array": "off",
+    "vitest/require-mock-type-parameters": "off",
+    "vitest/require-to-throw-message": "off",
+    // Vitest takes a failure message as expect's second argument.
+    "vitest/valid-expect": ["error", { "maxArgs": 2 }]
+  }
+}

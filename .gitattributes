@@ -1,0 +1,14 @@
+# Force LF in the working tree, overriding core.autocrlf=true.
+# Keeps CRLF out of frontmatter, JSON and formatter output.
+* text=auto eol=lf
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.ico binary
+*.mp3 binary
+*.wav binary
+*.pdf binary

@@ -1,0 +1,7 @@
+# Prettier formats code only (it also skips everything in .gitignore).
+# Markdown is markdownlint's; JSON and YAML are data that scripts write.
+*.md
+*.json
+*.jsonc
+*.yaml
+*.yml

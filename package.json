@@ -1,6 +1,6 @@
 {
   "name": "music-generator",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
   "description": "Conversational, code-driven lo-fi music generator. Describe a mood or scene; Claude composes; the browser plays and exports WAV.",
@@ -36,7 +36,10 @@
     "study:render": "tsx scripts/render-studies.ts",
     "study:verdict": "tsx scripts/study-verdict.ts",
     "study:clean": "tsx scripts/clean-studies.ts",
-    "study:ledger": "tsx scripts/study-verdict.ts --ledger"
+    "study:ledger": "tsx scripts/study-verdict.ts --ledger",
+    "lint": "oxlint -c .oxlintrc.json",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "dependencies": {
     "@spotify/basic-pitch": "^1.0.1",
@@ -58,7 +61,9 @@
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.4",
     "@vitejs/plugin-react": "^6.0.5",
+    "oxlint": "1.94.0",
     "playwright": "^1.62.1",
+    "prettier": "3.10.1",
     "tsx": "^4.23.12",
     "typescript": "^7.0.2",
     "vite": "^8.2.1",

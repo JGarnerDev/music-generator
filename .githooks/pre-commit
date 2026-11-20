@@ -1,28 +1,76 @@
 #!/bin/sh
-# Auto-format staged Markdown with markdownlint before commit.
-# Non-blocking: fixes what it can, re-stages the result, never aborts the commit.
-# Setup: run `git config core.hooksPath .githooks` once per clone.
-# Requires global binary: npm i -g markdownlint-cli2@0.13.0 (node 18 needs this exact pin).
+# Format and lint staged files, then re-stage them. Shared across Organized projects
+# (source: hub new-project starter).
+#   Markdown          markdownlint-cli2 --fix                 never blocks
+#   JS/TS/CSS/HTML    prettier --write, then oxlint --fix     blocks on oxlint errors
+#   Python            ruff format, then ruff check --fix      blocks on ruff errors
+# A missing tool skips its step with a note.
+# Setup, once per clone: git config core.hooksPath .githooks
+# Tools: npm i -g markdownlint-cli2@0.13.0; prettier and oxlint are devDependencies (npm install);
+# ruff runs through uvx at the version below.
+# After fixing a lint error by hand, add how to avoid it to .claude/rules/LINT.md.
 
-tmp=$(mktemp)
-git diff --cached --name-only -z --diff-filter=ACM -- '*.md' > "$tmp"
+RUFF=ruff@0.17.6
 
-# No staged Markdown — nothing to do.
-if [ ! -s "$tmp" ]; then
-  rm -f "$tmp"
-  exit 0
+list=$(mktemp)
+trap 'rm -f "$list"' EXIT
+status=0
+
+# Staged (added, copied, modified) files matching the given patterns, NUL-separated, into $list.
+staged() {
+  git diff --cached --name-only -z --diff-filter=ACM -- "$@" > "$list"
+  [ -s "$list" ]
+}
+
+# Path to a JS tool: the project's node_modules first (root or app/), then PATH.
+js_tool() {
+  for p in "node_modules/.bin/$1" "app/node_modules/.bin/$1"; do
+    if [ -x "$p" ]; then echo "$p"; return; fi
+  done
+  command -v "$1" 2>/dev/null
+}
+
+if staged '*.md'; then
+  if command -v markdownlint-cli2 >/dev/null 2>&1; then
+    xargs -0 markdownlint-cli2 --fix < "$list" >/dev/null 2>&1
+    xargs -0 git add < "$list"
+  else
+    echo "pre-commit: markdownlint-cli2 not found; skipping Markdown (npm i -g markdownlint-cli2@0.13.0)" >&2
+  fi
 fi
 
-if ! command -v markdownlint-cli2 >/dev/null 2>&1; then
-  echo "pre-commit: markdownlint-cli2 not found; skipping Markdown format." >&2
-  echo "pre-commit: install with  npm i -g markdownlint-cli2@0.13.0" >&2
-  rm -f "$tmp"
-  exit 0
+if staged '*.ts' '*.tsx' '*.js' '*.jsx' '*.mjs' '*.cjs' '*.css' '*.html'; then
+  prettier=$(js_tool prettier)
+  if [ -n "$prettier" ]; then
+    xargs -0 "$prettier" --write --log-level warn < "$list"
+    xargs -0 git add < "$list"
+  else
+    echo "pre-commit: prettier not found; skipping JS/TS format (npm install)" >&2
+  fi
 fi
 
-# Fix in place (reads .markdownlint.json from repo root), then re-stage the fixes.
-xargs -0 markdownlint-cli2 --fix < "$tmp" >/dev/null 2>&1
-xargs -0 git add < "$tmp"
+if staged '*.ts' '*.tsx' '*.js' '*.jsx' '*.mjs' '*.cjs'; then
+  oxlint=$(js_tool oxlint)
+  if [ -n "$oxlint" ]; then
+    xargs -0 "$oxlint" -c .oxlintrc.json --fix --quiet < "$list" || status=1
+    xargs -0 git add < "$list"
+  else
+    echo "pre-commit: oxlint not found; skipping JS/TS lint (npm install)" >&2
+  fi
+fi
 
-rm -f "$tmp"
-exit 0
+if staged '*.py'; then
+  if command -v uvx >/dev/null 2>&1; then
+    xargs -0 uvx "$RUFF" format --quiet < "$list"
+    xargs -0 uvx "$RUFF" check --fix --quiet < "$list" || status=1
+    xargs -0 git add < "$list"
+  else
+    echo "pre-commit: uvx not found; skipping Python format and lint (install uv)" >&2
+  fi
+fi
+
+if [ "$status" -ne 0 ]; then
+  echo "pre-commit: lint errors above block this commit. Fix them, then add how to avoid each" >&2
+  echo "pre-commit: one to .claude/rules/LINT.md." >&2
+fi
+exit "$status"
