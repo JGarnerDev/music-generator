@@ -13,7 +13,6 @@ import { createRoot } from "react-dom/client";
 import { Keys } from "./pages/Keys";
 import "jeff-ui/tokens.css";
 import "jeff-ui/base.css";
-import "./theme.css";
 import "./keys.css";
 
 createRoot(document.getElementById("root")!).render(
