@@ -10,6 +10,7 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { Studies } from "./pages/Studies";
 import "jeff-ui/tokens.css";
+import "jeff-ui/base.css";
 import "./theme.css";
 import "./studies.css";
 

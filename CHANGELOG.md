@@ -9,6 +9,12 @@ updated: 2026-11-20
 
 Grouped `Added` / `Changed` / `Removed` / `Fixed`. New compositions, palettes, voices, plans and renders stay out; they live in git history. The version in [`VERSION`](VERSION) (and `version` in `package.json`) always matches the top entry below.
 
+## [0.3.1] — 2026-11-20
+
+### Changed
+
+- The apps import `jeff-ui/base.css` (0.10.0) and drop their own body and box-sizing rules; bare `h1`, `button`, `select` and `input` rules sit in `@layer ui.elements`, under jeff-ui's components. In keys, hover no longer changes a `.bending` key's background.
+
 ## [0.3.0] — 2026-11-20
 
 ### Changed

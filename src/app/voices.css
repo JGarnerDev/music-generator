@@ -1,10 +1,3 @@
-/* Border-box everywhere: the body's padding has to live *inside* its
-   100vh, or the page overflows by exactly that padding. */
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-}
 :root {
   color-scheme: dark;
   --bg: #14121a;
@@ -24,14 +17,10 @@
  * between them is how you lose the comparison.
  */
 body {
-  font-family: ui-monospace, "Cascadia Code", monospace;
-  background: var(--bg);
-  color: var(--ink);
   display: grid;
   justify-content: center;
   align-content: start;
   min-height: 100vh;
-  margin: 0;
   padding: 2rem 0 1.5rem;
 }
 main {
@@ -46,13 +35,16 @@ main {
     auto auto auto auto auto; /* selected · notes · transport · workflow · status */
   gap: 0.7rem;
 }
-h1 {
-  font-size: 1.1rem;
-  color: var(--accent);
-  letter-spacing: 0.02em;
-  margin: 0;
-  height: 1.4rem;
-  line-height: 1.4rem;
+/* Bare element rules go under jeff-ui's components, which then win (jeff-ui README, "Layers"). */
+@layer ui.elements {
+  h1 {
+    font-size: 1.1rem;
+    color: var(--accent);
+    letter-spacing: 0.02em;
+    margin: 0;
+    height: 1.4rem;
+    line-height: 1.4rem;
+  }
 }
 .row {
   display: flex;
@@ -161,25 +153,28 @@ td.cell-title {
   border-left: 2px solid var(--line);
   padding-left: 0.6rem;
 }
-button {
-  flex: 1 1 0;
-  min-width: 0;
-  height: 2.7rem;
-  padding: 0 0.8rem;
-  background: var(--panel);
-  color: var(--ink);
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  font: inherit;
-  font-size: 0.9rem;
-  cursor: pointer;
-}
-button:hover:not(:disabled) {
-  background: var(--panel-hi);
-}
-button:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
+/* Bare element rules go under jeff-ui's components, which then win (jeff-ui README, "Layers"). */
+@layer ui.elements {
+  button {
+    flex: 1 1 0;
+    min-width: 0;
+    height: 2.7rem;
+    padding: 0 0.8rem;
+    background: var(--panel);
+    color: var(--ink);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    font: inherit;
+    font-size: 0.9rem;
+    cursor: pointer;
+  }
+  button:hover:not(:disabled) {
+    background: var(--panel-hi);
+  }
+  button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
 }
 #approve {
   border-color: var(--approved);
