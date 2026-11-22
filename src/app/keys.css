@@ -1,24 +1,11 @@
-:root {
-  color-scheme: dark;
-  --bg: #14121a;
-  --panel: #2a2440;
-  --panel-hi: #362e52;
-  --line: #443a66;
-  --ink: #e8e4f0;
-  --accent: #b6a6e6;
-  --recording: #e07a7a;
-  --armed: #e0c07a;
-  --lit: #b6a6e6;
-}
 /*
  * Wider than the other benches, and for once the width is the feature: this
  * page is a keyboard, and a keyboard drawn narrow is a row of slivers nobody
  * can find middle C on.
  *
- * Nothing above the piano may change height. The status line grows and shrinks
- * as you play, and every pixel it moves would move the keys under your fingers
- * mid-phrase — so the piano's block is fixed and the summary at the bottom is
- * the only thing that scrolls.
+ * Nothing above the piano may change height: every pixel it moved would move
+ * the keys under your fingers mid-phrase. Colors are dusk's tokens (jeff-ui);
+ * the keys mix them toward the ivory and ebony a keyboard is read by.
  */
 html {
   /* A rubber-band scroll is a keyboard sliding out from under a finger. */
@@ -33,13 +20,13 @@ body {
   /* 100dvh where it exists: on a phone `vh` is the address bar's idea of the
      viewport, which is taller than what you can actually see. */
   min-height: 100dvh;
-  padding: 2rem 0 1.5rem;
+  padding: var(--ui-space-7) 0 var(--ui-space-6);
   overscroll-behavior: none;
   /* Installed to a home screen the page owns the whole screen, notch and all —
      `viewport-fit=cover` in keys.html. This pays the inset back. */
   padding-left: env(safe-area-inset-left);
   padding-right: env(safe-area-inset-right);
-  padding-bottom: max(1.5rem, env(safe-area-inset-bottom));
+  padding-bottom: max(var(--ui-space-6), env(safe-area-inset-bottom));
 }
 main {
   width: min(900px, 94vw);
@@ -48,96 +35,20 @@ main {
   grid-template-rows:
     auto /* top controls */
     1fr; /* piano */
-  gap: 0.7rem;
+  gap: var(--ui-space-3);
 }
 main > * {
   min-width: 0;
 }
-.row {
-  display: flex;
-  gap: 0.6rem;
-  align-items: center;
-}
 
-/* Bare element rules go under jeff-ui's components, which then win (jeff-ui README, "Layers"). */
-@layer ui.elements {
-  button,
-  select,
-  input {
-    font: inherit;
-    color: var(--ink);
-    background: var(--panel);
-    border: 1px solid var(--line);
-    border-radius: 4px;
-    padding: 0.3rem 0.6rem;
-  }
-  button {
-    cursor: pointer;
-    -webkit-tap-highlight-color: transparent;
-  }
-  button:hover:not(:disabled) {
-    background: var(--panel-hi);
-  }
-  button:disabled {
-    opacity: 0.4;
-    cursor: default;
-  }
+/* The settings sit at the far end of the row, and jeff-ui's panel opens from
+   the button's right edge, so it stays on screen. */
+#menu {
+  position: relative;
+  margin-left: auto;
 }
-button.recording {
-  border-color: var(--recording);
-  color: var(--recording);
-}
-button.armed {
-  border-color: var(--armed);
-  color: var(--armed);
-}
-button.on {
-  border-color: var(--accent);
-  color: var(--accent);
-}
-/* Held, not toggled: the accent is on while the pitch is actually travelling. */
-button.bending {
-  background: var(--accent);
-  color: #1a1526;
-  border-color: var(--accent);
-}
-
-#topControls {
-  display: flex;
-  gap: 1rem;
-  align-items: center;
-  flex-wrap: wrap;
-}
-#voicePick {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  flex: 0 1 auto;
-}
-#voicePick label {
-  opacity: 0.6;
-  font-size: 0.85rem;
-}
-#voicePick select {
+#voice {
   min-width: 10rem;
-}
-#topControls .group {
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
-}
-#topControls .what {
-  font-size: 0.78rem;
-  opacity: 0.55;
-}
-#topControls .value {
-  min-width: 1.2rem;
-  text-align: center;
-  font-weight: 700;
-}
-#topControls .group button {
-  min-width: 2.1rem;
-  text-align: center;
 }
 
 /* ── The keyboard ─────────────────────────────────────────────────── */
@@ -169,13 +80,13 @@ button.bending {
   gap: 2px;
 }
 .key {
-  border: 1px solid var(--line);
-  border-radius: 0 0 4px 4px;
+  border: 1px solid var(--ui-border);
+  border-radius: 0 0 var(--ui-radius-sm) var(--ui-radius-sm);
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
   align-items: center;
-  padding-bottom: 0.35rem;
+  padding-bottom: var(--ui-space-2);
   gap: 0.15rem;
   cursor: pointer;
 }
@@ -184,16 +95,16 @@ button.bending {
   /* Shrink past the label rather than push the keyboard wider than the screen;
      the label is a convenience and the width is the instrument. */
   min-width: 0;
-  background: #d8d4e4;
-  color: #221c33;
+  background: color-mix(in srgb, var(--ui-text) 90%, var(--ui-accent));
+  color: var(--ui-bg);
 }
 .key.black {
   position: absolute;
   top: 0;
   height: 60%;
-  background: #1c1828;
-  color: #cfc8e4;
-  border-color: #000;
+  background: var(--ui-bg);
+  color: var(--ui-text);
+  border-color: var(--ui-bg);
   /* The left edge the component sets is the *boundary* between two whites, so
      the key has to straddle it rather than start at it. */
   transform: translateX(-50%);
@@ -202,121 +113,48 @@ button.bending {
 /* Out of the take's key signature. Faint on purpose: it is a hint while you
    look for a note, and nothing at all once you are playing. */
 .key.white.outside {
-  background: #c6c0d6;
+  background: color-mix(in srgb, var(--ui-text) 80%, var(--ui-surface));
 }
 .key.black.outside {
-  background: #262032;
+  background: color-mix(in srgb, var(--ui-bg) 70%, var(--ui-surface));
 }
 .key.down {
-  background: var(--lit);
-  color: #1a1526;
-  box-shadow: 0 0 12px var(--lit);
+  background: var(--ui-accent);
+  color: var(--ui-on-accent);
+  box-shadow: 0 0 12px var(--ui-accent);
 }
 .key.black.down {
-  background: #8c78d0;
-  color: #efeaff;
+  background: color-mix(in srgb, var(--ui-accent) 75%, var(--ui-bg));
+  color: var(--ui-text);
 }
 .cap {
-  font-size: 0.8rem;
+  font-size: var(--ui-font-size-sm);
   font-weight: 700;
 }
 .pitch {
   font-size: 0.6rem;
-  opacity: 0.5;
+  color: var(--ui-muted);
+}
+.key.white .pitch {
+  color: inherit;
+  opacity: 0.6;
 }
 .key.black .pitch {
   display: none;
 } /* no room, and the cap is what you need */
 
-/* ── The hamburger ────────────────────────────────────────────────── */
-/*
- * The settings that are not controls. It is a *panel*, not a dropdown: the
- * choices carry a line of explanation each, because "small speaker" means
- * nothing until it says what it does to the sound and what it does not do to
- * the renders.
- *
- * Absolutely positioned so opening it never reflows the row above the
- * keyboard — the one thing this page will not do is move the keys under a
- * playing hand.
- */
-.menu {
-  position: relative;
-  flex: 0 0 auto;
-}
-.menu .hamburger {
-  min-width: 2.4rem;
-  line-height: 1;
-  font-size: 1.05rem;
-  padding: 0.3rem 0.55rem;
-}
-.menu .hamburger.on {
-  border-color: var(--accent);
-  color: var(--accent);
-}
-.menu .panel {
-  position: absolute;
-  top: calc(100% + 0.4rem);
-  left: 0;
-  z-index: 10;
-  width: min(20rem, 82vw);
-  display: grid;
-  gap: 0.3rem;
-  padding: 0.6rem;
-  background: var(--panel);
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
-}
-.menu .heading {
-  margin: 0 0 0.1rem;
-  font-size: 0.7rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  opacity: 0.5;
-}
-.menu .choice {
-  display: grid;
-  gap: 0.15rem;
-  text-align: left;
-  padding: 0.5rem 0.6rem;
-  background: transparent;
-  border-color: transparent;
-}
-.menu .choice:hover:not(:disabled) {
-  background: var(--panel-hi);
-}
-.menu .choice .label {
-  font-size: 0.86rem;
-  font-weight: 700;
-}
-.menu .choice .summary {
-  font-size: 0.7rem;
-  opacity: 0.6;
-  line-height: 1.35;
-  white-space: normal;
-}
-.menu .choice.picked {
-  border-color: var(--accent);
-  background: var(--panel-hi);
-}
-.menu .choice.picked .label {
-  color: var(--accent);
-}
-
 /* ── The kit ──────────────────────────────────────────────────────── */
 /*
- * The other instrument this page can be. A piano is drawn irregular because
- * pitch is; a kit has no order to be irregular about, so it is a plain grid of
- * equal squares — the shape a drum machine has had since the 808, and the
- * reason the kick is where you left it when you change kits.
- *
- * It fills the same block the piano does, so swapping voices does not move
- * anything above it.
+ * The other instrument this page can be. A kit has no order to be irregular
+ * about, so it is a plain grid of equal squares — the shape a drum machine has
+ * had since the 808, and the reason the kick is where you left it when you
+ * change kits. It fills the same block the piano does, so swapping voices does
+ * not move anything above it.
  */
 #pads {
   display: grid;
   grid-template-columns: repeat(var(--pad-columns, 4), minmax(0, 1fr));
-  gap: 0.5rem;
+  gap: var(--ui-space-2);
   height: 100%;
   min-height: 15rem;
   align-content: stretch;
@@ -329,10 +167,11 @@ button.bending {
   justify-content: space-between;
   align-items: flex-start;
   min-height: 3.5rem;
-  padding: 0.5rem 0.6rem;
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  background: var(--panel);
+  padding: var(--ui-space-2) var(--ui-space-3);
+  color: var(--ui-text);
+  border: 1px solid var(--ui-border);
+  border-radius: var(--ui-radius-lg);
+  background: var(--ui-surface);
   cursor: pointer;
   touch-action: none;
   -webkit-user-select: none;
@@ -346,87 +185,41 @@ button.bending {
     box-shadow 140ms ease-out;
 }
 .pad:hover {
-  background: var(--panel-hi);
+  background: var(--ui-surface-hi);
 }
 .pad .piece {
-  font-size: 0.82rem;
+  font-size: var(--ui-font-size-sm);
   letter-spacing: 0.02em;
 }
 .pad .cap {
   font-size: 0.6rem;
-  opacity: 0.45;
+  color: var(--ui-muted);
   align-self: flex-end;
 }
 .pad.lit {
-  background: var(--lit);
-  color: #1a1526;
-  border-color: var(--lit);
-  box-shadow: 0 0 14px var(--lit);
+  background: var(--ui-accent);
+  color: var(--ui-on-accent);
+  border-color: var(--ui-accent);
+  box-shadow: 0 0 14px var(--ui-accent);
   transition: none;
 }
 .pad.lit .cap {
-  opacity: 0.6;
-}
-
-/* ── The controls a hand uses ─────────────────────────────────────── */
-/*
- * Octave, bend, click. Everything here moves while you are playing, which is
- * exactly what earns it a place on screen — the settings that used to sit in
- * this row were all things you decide once, and deciding them was being asked
- * at the moment an idea was leaving somebody's hands.
- */
-#controls {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem 1.4rem;
-  align-items: center;
-}
-#controls .group {
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
-}
-#controls .what {
-  font-size: 0.78rem;
-  opacity: 0.55;
-}
-#controls .value {
-  min-width: 1.2rem;
-  text-align: center;
-  font-weight: 700;
-}
-#controls input[type="number"] {
-  width: 4.5rem;
-}
-/* Square, so − and + are a pair rather than two words of different length. */
-#controls .group button {
-  min-width: 2.1rem;
-  text-align: center;
+  color: inherit;
 }
 
 /* ── A phone ──────────────────────────────────────────────────────── */
 /*
- * The same page with a different instrument in front of it. On a laptop the
- * drawn keyboard is a picture of what the letter keys are doing; on a phone it
- * *is* the keyboard, so it gets the screen and everything else gives way.
- *
- * Split in two on purpose. Width decides the layout — a narrow window on a
- * laptop has the same problem a phone does. The pointer being coarse decides
- * the *targets*, because that is a different question with a different answer:
- * a tablet with a mouse is wide and precise, and a laptop in a small window is
- * narrow and precise.
+ * Width decides the layout — a narrow window on a laptop has the same problem a
+ * phone does. The pointer being coarse decides the *targets*: a tablet with a
+ * mouse is wide and precise. jeff-ui's controls are already thumb-sized.
  */
 @media (max-width: 760px) {
   body {
-    padding: 0.6rem 0 max(0.8rem, env(safe-area-inset-bottom));
+    padding: var(--ui-space-3) 0 max(var(--ui-space-3), env(safe-area-inset-bottom));
   }
   main {
     width: 96vw;
-    gap: 0.4rem;
-  }
-  /* Wide enough to read a sentence on, and still inside the screen. */
-  .menu .panel {
-    width: min(22rem, 88vw);
+    gap: var(--ui-space-2);
   }
   .key .pitch {
     font-size: 0.5rem;
@@ -434,51 +227,20 @@ button.bending {
   /* Two columns of thumb-sized pads beats four of slivers. */
   #pads {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.4rem;
-  }
-  .pad .piece {
-    font-size: 0.75rem;
-  }
-  #controls {
-    gap: 0.4rem 0.8rem;
   }
 }
 
 @media (pointer: coarse) {
-  /* Nothing under ~44 px is reliably hittable with a thumb, and every control
-     on this page is one somebody reaches for mid-phrase. */
-  /* Bare element rules go under jeff-ui's components, which then win (jeff-ui README, "Layers"). */
-  @layer ui.elements {
-    button,
-    select,
-    input {
-      min-height: 2.75rem;
-      padding: 0.4rem 0.7rem;
-    }
-  }
-  #controls .group button {
-    min-width: 2.75rem;
-  }
-  #shelf button {
-    min-height: 2.2rem;
-  }
-  /* The cap says which letter key plays this note. There is no letter key. */
-  .key .cap {
+  /* The cap says which letter key plays this note or pad. There is no letter key. */
+  .key .cap,
+  .pad .cap {
     display: none;
   }
   .key .pitch {
     font-size: 0.62rem;
-    opacity: 0.8;
-  }
-  .key.black .pitch {
-    display: none;
   }
   .key {
-    padding-bottom: 0.5rem;
-  }
-  /* The cap says which letter key strikes this pad. There is no letter key. */
-  .pad .cap {
-    display: none;
+    padding-bottom: var(--ui-space-2);
   }
   .pad {
     min-height: 3.75rem;
@@ -489,23 +251,13 @@ button.bending {
 
 @media (orientation: landscape) {
   body {
-    padding: 0.35rem 0 max(0.35rem, env(safe-area-inset-bottom));
+    padding: var(--ui-space-1) 0 max(var(--ui-space-1), env(safe-area-inset-bottom));
   }
   main {
-    gap: 0.3rem;
-    grid-template-rows: auto 1fr auto;
+    gap: var(--ui-space-1);
   }
-  #piano {
-    min-height: 70vh;
-  }
+  #piano,
   #pads {
     min-height: 70vh;
-  }
-  #voicePick {
-    gap: 0.3rem;
-  }
-  #voicePick .voice-btn {
-    padding: 0.3rem 0.6rem;
-    font-size: 0.65rem;
   }
 }

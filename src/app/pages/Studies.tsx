@@ -33,7 +33,7 @@ import {
 } from "@engine/study-bench";
 import { studyAudioName, type StudyEntry } from "@engine/study-library";
 import { GROUP_BLURBS, type ConceptGroup, type Thumb } from "@engine/study";
-import { Button, Checkbox, PageHeader, SearchInput } from "jeff-ui";
+import { Box, Button, Checkbox, Link, PageHeader, Row, SearchInput, Text, Textarea } from "jeff-ui";
 import { STUDY_VERDICT_ENDPOINT } from "../../dev/endpoints";
 import { GroupTabs } from "../components/GroupTabs";
 import { SetStrip } from "../components/SetStrip";
@@ -182,15 +182,25 @@ export function Studies() {
   return (
     <main>
       <PageHeader title="music-generator · studies bench">
-        <a href="/index.html">compositions →</a>
-        <a href="/session.html">session →</a>
-        <a href="/voices.html">voices →</a>
-        <a href="/keys.html">keys →</a>
+        <Link variant="nav" href="/index.html">
+          compositions →
+        </Link>
+        <Link variant="nav" href="/session.html">
+          session →
+        </Link>
+        <Link variant="nav" href="/voices.html">
+          voices →
+        </Link>
+        <Link variant="nav" href="/keys.html">
+          keys →
+        </Link>
       </PageHeader>
 
       <GroupTabs entries={entries} group={group} onPick={setGroup} />
-      <div id="blurb">{group ? GROUP_BLURBS[group] : ALL_GROUPS_BLURB}</div>
-      <div id="filters">
+      <Text id="blurb" size="sm" tone="muted" lines={1}>
+        {group ? GROUP_BLURBS[group] : ALL_GROUPS_BLURB}
+      </Text>
+      <Row id="filters" wrap={false} align="center" gap={4}>
         <Checkbox
           label="unjudged only"
           id="unjudgedOnly"
@@ -211,7 +221,7 @@ export function Studies() {
             retarget({ ...filters, query: value });
           }}
         />
-      </div>
+      </Row>
 
       <StudyTable
         entries={entries}
@@ -223,11 +233,17 @@ export function Studies() {
         }}
       />
 
-      <div id="selected">{described ? described.label : NO_STUDY_SELECTED}</div>
-      <div id="approach">{described ? described.approach : ""}</div>
+      <Text id="selected" strong lines={1}>
+        {described ? described.label : NO_STUDY_SELECTED}
+      </Text>
+      <Box id="approach" inset>
+        <Text size="sm" tone="muted" lines={2}>
+          {described ? described.approach : ""}
+        </Text>
+      </Box>
       <SetStrip entries={entries} entry={selected} onSelect={select} />
 
-      <div className="row">
+      <Row equal>
         <Button
           id="play"
           disabled={!can.canPlay || loading}
@@ -257,7 +273,7 @@ export function Studies() {
         >
           ■ Stop
         </Button>
-      </div>
+      </Row>
 
       <TagShelf
         picked={picked}
@@ -270,18 +286,19 @@ export function Studies() {
           })
         }
       />
-      <textarea
+      <Textarea
         id="note"
         rows={2}
         placeholder="anything the tags don't cover (optional)…"
-        aria-label="Verdict note"
+        label="Verdict note"
         value={note}
         disabled={!can.canJudge}
-        onChange={(e) => setNote(e.target.value)}
+        onChange={setNote}
       />
-      <div className="row">
+      <Row equal>
         <Button
           id="up"
+          hue="var(--ui-ok)"
           disabled={!can.canJudge}
           onClick={() => selected && void judge(selected, "up")}
         >
@@ -289,6 +306,7 @@ export function Studies() {
         </Button>
         <Button
           id="down"
+          hue="var(--ui-err)"
           disabled={!can.canJudge}
           onClick={() => selected && void judge(selected, "down")}
         >
@@ -302,8 +320,10 @@ export function Studies() {
         >
           ↩ Clear
         </Button>
-      </div>
-      <div id="status">{status}</div>
+      </Row>
+      <Text id="status" size="sm" tone="muted" lines={2}>
+        {status}
+      </Text>
     </main>
   );
 }

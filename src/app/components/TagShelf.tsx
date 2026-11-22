@@ -8,7 +8,7 @@
  * [a fixed list](../../engine/study.ts), never something a verdict can extend.
  */
 import { TAG_FACETS, tagsOfFacet } from "@engine/study";
-import { Chip } from "jeff-ui";
+import { Box, Chip, Column, Field, Row } from "jeff-ui";
 
 export interface TagShelfProps {
   /** The tags armed for the current selection. */
@@ -19,23 +19,26 @@ export interface TagShelfProps {
 
 export function TagShelf({ picked, disabled, onToggle }: TagShelfProps) {
   return (
-    <div id="tags" aria-label="Verdict tags">
-      {TAG_FACETS.map((facet) => (
-        <div className="facet" key={facet}>
-          <span className="facet-name">{facet}</span>
-          {tagsOfFacet(facet).map((tag) => (
-            <Chip
-              key={tag.name}
-              title={tag.blurb}
-              disabled={disabled}
-              pressed={picked.has(tag.name)}
-              onToggle={() => onToggle(tag.name)}
-            >
-              {tag.name}
-            </Chip>
-          ))}
-        </div>
-      ))}
-    </div>
+    <Box id="tags" inset aria-label="Verdict tags">
+      <Column gap={2}>
+        {TAG_FACETS.map((facet) => (
+          <Field key={facet} label={facet} layout="inline" group>
+            <Row gap={1}>
+              {tagsOfFacet(facet).map((tag) => (
+                <Chip
+                  key={tag.name}
+                  title={tag.blurb}
+                  disabled={disabled}
+                  pressed={picked.has(tag.name)}
+                  onToggle={() => onToggle(tag.name)}
+                >
+                  {tag.name}
+                </Chip>
+              ))}
+            </Row>
+          </Field>
+        ))}
+      </Column>
+    </Box>
   );
 }

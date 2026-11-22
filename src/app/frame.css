@@ -1,0 +1,27 @@
+/*
+ * The frame the four benches share (bench, session, studies, voices). Each
+ * page's own CSS sets only its width, its height limits and its rows.
+ *
+ * Every block on a bench is a fixed size: it is a tool you use with your eyes
+ * in one place, so switching tabs, filtering or picking a longer name must
+ * never move the Play button. The page is top-anchored (not centred, which
+ * would re-centre as content grows), main is one screenful laid out as fixed
+ * rows with the table taking the slack, and every text line that varies is
+ * clamped (`Text lines`).
+ */
+body {
+  display: grid;
+  justify-content: center;
+  align-content: start;
+  min-height: 100vh;
+  padding: var(--ui-space-6) 0 var(--ui-space-5);
+}
+main {
+  height: calc(100vh - 2.75rem); /* the viewport minus the body padding */
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--ui-space-3);
+}
+#root {
+  display: contents;
+}

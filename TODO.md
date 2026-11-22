@@ -2,7 +2,7 @@
 type: doc
 purpose: Prioritized backlog of what to build, plus links to open tasks. Living doc — remove items once done, reorder as reality shifts.
 audience: [claude, human]
-updated: 2026-11-18
+updated: 2026-11-22
 read_order: 2
 see_also: [README.md, docs/vision.md]
 status: living
@@ -15,6 +15,7 @@ status: living
 ## Tasks
 
 - [ ] [Redwater Act 1](tasks/redwater/TODO.md): music commission from the dnd engine's Redwater campaign. Brief in `tasks/redwater/PLAN.md`; approved pieces are filed beside them (kept local, not in git)
+- [ ] Browser check of the jeff-ui pages (0.4.0): studies height with 44px buttons, the tag shelf labels, the set strip, the keys settings panel and piano colors on a phone
 
 ## Backlog
 

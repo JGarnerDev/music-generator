@@ -17,7 +17,7 @@ import {
   type StudyFilters,
 } from "@engine/study-bench";
 import type { StudyEntry } from "@engine/study-library";
-import { Badge, type BadgeTone, EmptyState, IconButton } from "jeff-ui";
+import { Badge, type BadgeTone, IconButton, Table, Text, type TableColumn } from "jeff-ui";
 
 export interface StudyTableProps {
   entries: readonly StudyEntry[];
@@ -28,67 +28,62 @@ export interface StudyTableProps {
 
 export function StudyTable({ entries, filters, ...on }: StudyTableProps) {
   const visible = visibleStudies(entries, filters);
-
-  return (
-    <div id="listWrap">
-      <table id="studies">
-        <colgroup>
-          <col className="col-play" />
-          <col className="col-name" />
-          <col className="col-variant" />
-          <col className="col-verdict" />
-        </colgroup>
-        <tbody id="rows">
-          {visible.map((entry) => (
-            <Row
-              key={entry.id}
-              entry={entry}
-              selected={entry.id === filters.selectedId}
-              onSelect={on.onSelect}
-              onPlay={on.onPlay}
-            />
-          ))}
-        </tbody>
-      </table>
-      <EmptyState id="empty" hidden={visible.length > 0}>
-        {emptyStudiesMessage(filters.query, filters.unjudgedOnly, entries.length)}
-      </EmptyState>
-    </div>
-  );
-}
-
-interface RowProps {
-  entry: StudyEntry;
-  selected: boolean;
-  onSelect(entry: StudyEntry): void;
-  onPlay(entry: StudyEntry): void;
-}
-
-function Row({ entry, selected, ...on }: RowProps) {
-  const chip = verdictChip(entry);
-  return (
-    <tr
-      aria-selected={selected}
-      title={entry.path.replace(/^.*studies\//, "studies/")}
-      onClick={() => on.onSelect(entry)}
-    >
-      <td className="cell-play">
+  const columns: TableColumn<StudyEntry>[] = [
+    {
+      key: "play",
+      width: "3rem",
+      cell: (entry) => (
         <IconButton label={`Play ${entry.id}`} onClick={() => on.onPlay(entry)}>
           ▶
         </IconButton>
-      </td>
-      <td className="cell-name">
-        {rowLabel(entry)}
-        <span className="concept">{entry.concept}</span>
-      </td>
-      <td className="cell-variant" title={entry.study.approach ?? ""}>
-        <span className="axis">{`${entry.study.axis ?? "?"} ·`}</span>
-        {entry.study.variant ?? ""}
-      </td>
-      <td className="cell-verdict">
-        <Badge tone={verdictTone(chip.variant)}>{chip.text}</Badge>
-      </td>
-    </tr>
+      ),
+    },
+    {
+      key: "name",
+      width: "34%",
+      cell: (entry) => (
+        <>
+          <Text as="span" strong>
+            {rowLabel(entry)}
+          </Text>{" "}
+          <Text as="span" size="xs" tone="muted">
+            {entry.concept}
+          </Text>
+        </>
+      ),
+    },
+    {
+      key: "variant",
+      title: (entry) => entry.study.approach ?? "",
+      cell: (entry) => (
+        <>
+          <Text as="span" size="sm" tone="muted">{`${entry.study.axis ?? "?"} ·`}</Text>{" "}
+          {entry.study.variant ?? ""}
+        </>
+      ),
+    },
+    {
+      key: "verdict",
+      width: "5.5rem",
+      cell: (entry) => {
+        const chip = verdictChip(entry);
+        return <Badge tone={verdictTone(chip.variant)}>{chip.text}</Badge>;
+      },
+    },
+  ];
+
+  return (
+    <Table
+      id="studies"
+      frame
+      columns={columns}
+      rows={visible}
+      rowKey={(entry) => entry.id}
+      onRowClick={on.onSelect}
+      selected={(entry) => entry.id === filters.selectedId}
+      rowProps={(entry) => ({ title: entry.path.replace(/^.*studies\//, "studies/") })}
+      empty={emptyStudiesMessage(filters.query, filters.unjudgedOnly, entries.length)}
+    />
   );
 }
 

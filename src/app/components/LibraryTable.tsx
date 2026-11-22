@@ -6,9 +6,9 @@
  * [`@engine/library`](../../engine/library.ts). This file decides only what a row
  * looks like.
  *
- * Column widths come from the `<colgroup>` and `table-layout: fixed`, not from
- * the content: the bench is a tool you use with your eyes in one place, so a
- * longer name clips rather than moving the Play button.
+ * Column widths are fixed, not taken from the content: the bench is a tool you
+ * use with your eyes in one place, so a longer name clips rather than moving
+ * the Play button.
  */
 import {
   chipLabels,
@@ -19,7 +19,7 @@ import {
   type CompositionKind,
   type LibraryEntry,
 } from "@engine/library";
-import { Badge, EmptyState, IconButton } from "jeff-ui";
+import { Badge, IconButton, Table, Text, type TableColumn } from "jeff-ui";
 
 export interface LibraryTableProps {
   entries: readonly LibraryEntry[];
@@ -38,81 +38,72 @@ export function LibraryTable(props: LibraryTableProps) {
   const { entries, kind, query, selectedId } = props;
   const visible = searchEntries(entriesOfKind(entries, kind), query);
   const usage = motifUsage(entries);
+  const chipsOf = (entry: LibraryEntry) => chipLabels(entry, usage.get(entry.slug)?.length ?? 0);
 
-  return (
-    <div id="libraryWrap">
-      <table id="library">
-        <colgroup>
-          <col className="col-play" />
-          <col className="col-name" />
-          <col className="col-tags" />
-          <col className="col-delete" />
-        </colgroup>
-        <tbody id="rows">
-          {visible.map((entry) => (
-            <Row
-              key={entry.id}
-              entry={entry}
-              showKind={kind === null}
-              selected={entry.id === selectedId}
-              quotedBy={usage.get(entry.slug)?.length ?? 0}
-              onSelect={props.onSelect}
-              onPlay={props.onPlay}
-              onDelete={props.onDelete}
-              canDelete={props.canDelete}
-            />
-          ))}
-        </tbody>
-      </table>
-      <EmptyState id="empty" hidden={visible.length > 0}>
-        {emptyMessage(kind, query)}
-      </EmptyState>
-    </div>
-  );
-}
-
-interface RowProps {
-  entry: LibraryEntry;
-  /** The kind column only says anything on the All tab. */
-  showKind: boolean;
-  selected: boolean;
-  quotedBy: number;
-  onSelect(entry: LibraryEntry): void;
-  onPlay(entry: LibraryEntry): void;
-  onDelete(entry: LibraryEntry): void;
-  canDelete: boolean;
-}
-
-function Row({ entry, showKind, selected, quotedBy, canDelete, ...on }: RowProps) {
-  const chips = chipLabels(entry, quotedBy);
-  return (
-    <tr aria-selected={selected} title={entry.path} onClick={() => on.onSelect(entry)}>
-      <td className="cell-play">
-        <IconButton label={`Play ${entry.slug}`} onClick={() => on.onPlay(entry)}>
+  const columns: TableColumn<LibraryEntry>[] = [
+    {
+      key: "play",
+      width: "3rem",
+      cell: (entry) => (
+        <IconButton label={`Play ${entry.slug}`} onClick={() => props.onPlay(entry)}>
           ▶
         </IconButton>
-      </td>
-      <td className="cell-name">
-        {entry.slug}
-        <span className="kind">{showKind ? entry.kind : ""}</span>
-      </td>
-      {/* Cells are clamped to one line, so anything clipped is still readable on hover. */}
-      <td className="cell-tags" title={chips.map((chip) => chip.text).join(" · ")}>
-        {chips.map((chip) => (
+      ),
+    },
+    {
+      key: "name",
+      width: "48%",
+      cell: (entry) => (
+        <>
+          <Text as="span" strong>
+            {entry.slug}
+          </Text>{" "}
+          {/* The kind only says anything on the All tab. */}
+          {kind === null ? (
+            <Text as="span" size="xs" tone="muted">
+              {entry.kind}
+            </Text>
+          ) : null}
+        </>
+      ),
+    },
+    {
+      key: "tags",
+      // Cells are clamped to one line, so anything clipped is still readable on hover.
+      title: (entry) =>
+        chipsOf(entry)
+          .map((chip) => chip.text)
+          .join(" · "),
+      cell: (entry) =>
+        chipsOf(entry).map((chip) => (
           <Badge key={chip.text} tone={chip.motif ? "accent" : "muted"}>
             {chip.text}
           </Badge>
-        ))}
-      </td>
-      <td className="cell-delete">
-        {canDelete ? (
-          <IconButton label={`Delete ${entry.slug}`} danger onClick={() => on.onDelete(entry)}>
+        )),
+    },
+    {
+      key: "delete",
+      width: "3rem",
+      cell: (entry) =>
+        props.canDelete ? (
+          <IconButton label={`Delete ${entry.slug}`} danger onClick={() => props.onDelete(entry)}>
             🗑
           </IconButton>
-        ) : (
-          <span />
-        )}
-      </td>
-    </tr>
+        ) : null,
+    },
+  ];
+
+  return (
+    <Table
+      id="library"
+      frame
+      columns={columns}
+      rows={visible}
+      rowKey={(entry) => entry.id}
+      onRowClick={props.onSelect}
+      selected={(entry) => entry.id === selectedId}
+      rowProps={(entry) => ({ title: entry.path })}
+      empty={emptyMessage(kind, query)}
+    />
   );
 }

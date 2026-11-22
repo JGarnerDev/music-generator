@@ -12,7 +12,7 @@
 import { emptyVoicesMessage, statusOf, visibleVoices } from "@engine/voice-bench";
 import type { VoiceEntry } from "@engine/voice-library";
 import type { InstrumentName } from "@engine/composition";
-import { Badge, EmptyState, IconButton } from "jeff-ui";
+import { Badge, IconButton, Table, Text, type BadgeTone, type TableColumn } from "jeff-ui";
 
 export interface VoiceTableProps {
   entries: readonly VoiceEntry[];
@@ -32,69 +32,71 @@ export function VoiceTable({
   ...on
 }: VoiceTableProps) {
   const visible = visibleVoices(entries, instrument, draftsOnly);
-
-  return (
-    <div id="listWrap">
-      <table id="voices">
-        <colgroup>
-          <col className="col-play" />
-          <col className="col-slug" />
-          <col className="col-title" />
-          <col className="col-status" />
-        </colgroup>
-        <tbody id="rows">
-          {visible.map((entry) => (
-            <Row
-              key={entry.id}
-              entry={entry}
-              // The instrument only needs saying when the table mixes them.
-              showInstrument={instrument === null}
-              selected={entry.id === selectedId}
-              onSelect={on.onSelect}
-              onPlay={on.onPlay}
-            />
-          ))}
-        </tbody>
-      </table>
-      <EmptyState id="empty" hidden={visible.length > 0}>
-        {emptyVoicesMessage(instrument, draftsOnly)}
-      </EmptyState>
-    </div>
-  );
-}
-
-interface RowProps {
-  entry: VoiceEntry;
-  showInstrument: boolean;
-  selected: boolean;
-  onSelect(entry: VoiceEntry): void;
-  onPlay(entry: VoiceEntry): void;
-}
-
-function Row({ entry, showInstrument, selected, ...on }: RowProps) {
-  const status = statusOf(entry);
-  return (
-    <tr
-      aria-selected={selected}
-      title={entry.path.replace(/^.*voices\//, "voices/")}
-      onClick={() => on.onSelect(entry)}
-    >
-      <td className="cell-play">
+  const columns: TableColumn<VoiceEntry>[] = [
+    {
+      key: "play",
+      width: "3rem",
+      cell: (entry) => (
         <IconButton label={`Play ${entry.id}`} onClick={() => on.onPlay(entry)}>
           ▶
         </IconButton>
-      </td>
-      <td className="cell-slug">
-        {entry.slug}
-        <span className="instrument">{showInstrument ? entry.instrument : ""}</span>
-      </td>
-      <td className="cell-title">{entry.preset.title ?? ""}</td>
-      <td className="cell-status">
-        <Badge tone={status === "approved" ? "ok" : status === "draft" ? "warn" : "err"}>
-          {status}
-        </Badge>
-        {entry.preset.default ? <Badge tone="accent">default</Badge> : null}
-      </td>
-    </tr>
+      ),
+    },
+    {
+      key: "slug",
+      width: "34%",
+      cell: (entry) => (
+        <>
+          <Text as="span" strong>
+            {entry.slug}
+          </Text>{" "}
+          {/* The instrument only needs saying when the table mixes them. */}
+          {instrument === null ? (
+            <Text as="span" size="xs" tone="muted">
+              {entry.instrument}
+            </Text>
+          ) : null}
+        </>
+      ),
+    },
+    {
+      key: "title",
+      cell: (entry) => (
+        <Text as="span" tone="muted">
+          {entry.preset.title ?? ""}
+        </Text>
+      ),
+    },
+    {
+      key: "status",
+      width: "9rem",
+      cell: (entry) => (
+        <>
+          <Badge tone={statusTone(statusOf(entry))}>{statusOf(entry)}</Badge>
+          {entry.preset.default ? <Badge tone="accent">default</Badge> : null}
+        </>
+      ),
+    },
+  ];
+
+  return (
+    <Table
+      id="voices"
+      frame
+      columns={columns}
+      rows={visible}
+      rowKey={(entry) => entry.id}
+      onRowClick={on.onSelect}
+      selected={(entry) => entry.id === selectedId}
+      rowProps={(entry) => ({ title: entry.path.replace(/^.*voices\//, "voices/") })}
+      empty={emptyVoicesMessage(instrument, draftsOnly)}
+    />
   );
+}
+
+/** A voice's status as a Badge tone. */
+function statusTone(status: string): BadgeTone {
+  if (status === "approved") return "ok";
+  if (status === "draft") return "warn";
+  return "err";
 }

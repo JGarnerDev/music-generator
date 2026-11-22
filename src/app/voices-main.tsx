@@ -11,6 +11,7 @@ import { createRoot } from "react-dom/client";
 import { Voices } from "./pages/Voices";
 import "jeff-ui/tokens.css";
 import "jeff-ui/base.css";
+import "./frame.css";
 import "./voices.css";
 
 createRoot(document.getElementById("root")!).render(

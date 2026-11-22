@@ -61,7 +61,18 @@ import { usePlayback } from "../hooks/usePlayback";
 import { useScrubBar } from "../hooks/useScrubBar";
 import { useSessions } from "../hooks/useSessions";
 import { VOLUME_STEP, useVolume } from "../hooks/useVolume";
-import { Button, IconButton, PageHeader, SearchInput, Select } from "jeff-ui";
+import {
+  Button,
+  Column,
+  IconButton,
+  Link,
+  PageHeader,
+  Row,
+  SearchInput,
+  Select,
+  Slider,
+  Text,
+} from "jeff-ui";
 
 // The same eager glob the composition bench uses: Vite bundles every composition
 // at build time, and `src/dev/live-library.ts` makes a *new* file reach the open
@@ -265,12 +276,18 @@ export function Session() {
   return (
     <main>
       <PageHeader title="music-generator · session board">
-        <a href="/">bench →</a>
-        <a href="/voices.html">voices →</a>
-        <a href="/keys.html">keys →</a>
+        <Link variant="nav" href="/">
+          bench →
+        </Link>
+        <Link variant="nav" href="/voices.html">
+          voices →
+        </Link>
+        <Link variant="nav" href="/keys.html">
+          keys →
+        </Link>
       </PageHeader>
 
-      <div id="pickerRow">
+      <Row id="pickerRow" wrap={false}>
         <Select
           id="sessionPick"
           label="Session"
@@ -293,7 +310,7 @@ export function Session() {
         >
           🗑
         </Button>
-      </div>
+      </Row>
 
       <SessionTabs
         tab={tab}
@@ -306,12 +323,14 @@ export function Session() {
           up exactly as much room as the one you are. */}
       <div id="panels">
         <section id="sessionPanel" role="tabpanel" aria-label="Session" hidden={tab !== "session"}>
-          <div className="planHead">
-            <div id="planTitle">{rendered === null ? "loading…" : header.title}</div>
-            <div id="planMeta" className={header.warn ? "warn" : undefined}>
+          <Column gap={1}>
+            <Text id="planTitle" tone="accent" lines={1}>
+              {rendered === null ? "loading…" : header.title}
+            </Text>
+            <Text id="planMeta" size="xs" tone={header.warn ? "warn" : "muted"} lines={1}>
               {rendered === null ? "" : header.meta}
-            </div>
-          </div>
+            </Text>
+          </Column>
           <CueTable
             cues={cues}
             hasPlan={!!plan}
@@ -325,7 +344,7 @@ export function Session() {
         </section>
 
         <section id="archivePanel" role="tabpanel" aria-label="Archive" hidden={tab !== "archive"}>
-          <div id="filters">
+          <Row id="filters" wrap={false} align="center" gap={2}>
             <CampaignChips entries={ENTRIES} campaign={campaign} onPick={setCampaign} />
             <SearchInput
               id="search"
@@ -334,7 +353,7 @@ export function Session() {
               value={query}
               onChange={setQuery}
             />
-          </div>
+          </Row>
           <ArchiveTable
             entries={ENTRIES}
             campaign={campaign}
@@ -349,19 +368,21 @@ export function Session() {
         </section>
       </div>
 
-      <div id="nowPlaying">{nowPlaying}</div>
+      <Text id="nowPlaying" lines={1}>
+        {nowPlaying}
+      </Text>
       {/* The bar owns its own children and its own class list from here on —
           see hooks/useScrubBar.ts for why it is not JSX. */}
       <div id="scrub" className="scrub idle" ref={scrubRef} />
-      <div className="row">
+      <Row equal>
         <Button id="toggle" disabled={playback.state === "stopped"} onClick={togglePlayback}>
           {playback.state === "playing" ? "⏸ Pause" : "▶ Play"}
         </Button>
         <Button id="stop" disabled={playback.state === "stopped"} onClick={stop}>
           ■ Stop
         </Button>
-      </div>
-      <div id="volumeRow" className={fader.muted ? "muted" : undefined}>
+      </Row>
+      <Row id="volumeRow" wrap={false} align="center">
         <IconButton
           id="mute"
           label="Mute"
@@ -373,29 +394,27 @@ export function Session() {
         >
           {fader.muted ? "🔇" : "🔊"}
         </IconButton>
-        <input
+        <Slider
           id="volume"
-          type="range"
-          min="0"
-          max="100"
-          step="1"
-          aria-label="Volume"
+          label="Volume"
           value={fader.percent}
           // Silent while it moves, announced when it lands: a status line that
           // repainted on every pixel of a drag is one you stop reading.
-          onChange={(e) => fader.set(Number(e.target.value) / 100)}
+          onChange={(percent) => fader.set(percent / 100)}
           onPointerUp={() => setStatus(volumeMessage(fader.level, fader.muted))}
           onKeyUp={() => setStatus(volumeMessage(fader.level, fader.muted))}
         />
-        <span id="volumeRead" className="scrub-time">
-          {fader.read}
-        </span>
-      </div>
-      <div id="status">{status}</div>
-      <div className="hint">
+        <Text id="volumeRead" as="span" size="xs" tone="muted" numeric>
+          {fader.muted ? <s>{fader.read}</s> : fader.read}
+        </Text>
+      </Row>
+      <Text id="status" size="sm" tone="muted" lines={2}>
+        {status}
+      </Text>
+      <Text size="xs" tone="muted">
         Keys: 1–9 fire that cue · space plays/pauses · esc stops · ←/→ scrub 5s · ↑/↓ volume · m
         mutes
-      </div>
+      </Text>
     </main>
   );
 }

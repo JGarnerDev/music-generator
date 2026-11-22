@@ -2,12 +2,26 @@
 type: doc
 purpose: Notable changes to the engine, scripts, app, schemas and docs, newest first. Bump rules are in CLAUDE.md (Non-negotiables → Versioning).
 audience: [claude, human]
-updated: 2026-11-20
+updated: 2026-11-22
 ---
 
 # Changelog
 
 Grouped `Added` / `Changed` / `Removed` / `Fixed`. New compositions, palettes, voices, plans and renders stay out; they live in git history. The version in [`VERSION`](VERSION) (and `version` in `package.json`) always matches the top entry below.
+
+## [0.4.0] — 2026-11-22
+
+### Changed
+
+- All five bench pages are built from jeff-ui 2.2.0 components on the dusk theme, and their CSS only places things and reads `--ui-*` tokens (491 lines, from 1,683): `Link variant="nav"`, `Text` with `lines` for the fixed-height lines, `Row equal` for the button rows, `Box inset` for the approach and notes panels.
+- The library, cue, archive, study and voice lists are jeff-ui `Table`s (`frame` where the list scrolls), so their columns, selection and empty messages come from one component. A cue's note is now a real button.
+- Studies: the thumbs take `hue` instead of their own classes, and the tag shelf is one inline `Field` per facet.
+- Keys: the settings menu is a jeff-ui `Popover` with a `RadioGroup` of monitors, now at the right end of the row; the octave is a `Stepper`; the piano and pads take their colors from the theme.
+- The four list benches share `src/app/frame.css` for the page frame.
+
+### Removed
+
+- The apps' own palettes and bare element rules, and dead keys rules (`#controls`, `#shelf`, the `recording`/`armed`/`bending` button states).
 
 ## [0.3.1] — 2026-11-20
 

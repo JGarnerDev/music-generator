@@ -10,6 +10,7 @@ import { createRoot } from "react-dom/client";
 import { Bench } from "./pages/Bench";
 import "jeff-ui/tokens.css";
 import "jeff-ui/base.css";
+import "./frame.css";
 import "./bench.css";
 
 createRoot(document.getElementById("root")!).render(

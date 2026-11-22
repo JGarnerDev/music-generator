@@ -7,7 +7,7 @@
  */
 import type { LibraryEntry } from "@engine/library";
 import { campaignsOf } from "@engine/session";
-import { Chip } from "jeff-ui";
+import { Chip, Row } from "jeff-ui";
 
 export interface CampaignChipsProps {
   entries: readonly LibraryEntry[];
@@ -18,7 +18,7 @@ export interface CampaignChipsProps {
 
 export function CampaignChips({ entries, campaign, onPick }: CampaignChipsProps) {
   return (
-    <div id="campaigns">
+    <Row id="campaigns" gap={1} wrap={false}>
       <Chip pressed={campaign === null} onToggle={() => onPick(null)}>
         All
       </Chip>
@@ -27,6 +27,6 @@ export function CampaignChips({ entries, campaign, onPick }: CampaignChipsProps)
           {slug}
         </Chip>
       ))}
-    </div>
+    </Row>
   );
 }

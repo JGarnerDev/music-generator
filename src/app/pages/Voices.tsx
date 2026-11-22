@@ -33,7 +33,7 @@ import {
 import { INSTRUMENT_BLURBS, voiceAudioName, type VoiceEntry } from "@engine/voice-library";
 import { probeFor } from "@engine/probe";
 import type { InstrumentName } from "@engine/composition";
-import { Button, Checkbox, PageHeader } from "jeff-ui";
+import { Badge, Box, Button, Checkbox, Link, PageHeader, Row, Text } from "jeff-ui";
 import { VOICE_APPROVE_ENDPOINT, VOICE_FORK_ENDPOINT } from "../../dev/endpoints";
 import { InstrumentTabs } from "../components/InstrumentTabs";
 import { VoiceTable } from "../components/VoiceTable";
@@ -148,15 +148,25 @@ export function Voices() {
   return (
     <main>
       <PageHeader title="music-generator · voice bench">
-        <a href="/index.html">compositions →</a>
-        <a href="/session.html">session →</a>
-        <a href="/studies.html">studies →</a>
-        <a href="/keys.html">keys →</a>
+        <Link variant="nav" href="/index.html">
+          compositions →
+        </Link>
+        <Link variant="nav" href="/session.html">
+          session →
+        </Link>
+        <Link variant="nav" href="/studies.html">
+          studies →
+        </Link>
+        <Link variant="nav" href="/keys.html">
+          keys →
+        </Link>
       </PageHeader>
 
       <InstrumentTabs entries={entries} instrument={instrument} onPick={setInstrument} />
-      <div id="blurb">{instrument ? INSTRUMENT_BLURBS[instrument] : ALL_INSTRUMENTS_BLURB}</div>
-      <div id="filters">
+      <Text id="blurb" size="sm" tone="muted" lines={1}>
+        {instrument ? INSTRUMENT_BLURBS[instrument] : ALL_INSTRUMENTS_BLURB}
+      </Text>
+      <Row id="filters" wrap={false} align="center" gap={4}>
         <Checkbox
           label="drafts only"
           id="draftsOnly"
@@ -164,14 +174,10 @@ export function Voices() {
           onChange={setDraftsOnly}
         />
         <Checkbox label="loop the probe" id="loop" checked={loopWanted} onChange={setLoopWanted} />
-        <span
-          id="probeName"
-          className="chip"
-          title={probe ? `${probe.bpm} BPM, ${probe.key}` : undefined}
-        >
+        <Badge id="probeName" title={probe ? `${probe.bpm} BPM, ${probe.key}` : undefined}>
           {probe ? `${probe.name}: ${probe.describe}` : "probe"}
-        </span>
-      </div>
+        </Badge>
+      </Row>
 
       <VoiceTable
         entries={entries}
@@ -185,10 +191,16 @@ export function Voices() {
         }}
       />
 
-      <div id="selected">{described ? described.label : NO_VOICE_SELECTED}</div>
-      <div id="notes">{described ? described.notes : ""}</div>
+      <Text id="selected" strong lines={1}>
+        {described ? described.label : NO_VOICE_SELECTED}
+      </Text>
+      <Box id="notes" inset>
+        <Text size="sm" tone="muted">
+          {described ? described.notes : ""}
+        </Text>
+      </Box>
 
-      <div className="row">
+      <Row equal>
         <Button
           id="play"
           disabled={!selected || broken || loading}
@@ -220,11 +232,12 @@ export function Voices() {
         >
           ■ Stop
         </Button>
-      </div>
+      </Row>
 
-      <div className="row">
+      <Row equal align="center">
         <Button
           id="approve"
+          hue="var(--ui-ok)"
           disabled={!selected || broken || !api.canEdit}
           onClick={() => selected && void approve(selected)}
         >
@@ -243,9 +256,11 @@ export function Voices() {
         >
           ⑂ Fork
         </Button>
-      </div>
+      </Row>
 
-      <div id="status">{status}</div>
+      <Text id="status" size="sm" tone="muted" lines={2}>
+        {status}
+      </Text>
     </main>
   );
 }

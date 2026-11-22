@@ -8,78 +8,48 @@
  * behind a button rather than beside the keys, which is the opposite of the
  * rule the rest of this page follows and is the reason this file exists.
  *
- * Closing is three ways because a menu on a phone is dismissed three ways: the
- * button again, a tap outside it, and escape. Escape also panics the
+ * jeff-ui's `Popover` closes it the three ways a menu on a phone is dismissed:
+ * the button again, a tap outside it, and escape. Escape also panics the
  * instrument, which is deliberate — the key that means "stop everything" should
- * not mean something narrower just because a panel happens to be open.
+ * not mean something narrower just because a panel happens to be open. Picking
+ * a monitor closes it too, because the choice is the whole reason it was open.
  */
-import { useEffect, useRef, useState } from "react";
 import { MONITOR_PROFILES, type MonitorId } from "@engine/monitor";
-import { IconButton } from "jeff-ui";
+import { Column, Popover, RadioGroup, Text } from "jeff-ui";
 
 export interface KeysMenuProps {
   monitor: MonitorId;
   onMonitor(id: MonitorId): void;
 }
 
+const OPTIONS = MONITOR_PROFILES.map((profile) => ({
+  value: profile.id,
+  label: (
+    <Column gap={1}>
+      <Text strong>{profile.label}</Text>
+      <Text size="xs" tone="muted">
+        {profile.summary}
+      </Text>
+    </Column>
+  ),
+}));
+
 export function KeysMenu({ monitor, onMonitor }: KeysMenuProps) {
-  const [open, setOpen] = useState(false);
-  const root = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    if (!open) return;
-    const onDown = (event: PointerEvent): void => {
-      if (!root.current?.contains(event.target as Node)) setOpen(false);
-    };
-    const onKey = (event: KeyboardEvent): void => {
-      if (event.key === "Escape") setOpen(false);
-    };
-    // Capture, so a tap that lands on a piano key closes the menu *and* plays
-    // the note — the keyboard is never not an instrument.
-    window.addEventListener("pointerdown", onDown, true);
-    window.addEventListener("keydown", onKey);
-    return () => {
-      window.removeEventListener("pointerdown", onDown, true);
-      window.removeEventListener("keydown", onKey);
-    };
-  }, [open]);
-
   return (
-    <div className="menu" ref={root}>
-      <IconButton
-        label="Settings"
-        className={open ? "hamburger on" : "hamburger"}
-        aria-expanded={open}
-        aria-haspopup="menu"
-        onClick={() => setOpen((now) => !now)}
-      >
-        <span aria-hidden="true">☰</span>
-      </IconButton>
-
-      {open ? (
-        <div className="panel" role="menu" aria-label="Settings">
-          <p className="heading">monitor</p>
-          {MONITOR_PROFILES.map((profile) => (
-            <button
-              key={profile.id}
-              type="button"
-              role="menuitemradio"
-              aria-checked={monitor === profile.id}
-              className={monitor === profile.id ? "choice picked" : "choice"}
-              onClick={() => {
-                onMonitor(profile.id);
-                setOpen(false);
-              }}
-            >
-              <span className="label">
-                {profile.label}
-                {monitor === profile.id ? " ·" : ""}
-              </span>
-              <span className="summary">{profile.summary}</span>
-            </button>
-          ))}
-        </div>
-      ) : null}
+    <div id="menu">
+      <Popover label="Settings" icon={<span aria-hidden="true">☰</span>}>
+        {({ close }) => (
+          <RadioGroup
+            label="Monitor"
+            options={OPTIONS}
+            value={monitor}
+            onChange={(id) => {
+              onMonitor(id);
+              close();
+            }}
+          />
+        )}
+      </Popover>
     </div>
   );
 }

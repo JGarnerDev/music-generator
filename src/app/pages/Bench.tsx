@@ -23,7 +23,7 @@ import {
 } from "@engine/library";
 import { loopIntroSeconds } from "@engine/arrange";
 import { audioName } from "@engine/manifest";
-import { Button, Checkbox, PageHeader, SearchInput } from "jeff-ui";
+import { Button, Checkbox, Link, PageHeader, Row, SearchInput, Text } from "jeff-ui";
 import { TRASH_ENDPOINT } from "../../dev/endpoints";
 import { KindTabs } from "../components/KindTabs";
 import { LibraryTable } from "../components/LibraryTable";
@@ -186,14 +186,24 @@ export function Bench() {
   return (
     <main>
       <PageHeader title="music-generator · workshop bench">
-        <a href="/session.html">session →</a>
-        <a href="/voices.html">voices →</a>
-        <a href="/studies.html">studies →</a>
-        <a href="/keys.html">keys →</a>
+        <Link variant="nav" href="/session.html">
+          session →
+        </Link>
+        <Link variant="nav" href="/voices.html">
+          voices →
+        </Link>
+        <Link variant="nav" href="/studies.html">
+          studies →
+        </Link>
+        <Link variant="nav" href="/keys.html">
+          keys →
+        </Link>
       </PageHeader>
 
       <KindTabs entries={entries} kind={kind} onPick={setKind} />
-      <div id="kindBlurb">{kind ? KIND_BLURBS[kind] : "Everything in compositions/."}</div>
+      <Text id="kindBlurb" size="sm" tone="muted" lines={1}>
+        {kind ? KIND_BLURBS[kind] : "Everything in compositions/."}
+      </Text>
       <SearchInput
         id="search"
         placeholder="filter by name, tag or motif…"
@@ -215,7 +225,9 @@ export function Bench() {
         onDelete={(entry) => void remove(entry)}
       />
 
-      <div id="title">{title}</div>
+      <Text id="title" lines={1}>
+        {title}
+      </Text>
       <div
         id="drop"
         className={over ? "over" : undefined}
@@ -245,7 +257,7 @@ export function Bench() {
           if (file) void loadFromFile(file);
         }}
       />
-      <div className="row">
+      <Row equal>
         <Button
           id="play"
           disabled={!current || loading}
@@ -262,8 +274,8 @@ export function Bench() {
         >
           ■ Stop
         </Button>
-      </div>
-      <div className="row">
+      </Row>
+      <Row equal>
         <Button id="export" disabled={!current} onClick={() => void exportAudio(false)}>
           ⬇ Download
         </Button>
@@ -275,7 +287,7 @@ export function Bench() {
         >
           ⬇ Download Loop
         </Button>
-      </div>
+      </Row>
       <Checkbox
         id="loop"
         label="Loop playback (intro once, then repeat the body)"
@@ -283,7 +295,9 @@ export function Bench() {
         disabled={!hasLoop}
         onChange={setLoopWanted}
       />
-      <div id="status">{status}</div>
+      <Text id="status" size="sm" tone="muted" lines={2}>
+        {status}
+      </Text>
     </main>
   );
 }

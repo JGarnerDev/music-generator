@@ -10,10 +10,16 @@
  * (what a cue *is*) and [`@engine/session-bench`](../../engine/session-bench.ts)
  * (what it reads as). This file only lays it out.
  */
-import { cueEmptyMessage, hotkeyLabel, loopLabel, noteLabel } from "@engine/session-bench";
+import {
+  HOTKEY_CUES,
+  cueEmptyMessage,
+  hotkeyLabel,
+  loopLabel,
+  noteLabel,
+} from "@engine/session-bench";
 import type { ResolvedCue } from "@engine/session";
 import { formatClock } from "@utils/clock";
-import { EmptyState, IconButton } from "jeff-ui";
+import { IconButton, Kbd, Table, Text, type TableColumn } from "jeff-ui";
 
 export interface CueTableProps {
   cues: readonly ResolvedCue[];
@@ -28,115 +34,113 @@ export interface CueTableProps {
   onToggleLoop(cue: ResolvedCue): void;
 }
 
+const isPlayable = (cue: ResolvedCue): boolean => cue.status === "ready";
+
 export function CueTable({ cues, hasPlan, playing, ...on }: CueTableProps) {
-  return (
-    <div className="tableWrap">
-      <table>
-        <colgroup>
-          <col className="col-key" />
-          <col className="col-play" />
-          <col className="col-name" />
-          <col className="col-len" />
-          <col className="col-loop" />
-          <col className="col-move" />
-          <col className="col-delete" />
-        </colgroup>
-        <tbody id="cueRows">
-          {cues.map((cue) => (
-            <CueRow
-              // Cues repeat — a theme may recur in one night — so the index is
-              // the only stable identity a row has.
-              key={cue.index}
-              cue={cue}
-              last={cue.index === cues.length - 1}
-              playing={playing === cue.index}
-              {...on}
-            />
-          ))}
-        </tbody>
-      </table>
-      <EmptyState id="cueEmpty" hidden={cues.length > 0}>
-        {cueEmptyMessage(hasPlan)}
-      </EmptyState>
-    </div>
-  );
-}
-
-interface CueRowProps {
-  cue: ResolvedCue;
-  last: boolean;
-  playing: boolean;
-  onPlay(cue: ResolvedCue): void;
-  onMove(index: number, delta: number): void;
-  onRemove(index: number): void;
-  onEditNote(index: number): void;
-  onToggleLoop(cue: ResolvedCue): void;
-}
-
-function CueRow({ cue, last, playing, ...on }: CueRowProps) {
-  const playable = cue.status === "ready";
-  const note = noteLabel(cue);
-  const loop = loopLabel(cue.loop);
-
-  return (
-    <tr
-      className={playable ? undefined : "bad"}
-      aria-selected={playing}
-      title={playable ? (cue.entry?.path ?? "") : cue.hint}
-    >
-      <td className="cell-key">
-        <span className="key">{hotkeyLabel(cue.index)}</span>
-      </td>
-      <td className="cell-play">
+  const columns: TableColumn<ResolvedCue>[] = [
+    {
+      key: "key",
+      width: "2.5rem",
+      // Past the ninth cue there is no key to show, only a dot.
+      cell: (cue) =>
+        cue.index < HOTKEY_CUES ? (
+          <Kbd>{hotkeyLabel(cue.index)}</Kbd>
+        ) : (
+          <Text as="span" tone="muted">
+            {hotkeyLabel(cue.index)}
+          </Text>
+        ),
+    },
+    {
+      key: "play",
+      width: "3rem",
+      cell: (cue) => (
         <IconButton
-          label={playable ? `Play ${cue.label}` : cue.hint}
-          disabled={!playable}
+          label={isPlayable(cue) ? `Play ${cue.label}` : cue.hint}
+          disabled={!isPlayable(cue)}
           onClick={() => on.onPlay(cue)}
         >
-          {playable ? "▶" : "⚠"}
+          {isPlayable(cue) ? "▶" : "⚠"}
         </IconButton>
-      </td>
-      <td className="cell-name">
-        {cue.label}
-        {/* The note is why this cue is in the list at all, so it is the click
-            target for editing it — a cue with no note yet offers the same spot. */}
-        <span
-          className={note.empty ? "note empty" : "note"}
-          title="Click to edit this cue's note"
-          onClick={(event) => {
-            event.stopPropagation();
-            on.onEditNote(cue.index);
-          }}
-        >
-          {note.text}
-        </span>
-      </td>
-      <td className="cell-len">{cue.audio ? formatClock(cue.audio.seconds) : "—"}</td>
-      <td className="cell-loop">
-        <IconButton
-          label={loop.title}
-          toggle
-          on={cue.loop}
-          // Only a piece written with a loop window has a seam-wrapped body to repeat.
-          disabled={!cue.entry?.composition.loop}
-          onClick={() => on.onToggleLoop(cue)}
-        >
-          {loop.glyph}
-        </IconButton>
-      </td>
-      <td className="cell-move">
-        <IconButton
-          label="Move earlier"
-          disabled={cue.index === 0}
-          onClick={() => on.onMove(cue.index, -1)}
-        >
-          ↑
-        </IconButton>
-        <IconButton label="Move later" disabled={last} onClick={() => on.onMove(cue.index, 1)}>
-          ↓
-        </IconButton>
-      </td>
-      <td className="cell-delete">
+      ),
+    },
+    {
+      key: "name",
+      cell: (cue) => {
+        const note = noteLabel(cue);
+        return (
+          <>
+            <Text as="span" strong>
+              {cue.label}
+            </Text>{" "}
+            {/* The note is why this cue is in the list at all, so it is the click
+                target for editing it — a cue with no note yet offers the same spot. */}
+            <button
+              type="button"
+              className={note.empty ? "note empty" : "note"}
+              title="Click to edit this cue's note"
+              onClick={() => on.onEditNote(cue.index)}
+            >
+              {note.text}
+            </button>
+          </>
+        );
+      },
+    },
+    {
+      key: "len",
+      width: "4rem",
+      cell: (cue) => (
+        <Text as="span" size="sm" tone="muted" numeric>
+          {cue.audio ? formatClock(cue.audio.seconds) : "—"}
+        </Text>
+      ),
+    },
+    {
+      key: "loop",
+      width: "3rem",
+      cell: (cue) => {
+        const loop = loopLabel(cue.loop);
+        return (
+          <IconButton
+            label={loop.title}
+            toggle
+            on={cue.loop}
+            // Only a piece written with a loop window has a seam-wrapped body to repeat.
+            disabled={!cue.entry?.composition.loop}
+            onClick={() => on.onToggleLoop(cue)}
+          >
+            {loop.glyph}
+          </IconButton>
+        );
+      },
+    },
+    {
+      key: "move",
+      width: "5rem",
+      cell: (cue) => (
+        <>
+          <IconButton
+            label="Move earlier"
+            disabled={cue.index === 0}
+            onClick={() => on.onMove(cue.index, -1)}
+          >
+            ↑
+          </IconButton>
+          <IconButton
+            label="Move later"
+            disabled={cue.index === cues.length - 1}
+            onClick={() => on.onMove(cue.index, 1)}
+          >
+            ↓
+          </IconButton>
+        </>
+      ),
+    },
+    {
+      key: "delete",
+      width: "3rem",
+      cell: (cue) => (
         <IconButton
           label={`Remove ${cue.label} from the session`}
           danger
@@ -144,7 +148,24 @@ function CueRow({ cue, last, playing, ...on }: CueRowProps) {
         >
           ✕
         </IconButton>
-      </td>
-    </tr>
+      ),
+    },
+  ];
+
+  return (
+    <Table
+      frame
+      columns={columns}
+      rows={cues}
+      // Cues repeat — a theme may recur in one night — so the index is the only
+      // stable identity a row has.
+      rowKey={(cue) => cue.index}
+      selected={(cue) => playing === cue.index}
+      rowProps={(cue) => ({
+        className: isPlayable(cue) ? undefined : "bad",
+        title: isPlayable(cue) ? (cue.entry?.path ?? "") : cue.hint,
+      })}
+      empty={cueEmptyMessage(hasPlan)}
+    />
   );
 }

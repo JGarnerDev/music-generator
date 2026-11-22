@@ -32,7 +32,7 @@
  *
  * **The monitor is the one setting that hides.** What the page is being heard
  * *on* is not something a hand reaches for mid-phrase, so it sits behind the
- * hamburger rather than beside the octave — and it is remembered per device,
+ * hamburger, at the far end of the row from the octave — and it is remembered per device,
  * because the speakers are a property of the device and not of the music. It
  * corrects nothing but the monitoring path: see
  * [`@engine/monitor`](../../engine/monitor.ts).
@@ -43,11 +43,11 @@
  * default, in the page.
  */
 import { useEffect, useEffectEvent, useState } from "react";
-import { pianoKeys, shiftOctave } from "@engine/keys";
+import { OCTAVE_RANGE, pianoKeys } from "@engine/keys";
 import { playability } from "@engine/keys-bench";
 import { defaultMonitor, isMonitorId, type MonitorId } from "@engine/monitor";
 import { drumPads, padPlayable } from "@engine/pads";
-import { Button, Select } from "jeff-ui";
+import { Field, Row, Select, Stepper } from "jeff-ui";
 import { DrumPads } from "../components/DrumPads";
 import { KeysMenu } from "../components/KeysMenu";
 import { PianoKeys } from "../components/PianoKeys";
@@ -138,17 +138,8 @@ export function Keys() {
 
   return (
     <main>
-      <div className="row" id="topControls">
-        <KeysMenu
-          monitor={chosen}
-          onMonitor={(id) => {
-            setMonitor(id);
-            rememberMonitor(id);
-          }}
-        />
-
-        <div id="voicePick">
-          <label htmlFor="voice">voice</label>
+      <Row id="topControls" align="center" gap={4} wrap={false}>
+        <Field layout="inline" label="voice">
           <Select
             id="voice"
             label="Voice"
@@ -159,17 +150,27 @@ export function Keys() {
             value={voiceId ?? ""}
             onChange={setVoiceId}
           />
-        </div>
+        </Field>
 
         {pads.length === 0 ? (
-          <div className="group" role="group" aria-label="Octave">
-            <span className="what">octave</span>
-            <Button onClick={() => synth.setOctave(shiftOctave(synth.octave, -1))}>−</Button>
-            <span className="value">{synth.octave}</span>
-            <Button onClick={() => synth.setOctave(shiftOctave(synth.octave, 1))}>+</Button>
-          </div>
+          <Stepper
+            label="octave"
+            value={synth.octave}
+            step={1}
+            min={OCTAVE_RANGE[0]}
+            max={OCTAVE_RANGE[1]}
+            onChange={synth.setOctave}
+          />
         ) : null}
-      </div>
+
+        <KeysMenu
+          monitor={chosen}
+          onMonitor={(id) => {
+            setMonitor(id);
+            rememberMonitor(id);
+          }}
+        />
+      </Row>
 
       {pads.length > 0 ? (
         <DrumPads pads={pads} struck={synth.struck} onHit={synth.hit} />
