@@ -1,0 +1,39 @@
+{
+  "$comment": "Dev servers and long jobs for scripts/run.ts. `npm run app` runs `up app`. A server's url has a fixed port (also in its Vite config, with strictPort: true; the hub's CLAUDE.md lists every project's ports). A server's command calls the tool directly, never an npm script that comes back here. Each guard pattern is a regex for a command that would start one of these directly; the PreToolUse hook blocks it and suggests `use`.",
+  "servers": {
+    "app": {
+      "command": "npx vite",
+      "url": "http://localhost:5175/",
+      "timeout_s": 60
+    }
+  },
+  "jobs": {
+    "transcribe": {
+      "command": "npm run transcribe --"
+    },
+    "render": {
+      "command": "npm run render --"
+    },
+    "study-render": {
+      "command": "npm run study:render --"
+    }
+  },
+  "guard": [
+    {
+      "pattern": "^(npx |npm exec )?vite( (?!build\\b)|$)",
+      "use": "npm run app"
+    },
+    {
+      "pattern": "^npm run transcribe\\b",
+      "use": "node scripts/run.ts job transcribe -- <args>"
+    },
+    {
+      "pattern": "^npm run render\\b",
+      "use": "node scripts/run.ts job render -- <args>"
+    },
+    {
+      "pattern": "^npm run study:render\\b",
+      "use": "node scripts/run.ts job study-render -- <args>"
+    }
+  ]
+}

@@ -47,10 +47,10 @@ npm run study:new -- --concept chorus-lift --axis register \
   --mood "storm breaks over the ridge" --with desert-rock --only bass,pluck,lead
 
 # 3. render it (studies are ~9 bars, so a set costs about one segment)
-npm run study:render -- --set chorus-lift/storm-breaks-over
+node scripts/run.ts job study-render -- --set chorus-lift/storm-breaks-over
 
 # 4. judge it
-npm run dev     # → /studies.html → play, pick tags, thumb
+npm run app     # → /studies.html → play, pick tags, thumb
 
 # 5. distil the finding into docs/taste.md, by hand
 

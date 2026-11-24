@@ -127,5 +127,5 @@ export function openingMessage(entries: number, canEdit: boolean): string {
   if (entries === 0) return "No voices found under voices/.";
   return canEdit
     ? "Pick a voice and press Play. Approve keeps it; Fork copies it to a new draft."
-    : "Read-only build — approving and forking need the dev server (npm run dev).";
+    : "Read-only build — approving and forking need the dev server (npm run app).";
 }

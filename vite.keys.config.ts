@@ -4,7 +4,7 @@
  * `vite.config.ts` builds the bench — five pages that read the library, play
  * rendered MP3s and talk to dev-server APIs. None of that can leave this
  * machine: `public/audio/` is 40 MB of gitignored renders, and every write
- * button is a Vite plugin that exists only while `npm run dev` is running.
+ * button is a Vite plugin that exists only while `npm run app` is running.
  *
  * The keys page is the one exception, and it is the exception because of what
  * it *is*: the only page here that synthesises. It needs no audio files, no

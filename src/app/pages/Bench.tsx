@@ -32,7 +32,7 @@ import { usePlayback } from "../hooks/usePlayback";
 
 // Vite bundles every composition in the tree at build time; add a JSON under
 // compositions/<kind>/ (e.g. via `npm run compose`) and the open tab reloads
-// itself with it — `npm run dev` mounts src/dev/live-library.ts to make a *new*
+// itself with it — `npm run app` mounts src/dev/live-library.ts to make a *new*
 // file invalidate this glob, which Vite on its own does not.
 // The folder it sits in *is* its kind — see src/engine/library.ts.
 // `_trash/` is excluded here as well as in `buildLibrary`: without it, deleting a

@@ -22,7 +22,7 @@ through a song that the lead was wrong all along.
 npm run voice:find -- --query "round sub bass"     # what is already here
 npm run voice:new -- --instrument bass --slug sub-drone --title "Sub drone"
 npm run voice:render -- --voice bass/sub-drone
-npm run dev                    # → /voices.html → Play / Pause / Approve
+npm run app                    # → /voices.html → Play / Pause / Approve
 npm run voice:approve -- --voice bass/sub-drone --summary "<one line>" --default
 ```
 
@@ -49,7 +49,7 @@ npm run voice:approve -- --voice bass/sub-drone --summary "<one line>" --default
    The `--force` is not optional after an edit: the audio has no idea the JSON
    moved. Roughly 25 seconds of audio per voice, a couple of minutes of
    rendering for a guitar.
-4. **Listen.** `npm run dev` → [`/voices.html`](../voices.html). Tabs are
+4. **Listen.** `npm run app` → [`/voices.html`](../voices.html). Tabs are
    instruments, so you see one instrument's sounds at a time; "drafts only"
    narrows it to what you are working on. Play, **Pause** and Resume — judging a
    tone means hearing the same phrase again, not restarting from the top.

@@ -8,7 +8,7 @@ generated_by: npm run study:ledger
 
 # Study verdicts
 
-Generated — judge studies in the bench (`npm run dev` → `/studies.html`), never
+Generated — judge studies in the bench (`npm run app` → `/studies.html`), never
 edit this file. Each row is one attempt at a musical concept, thumbed up or
 down, with the shelf tags saying what the thumb was about.
 

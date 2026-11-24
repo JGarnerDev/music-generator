@@ -426,7 +426,7 @@ export function renderVoiceArchive(
   ];
 
   if (approved.length === 0) {
-    lines.push("Nothing approved yet. Audition a draft: `npm run dev` → `/voices.html`.", "");
+    lines.push("Nothing approved yet. Audition a draft: `npm run app` → `/voices.html`.", "");
     return lines.join("\n");
   }
 

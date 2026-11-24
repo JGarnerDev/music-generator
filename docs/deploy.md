@@ -14,7 +14,7 @@ is the same one that makes it the odd page out in
 [rendering](./rendering.md): **it synthesises**. Every other bench reads the
 library off the dev server and plays rendered MP3s out of `public/audio/` —
 40 MB of gitignored files and four Vite plugins that only exist while
-`npm run dev` is running. The keys page needs none of it. The voices are a few
+`npm run app` is running. The keys page needs none of it. The voices are a few
 numbers each, bundled at build time, and the notes come out of your hands.
 
 So it builds on its own, into a static folder any host will serve:

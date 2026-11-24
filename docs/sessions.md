@@ -92,9 +92,9 @@ missing cue rather than pretending it is fine. Then compose them and render.
   session played on a laptop and through a speaker wants different levels.
 - The header line counts the cues that **cannot sound**, and the page says so on
   load. Two ways a cue goes silent: the piece was never rendered
-  (`npm run render -- --file <its .json>`), or the piece was renamed or trashed
+  (`node scripts/run.ts job render -- --file <its .json>`), or the piece was renamed or trashed
   and the cue now points at nothing. Both show the fix in the row.
-- Every edit saves to `sessions/<name>.json` as you make it. `npm run dev` has to
+- Every edit saves to `sessions/<name>.json` as you make it. `npm run app` has to
   be running — a built bundle has no server to write with, and says so once.
 
 ## Two things to know before the game

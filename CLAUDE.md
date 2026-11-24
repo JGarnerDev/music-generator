@@ -2,7 +2,7 @@
 title: CLAUDE.md
 purpose: Operating instructions for Claude in this repo. Routes to README.md.
 audience: [claude]
-updated: 2026-08-12
+updated: 2026-11-23
 read_order: 0
 see_also: [README.md]
 ---
@@ -23,6 +23,14 @@ Claude-specific working rules that don't belong in the human-facing README.
   (music). Add a `*.test.ts` beside it. Keep `src/app` (audio glue) thin.
 - **Script the repeatable.** If you do a deterministic chore twice, make it an
   npm script under `scripts/`.
+- **Long-running processes go through `node scripts/run.ts`.** `npm run app` starts
+  the bench at <http://localhost:5175/> or reuses the one running; `job
+  transcribe|render|study-render -- <flags>` runs those unless one is already
+  running; `list` shows what's running, `stop <name>` stops it. A hook blocks the
+  direct forms (`npx vite`, `npm run transcribe` …) and, when the session ends, stops the servers the
+  session started (`npm run app -- --keep` survives). Config: `scripts/run.json`. The
+  script is the hub starter's copy (positional commands, shared across projects);
+  change it there first.
 - **React Compiler** memoizes the React apps (`src/dev/react-compiler.ts`, also in
   Vitest). Write no `useMemo`, `useCallback` or `memo`; avoid the shapes it
   skips (hub `PREFERENCES.md`, React Compiler).
@@ -63,14 +71,14 @@ Claude-specific working rules that don't belong in the human-facing README.
    recurring theme other pieces will quote. See
    [`docs/library.md`](./docs/library.md).
 4. Validate: `npm run composition:validate -- --file compositions/segments/<name>.json`.
-5. **Render it** — `npm run render -- --file compositions/segments/<name>.json`.
+5. **Render it** — `node scripts/run.ts job render -- --file compositions/segments/<name>.json`.
    The app plays files and synthesises nothing, so a piece you don't render is a
    piece the user cannot hear. Every edit to the notes needs a re-render with
    `--force`. Slow: budget ~5x the length of the piece, or `--audition` while
    iterating. Read [`docs/rendering.md`](./docs/rendering.md) before changing
    anything about how audio is produced — four designs were tried and three
    failed, and the failures are not guessable.
-6. Tell the user to `npm run dev` and hit Play — then ask for one adjustment. Be
+6. Tell the user to `npm run app` and hit Play — then ask for one adjustment. Be
    proactive first; refine after.
 
 **Sounds are chosen, not invented per song.** Instrument tone lives in
@@ -136,7 +144,7 @@ four attempts that differ on exactly one axis and let the user thumb them:
 ```bash
 npm run study:new -- --concepts        # the concept shelf (~35, grouped)
 npm run study:new -- --concept chorus-lift --axis register --mood "<scene>"
-npm run study:render -- --set chorus-lift/<set>
+node scripts/run.ts job study-render -- --set chorus-lift/<set>
 ```
 
 Then `/studies.html`. Verdicts land in the generated `studies/ledger.md`; you
@@ -190,8 +198,8 @@ that is not a composing problem, it is a transcription. You cannot hear it, so
 the CLI's printed summary is the only thing you will ever know about the take:
 
 ```bash
-npm run transcribe -- --file recordings/<take>.wav --tempo 90 --key Am
-npm run transcribe -- --file recordings/<take>.wav --tempo 90 --key Am \
+node scripts/run.ts job transcribe -- --file recordings/<take>.wav --tempo 90 --key Am
+node scripts/run.ts job transcribe -- --file recordings/<take>.wav --tempo 90 --key Am \
   --emit <slug> --confirm      # write a leitmotif, render it, A/B it against the take
 ```
 

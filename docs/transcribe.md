@@ -19,7 +19,7 @@ in **scale degrees and steps** rather than pitches and seconds, because degrees
 survive being moved into another key and seconds do not.
 
 ```bash
-npm run transcribe -- --file recordings/lioness-hook.wav --tempo 90 --key Am
+node scripts/run.ts job transcribe -- --file recordings/lioness-hook.wav --tempo 90 --key Am
 ```
 
 ## The loop
@@ -106,12 +106,12 @@ Nothing upstream knows whether the take was read correctly. The detector does no
 know it invented a note, and neither do I. The user can tell in fifteen seconds:
 
 ```bash
-npm run transcribe -- --file recordings/lioness-hook.wav --tempo 90 --key Am \
+node scripts/run.ts job transcribe -- --file recordings/lioness-hook.wav --tempo 90 --key Am \
   --emit lioness-hook --confirm
 ```
 
 That renders the transcription and puts the recording itself in the bench as
-`<slug>.take.mp3`, so the two rows sit one click apart under `npm run dev`. The
+`<slug>.take.mp3`, so the two rows sit one click apart under `npm run app`. The
 printed checklist is indexed by **symptom** rather than by flag — the user knows
 what it sounds like, not which knob owns it:
 

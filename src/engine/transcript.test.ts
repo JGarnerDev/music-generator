@@ -252,7 +252,7 @@ describe("confirmChecklist", () => {
 
   it("names both rows to play against each other", () => {
     expect(confirmChecklist(base).split("\n")[0]).toBe(
-      "confirm it — play lioness-hook against lioness-hook.take in the bench (npm run dev)",
+      "confirm it — play lioness-hook against lioness-hook.take in the bench (npm run app)",
     );
   });
 

@@ -52,3 +52,6 @@ tasks/**
 compositions/
 manifest/
 public/*/**
+
+# Registry and logs of scripts/run.ts
+.run/

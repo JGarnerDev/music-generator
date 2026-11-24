@@ -162,7 +162,7 @@ not a new kind of audio.
 ## Checking one landed
 
 You cannot hear the render, so the bend is worth measuring the first time a
-piece leans on one. Render a WAV (`npm run render -- --file <path> --wav
+piece leans on one. Render a WAV (`node scripts/run.ts job render -- --file <path> --wav
 --audition --force`) and pitch-track the note: `220 Hz → 294 Hz` is a five
 semitone meend that arrived. A bend that reads flat at the written pitch is
 usually a section voice silently declining it — check the render's warnings.

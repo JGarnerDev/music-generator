@@ -217,5 +217,5 @@ export function openingStudiesMessage(hasSelectable: boolean, canEdit: boolean):
   }
   return canEdit
     ? "Play an attempt, pick the tags that say why, then thumb it. Its siblings are the strip above."
-    : "Read-only build — judging needs the dev server (npm run dev).";
+    : "Read-only build — judging needs the dev server (npm run app).";
 }

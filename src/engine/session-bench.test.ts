@@ -210,7 +210,7 @@ describe("status lines", () => {
   it("names the file on save, and the fix when there is nobody to save with", () => {
     expect(savedMessage("night")).toBe("Saved sessions/night.json.");
     expect(saveFailedMessage("Failed to fetch")).toBe(
-      "Not saved (Failed to fetch). Run npm run dev to keep session edits.",
+      "Not saved (Failed to fetch). Run npm run app to keep session edits.",
     );
   });
 });

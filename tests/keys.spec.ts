@@ -2,7 +2,7 @@ import { test, expect } from "@playwright/test";
 
 test.describe("Keys App - Piano Interaction", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto("http://localhost:5173/keys.html");
+    await page.goto("http://localhost:5175/keys.html");
     await page.waitForSelector("#piano");
   });
 

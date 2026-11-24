@@ -13,9 +13,9 @@ see_also: [../README.md, ../CLAUDE.md, looping.md]
 rendered is a composition the user cannot hear.
 
 ```bash
-npm run render -- --all                                   # everything
-npm run render -- --file compositions/loops/vulture-mile.json
-npm run render -- --all --force                           # re-render existing
+node scripts/run.ts job render -- --all                                   # everything
+node scripts/run.ts job render -- --file compositions/loops/vulture-mile.json
+node scripts/run.ts job render -- --all --force                           # re-render existing
 ```
 
 Output lands in `public/audio/`:
@@ -66,7 +66,7 @@ way:
 - **A run with nothing to render still rewrites the manifest.** It is a
   description of the audio directory, so a deleted MP3 — a torn-down study, a
   losing direction — has to lose its row too, or the bench offers to play a file
-  that isn't there. So `npm run render -- --file <path>` with no `--force` is the
+  that isn't there. So `node scripts/run.ts job render -- --file <path>` with no `--force` is the
   way to reconcile the manifest after deleting audio by hand.
 
 ## Speed, measured
@@ -89,7 +89,7 @@ exists: `six-gun-shredout` alone takes ~12 minutes, the whole library ~12
 minutes wall-clock across 6 jobs.
 
 **Measure before optimising this.** Three confident guesses about where the time
-went were all wrong; `bench.html` (`npm run dev` → `/bench.html`) settled it in
+went were all wrong; `bench.html` (`npm run app` → `/bench.html`) settled it in
 minutes each time. It profiles by phase (JS scheduling vs native DSP) and strips
 the graph down part by part.
 

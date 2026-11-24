@@ -92,7 +92,7 @@ already four entry points, four stylesheets and three folders.
       study or trash endpoint, and every write button already greys out on
       `useApi().canEdit`.
 - [ ] **Host on Cloudflare.** Deploy the split app (Pages/Workers) so it's usable
-      from a phone, not just `npm run dev` on the desktop.
+      from a phone, not just `npm run app` on the desktop.
 
 ## P3 — Depth & polish
 

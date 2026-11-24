@@ -421,7 +421,7 @@ function report(): void {
     return;
   }
   console.log(`\nNext: npm run study:render -- --set ${concept.slug}/${set}`);
-  console.log(`Then: npm run dev, open /studies.html, and thumb them.`);
+  console.log(`Then: npm run app, open /studies.html, and thumb them.`);
 }
 
 function printConcepts(): void {

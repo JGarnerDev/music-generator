@@ -2,12 +2,26 @@
 type: doc
 purpose: Notable changes to the engine, scripts, app, schemas and docs, newest first. Bump rules are in CLAUDE.md (Non-negotiables → Versioning).
 audience: [claude, human]
-updated: 2026-11-22
+updated: 2026-11-23
 ---
 
 # Changelog
 
 Grouped `Added` / `Changed` / `Removed` / `Fixed`. New compositions, palettes, voices, plans and renders stay out; they live in git history. The version in [`VERSION`](VERSION) (and `version` in `package.json`) always matches the top entry below.
+
+## [0.5.0] — 2026-11-23
+
+### Added
+
+- `scripts/run.ts`, the hub starter's start-or-reuse launcher: `npm run app` (`node scripts/run.ts up app`) starts the bench server or reuses the one running, and `job transcribe|render|study-render -- <args>` runs those jobs unless one is already running (two sessions once transcribed the same take at once). `list`, `stop <name>` and `prune` manage them; config is `scripts/run.json`, state `.run/` (gitignored).
+- Claude Code hooks in `.claude/settings.json`: session start shows what's running, a PreToolUse hook blocks `npx vite`, `npm run transcribe`, `npm run render` and `npm run study:render` in favour of the launcher, and session end stops the servers that session started (`npm run app -- --keep` survives).
+
+### Changed
+
+- **Breaking:** `npm run app` is the one start script; `dev` and `preview` are removed (`preview:keys` stays for the keys deploy check).
+- The dev server has a fixed port, <http://localhost:5175/>, with `strictPort`, so a second copy fails instead of moving to the next port. The keys spec and `session:new` point there.
+- The docs, script hints and bench messages say `npm run app` and `node scripts/run.ts job render|transcribe|study-render -- …` where they said `npm run …`.
+- `tsconfig.json` allows `.ts` import paths (`allowImportingTsExtensions`, with `noEmit`), as `run.ts` uses them.
 
 ## [0.4.0] — 2026-11-22
 

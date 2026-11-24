@@ -162,7 +162,7 @@ export function savedMessage(name: string): string {
  * fetch on every click.
  */
 export function saveFailedMessage(reason: string): string {
-  return `Not saved (${reason}). Run npm run dev to keep session edits.`;
+  return `Not saved (${reason}). Run npm run app to keep session edits.`;
 }
 
 export function deletedMessage(name: string): string {

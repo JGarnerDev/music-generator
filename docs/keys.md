@@ -21,7 +21,7 @@ everything transcription spends its effort on — tempo estimation, octave
 doubling, `--requantize` — is either unnecessary here or free.
 
 ```bash
-npm run dev                  # then open /keys.html
+npm run app                  # then open /keys.html
 npm run take:read -- --list
 npm run take:read -- --file recordings/keys/<name>.take.json
 npm run take:read -- --file recordings/keys/<name>.take.json --key Am
@@ -299,7 +299,7 @@ Flags:
 `--emit` tags the piece `played`, which is provenance worth keeping: it says a
 human performed those note lengths, so the odd unquantizable one is a player and
 not a mistake. It does **not** render — that is
-`npm run render -- --file <path>`, like everything else.
+`node scripts/run.ts job render -- --file <path>`, like everything else.
 
 Emitting onto a different instrument **drops the voice it was played with**,
 because a voice belongs to one instrument: `piano/soft-triangle` is not a lead,

@@ -1,6 +1,6 @@
 /**
  * Dev-server side of the bench's library table: the one thing the browser can't
- * do on its own is change files on disk, so `npm run dev` mounts this tiny
+ * do on its own is change files on disk, so `npm run app` mounts this tiny
  * middleware for the delete button.
  *
  * Dev only — it is never part of `vite build`, so the built bundle has no way to

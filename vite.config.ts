@@ -11,6 +11,9 @@ import { takeApi } from "./src/dev/take-api";
 import { voiceApi } from "./src/dev/voice-api";
 
 export default defineConfig({
+  // Fixed port, so a second copy fails instead of moving to the next one. Start it
+  // with `npm run app` (it reuses one already running).
+  server: { port: 5175, strictPort: true },
   plugins: [
     // JSX + Fast Refresh.
     // `render.html` has no React on it and is unaffected: the plugin only
@@ -63,6 +66,8 @@ export default defineConfig({
     // not unit-tested here; keep it thin and drive it manually in the app.
     environment: "node",
     include: ["src/**/*.test.ts", "scripts/**/*.test.ts"],
+    // run.test.ts is node:test (the hub starter's copy); npm test runs it with node --test.
+    exclude: ["scripts/run.test.ts"],
     coverage: {
       reporter: ["text", "html"],
       include: ["src/engine/**", "src/utils/**"],

@@ -23,7 +23,7 @@ entry for an item before working it; this file only tracks state.
    `npm run song:build`, scene/battle cues → `compositions/segments|loops/`.
 2. `npm run composition:validate -- --file <path>`
 3. `npm run render -- --file <path>` (re-render with `--force` after any edit).
-4. User auditions at `npm run dev` → one adjustment.
+4. User auditions at `npm run app` → one adjustment.
 5. On approval: copy the piece + its MP3 into `tasks/redwater/<category>/` and
    mark `done` here.
 

@@ -297,7 +297,7 @@ export function confirmChecklist(ctx: ConfirmContext): string {
 
   const width = Math.max(...rows.map((r) => r.symptom.length));
   const lines = [
-    `confirm it — play ${ctx.slug} against ${ctx.takeName} in the bench (npm run dev)`,
+    `confirm it — play ${ctx.slug} against ${ctx.takeName} in the bench (npm run app)`,
     "",
     "  Listen for what is wrong, then re-run with --requantize and the fix beside it.",
     "  Requantizing reuses the saved detector output, so every one of these is instant.",

@@ -45,7 +45,7 @@ realtime, so a 30-second take costs a minute; requantizing costs nothing.
 
 **Check it by ear.** Adding `--emit <slug> --confirm` writes the transcription as
 a playable piece, renders it, and puts your recording in the bench beside it as
-`<slug>.take.mp3` — two rows a click apart under `npm run dev`. Play them against
+`<slug>.take.mp3` — two rows a click apart under `npm run app`. Play them against
 each other and say what is wrong; the printed checklist maps each way it can
 sound wrong to the flag that fixes it. That loop is the reliability, not the
 detector.

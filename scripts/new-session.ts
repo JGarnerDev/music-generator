@@ -92,4 +92,4 @@ if (unknown.length > 0) {
   console.log(`  ⚠ no such piece yet: ${[...new Set(unknown)].join(", ")}`);
   console.log("    (compose them, or fix the id — the board shows these as missing cues)");
 }
-console.log("  Open it: npm run dev, then http://localhost:5173/session.html");
+console.log("  Open it: npm run app, then http://localhost:5175/session.html");

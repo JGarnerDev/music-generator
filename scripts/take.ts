@@ -119,12 +119,12 @@ console.log("");
 /** Every take on the shelf, newest first — the answer to "what did I play?". */
 function listTakes(): void {
   if (!existsSync(takesDir)) {
-    console.log(`\nNo takes yet. Record one at /keys.html (npm run dev).\n`);
+    console.log(`\nNo takes yet. Record one at /keys.html (npm run app).\n`);
     return;
   }
   const files = readdirSync(takesDir).filter(isTakeFile);
   if (files.length === 0) {
-    console.log(`\nNo takes yet. Record one at /keys.html (npm run dev).\n`);
+    console.log(`\nNo takes yet. Record one at /keys.html (npm run app).\n`);
     return;
   }
   const rows = files

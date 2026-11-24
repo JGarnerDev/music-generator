@@ -9,7 +9,7 @@
  *
  * Named flags only (repo convention: no positional arguments).
  *
- * The bench (`npm run dev` → `/studies.html`) is the normal way in — judging by
+ * The bench (`npm run app` → `/studies.html`) is the normal way in — judging by
  * ear means the buttons should be where the sound is. This exists so the same
  * operation is scriptable, and because both front ends call the one
  * implementation in [`src/dev/study-ops.ts`](../src/dev/study-ops.ts), a click

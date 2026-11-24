@@ -80,14 +80,14 @@ Long loops are thousands of mostly-mechanical notes, so they're generated from a
 ```bash
 npm run song:build -- --plan plans/high-noon-warpath.json   # read its Clashes: line
 npm run composition:validate -- --file compositions/high-noon-warpath.json
-npm run render -- --file compositions/high-noon-warpath.json
-npm run dev   # Play with Loop checked
+node scripts/run.ts job render -- --file compositions/high-noon-warpath.json
+npm run app   # Play with Loop checked
 ```
 
 Play with **Loop** checked plays `<name>.loop.mp3` — the tail-wrapped body, on
 repeat — so the intro is skipped and the seam you hear is the seam the game
 gets. Nothing is rendered in the browser: if you changed the notes, run
-`npm run render` again or you are auditioning the old take.
+`node scripts/run.ts job render` again or you are auditioning the old take.
 
 Sounds are named in the plan, not in the built file: `"voices": { "pad":
 "mens-choir", "lead": "string-section" }` sets each track's `voice` (see
@@ -303,7 +303,7 @@ chord, not its first.
 
 ## Exports
 
-`npm run render` writes both, per piece:
+`node scripts/run.ts job render` writes both, per piece:
 
 | File | Use |
 |---|---|

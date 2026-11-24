@@ -40,7 +40,7 @@ loose musical ideas into something you're pumped about.
 | `palettes/<kind>/*.md` | Intent → music: `emotion`, `genre`, `timbre`, `space`, `era` | Per-kind schema; see [palette-authoring](docs/palette-authoring.md) |
 | `src/engine/` | Pure music brains | tonal, theory, arrange, validation — **tested** |
 | `src/utils/` | Promoted general helpers | rng, timing, wav, mp3, loop seams — **tested** |
-| `src/app/` | Browser player + the audio graph | React (`pages/`, `components/`, `hooks/`) over `audio/` — Tone.js glue, thin, not unit-tested. The graph runs only under `npm run render`; the app itself just plays files |
+| `src/app/` | Browser player + the audio graph | React (`pages/`, `components/`, `hooks/`) over `audio/` — Tone.js glue, thin, not unit-tested. The graph runs only under `node scripts/run.ts job render`; the app itself just plays files |
 | `compositions/<kind>/*.json` | Song specs (the Claude↔app contract) | Kind = folder = tab: `leitmotifs`, `segments`, `loops`, `songs`. See [library](docs/library.md); shape in `src/engine/composition.ts` |
 | `voices/<instrument>/*.json` | Instrument sounds, several per instrument | Folder = instrument. Approved ones get a row in [`voices/archive.md`](voices/archive.md); the `notes` inside each file are its design record. Process in [voices](docs/voices.md) |
 | `studies/<concept>/*.json` | Attempts at a musical *concept*, to be thumbed up or down | Folder = concept. **Scratch** — deleted once distilled into [`docs/taste.md`](docs/taste.md), which is the permanent record. Verdicts queue in the generated `studies/ledger.md`. Process in [studies](docs/studies.md) |
@@ -50,7 +50,7 @@ loose musical ideas into something you're pumped about.
 | `recordings/*.wav` | Guitar takes — "make the hook sound like *this*" | Audio gitignored, the `.notes.json` transcription beside it is committed. Capture rules: [`recordings/README.md`](recordings/README.md); the loop: [transcribe](docs/transcribe.md) |
 | `scripts/*.ts` | Deterministic CLI chores | commander, named flags. `render.ts` is the big one: see [rendering](docs/rendering.md) |
 | `src/dev/` | Dev-server middleware, render harness, render profiler | Never in the built bundle |
-| `public/audio/` | Rendered MP3s + `manifest.json` — what the bench plays | Committed; written by `npm run render` |
+| `public/audio/` | Rendered MP3s + `manifest.json` — what the bench plays | Committed; written by `node scripts/run.ts job render` |
 | `assets/samples/` | SoundFont/sample packs | Gitignored (large binaries) |
 
 ## Workflow
@@ -58,8 +58,8 @@ loose musical ideas into something you're pumped about.
 ```bash
 npm install
 git config core.hooksPath .githooks   # once per clone: Markdown auto-fix on commit
-npm run dev        # five pages: / compositions · /voices.html · /studies.html · /session.html · /keys.html
-npm run render -- --all   # render every composition to public/audio/
+npm run app        # five pages: / compositions · /voices.html · /studies.html · /session.html · /keys.html
+node scripts/run.ts job render -- --all   # render every composition to public/audio/
 npm test           # vitest (engine + utils)
 npm run typecheck  # tsc --noEmit
 npm run build:keys # the keys page alone, as a phone app → dist-keys/
@@ -88,11 +88,11 @@ npm run build:keys # the keys page alone, as a phone app → dist-keys/
 - **File it:** kind is the folder, and the bench tabs mirror it. Sweep or
   promote with `npm run compositions:organize` — see [library](docs/library.md),
   which also covers **leitmotifs** (themes other pieces quote via `motifs`).
-- **Render, then audition:** `npm run render -- --all` writes an MP3 per piece
+- **Render, then audition:** `node scripts/run.ts job render -- --all` writes an MP3 per piece
   into `public/audio/` (plus a `.loop` file for anything with a loop window).
-  Then `npm run dev` and hit Play — the app only ever *plays files*, so playback
+  Then `npm run app` and hit Play — the app only ever *plays files*, so playback
   can't stutter however dense the arrangement, and everything is ready the
-  moment the page loads. **Changed the notes? `npm run render -- --file <path>
+  moment the page loads. **Changed the notes? `node scripts/run.ts job render -- --file <path>
   --force`** — the audio has no idea the composition moved. Full flags, speed
   numbers, and the designs that failed first: [rendering](docs/rendering.md).
 - **Loop it (game music):** give the piece a `loop: {startBar, endBar}` and the
@@ -149,7 +149,7 @@ npm run build:keys # the keys page alone, as a phone app → dist-keys/
 - **Decide an approach:** a *study* is a short attempt at a musical concept
   ("guitar solo", "chorus lift") made to be judged. Fan out four that differ on
   exactly one axis — `npm run study:new -- --concept chorus-lift --axis register
-  --mood "<scene>"` — render them (`npm run study:render -- --set <concept>/<set>`),
+  --mood "<scene>"` — render them (`node scripts/run.ts job study-render -- --set <concept>/<set>`),
   then thumb them at `/studies.html`. Verdicts accumulate in the generated
   `studies/ledger.md`; the rules drawn out of them are
   [`docs/taste.md`](docs/taste.md), which composing reads. Once a set has given
@@ -157,7 +157,7 @@ npm run build:keys # the keys page alone, as a phone app → dist-keys/
   (dry run without `--yes`). Studies are scratch; `taste.md` is the record, and
   is written to stand without them. Full loop: [studies](docs/studies.md).
 - **Use a recorded idea:** the user plays a hook on the guitar and wants *that*
-  tune. `npm run transcribe -- --file recordings/<take>.wav --tempo <bpm> --key
+  tune. `node scripts/run.ts job transcribe -- --file recordings/<take>.wav --tempo <bpm> --key
   <key>` prints it as scale degrees and a rhythm lane — Claude cannot hear audio,
   so that text is the whole interface. Add `--emit <slug> --confirm` to write a
   leitmotif, render it, and stand the original take beside it in the bench for an

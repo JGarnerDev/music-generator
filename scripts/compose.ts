@@ -247,4 +247,4 @@ if (neighbours.length > 0) {
 
 writeFileSync(out, `${JSON.stringify(comp, null, 2)}\n`, "utf8");
 console.log(`Created ${out} — ${comp.key} @ ${comp.bpm} BPM, ${comp.tracks.length} tracks.`);
-console.log(`Next: npm run dev, then Play / Export WAV.`);
+console.log(`Next: npm run app, then Play / Export WAV.`);
