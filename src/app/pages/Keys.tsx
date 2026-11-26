@@ -46,11 +46,9 @@ import { useEffect, useEffectEvent, useState } from "react";
 import { OCTAVE_RANGE, pianoKeys } from "@engine/keys";
 import { playability } from "@engine/keys-bench";
 import { defaultMonitor, isMonitorId, type MonitorId } from "@engine/monitor";
-import { drumPads, padPlayable } from "@engine/pads";
-import { Field, Row, Select, Stepper } from "jeff-ui";
-import { DrumPads } from "../components/DrumPads";
+import { PAD_COLUMNS, drumPads, padPlayable } from "@engine/pads";
+import { DrumPads, Field, PianoKeys, Row, Select, Stepper } from "jeff-ui";
 import { KeysMenu } from "../components/KeysMenu";
-import { PianoKeys } from "../components/PianoKeys";
 import { useKeyboardSynth } from "../hooks/useKeyboardSynth";
 import { COARSE_POINTER, useMediaQuery } from "../hooks/useMediaQuery";
 import { VOICE_LIBRARY } from "../voices";
@@ -154,6 +152,7 @@ export function Keys() {
 
         {pads.length === 0 ? (
           <Stepper
+            className="octave"
             label="octave"
             value={synth.octave}
             step={1}
@@ -173,10 +172,24 @@ export function Keys() {
       </Row>
 
       {pads.length > 0 ? (
-        <DrumPads pads={pads} struck={synth.struck} onHit={synth.hit} />
+        <DrumPads
+          id="pads"
+          className="instrument"
+          pads={pads.map((pad) => ({ id: pad.piece, label: pad.label, cap: pad.keyLabel }))}
+          lit={synth.struck}
+          onHit={synth.hit}
+          columns={PAD_COLUMNS}
+        />
       ) : (
         <PianoKeys
-          keys={keys}
+          id="piano"
+          className="instrument"
+          keys={keys.map((key) => ({
+            midi: key.midi,
+            label: key.pitch,
+            black: key.black,
+            cap: key.labels[0],
+          }))}
           held={synth.heldMidis}
           onPress={synth.press}
           onRelease={synth.release}

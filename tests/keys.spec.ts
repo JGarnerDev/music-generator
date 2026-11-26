@@ -7,7 +7,7 @@ test.describe("Keys App - Piano Interaction", () => {
   });
 
   test("single key press and release", async ({ page }) => {
-    const firstWhiteKey = page.locator("#piano .key.white").first();
+    const firstWhiteKey = page.locator("#piano .ui-piano-key.is-white").first();
 
     // Use mouse down/up instead
     await firstWhiteKey.hover();
@@ -19,7 +19,7 @@ test.describe("Keys App - Piano Interaction", () => {
   });
 
   test("chord: hold two keys simultaneously", async ({ page }) => {
-    const keys = page.locator("#piano .key.white");
+    const keys = page.locator("#piano .ui-piano-key.is-white");
     const key1 = keys.nth(0);
     const key2 = keys.nth(2);
 
@@ -42,7 +42,7 @@ test.describe("Keys App - Piano Interaction", () => {
   });
 
   test("drag across multiple keys", async ({ page }) => {
-    const keys = page.locator("#piano .key.white");
+    const keys = page.locator("#piano .ui-piano-key.is-white");
 
     const box1 = await keys.nth(0).boundingBox();
     const box3 = await keys.nth(2).boundingBox();
@@ -63,7 +63,7 @@ test.describe("Keys App - Piano Interaction", () => {
   });
 
   test("drag across non-adjacent keys", async ({ page }) => {
-    const keys = page.locator("#piano .key.white");
+    const keys = page.locator("#piano .ui-piano-key.is-white");
 
     const box0 = await keys.nth(0).boundingBox();
     const box5 = await keys.nth(5).boundingBox();
@@ -81,7 +81,7 @@ test.describe("Keys App - Piano Interaction", () => {
   });
 
   test("rapid key presses", async ({ page }) => {
-    const keys = page.locator("#piano .key.white");
+    const keys = page.locator("#piano .ui-piano-key.is-white");
 
     for (let i = 0; i < 3; i++) {
       const key = keys.nth(i);
@@ -107,7 +107,7 @@ test.describe("Keys App - Piano Interaction", () => {
     await page.waitForTimeout(100);
 
     // Play a note
-    const key = page.locator("#piano .key.white").first();
+    const key = page.locator("#piano .ui-piano-key.is-white").first();
     const box = await key.boundingBox();
     if (!box) throw new Error("Could not get position");
 
@@ -118,19 +118,12 @@ test.describe("Keys App - Piano Interaction", () => {
   });
 
   test("octave controls change octave value", async ({ page }) => {
-    const octaveValue = page.locator("#topControls .value").first();
-    const plusButton = page.locator("#topControls .group").first().locator("button").last();
+    const stepper = page.locator("#topControls .octave");
+    const octaveOf = async () =>
+      parseInt((await stepper.textContent())?.match(/-?\d+/)?.[0] ?? "", 10);
 
-    const initialText = await octaveValue.textContent();
-    const initialOctave = parseInt(initialText || "0", 10);
-
-    // Click plus button
-    await plusButton.click();
-    await page.waitForTimeout(100);
-
-    const newText = await octaveValue.textContent();
-    const newOctave = parseInt(newText || "0", 10);
-
-    expect(newOctave).toBe(initialOctave + 1);
+    const initialOctave = await octaveOf();
+    await page.getByRole("button", { name: "increase octave" }).click();
+    await expect.poll(octaveOf).toBe(initialOctave + 1);
   });
 });

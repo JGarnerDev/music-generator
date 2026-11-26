@@ -1,6 +1,6 @@
 {
   "name": "music-generator",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "private": true,
   "type": "module",
   "description": "Conversational, code-driven lo-fi music generator. Describe a mood or scene; Claude composes; the browser plays and exports WAV.",

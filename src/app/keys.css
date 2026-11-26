@@ -3,9 +3,9 @@
  * page is a keyboard, and a keyboard drawn narrow is a row of slivers nobody
  * can find middle C on.
  *
- * Nothing above the piano may change height: every pixel it moved would move
- * the keys under your fingers mid-phrase. Colors are dusk's tokens (jeff-ui);
- * the keys mix them toward the ivory and ebony a keyboard is read by.
+ * Nothing above the instrument may change height: every pixel it moved would
+ * move the keys under your fingers mid-phrase. The keys and pads themselves are
+ * jeff-ui's PianoKeys and DrumPads; this file only places them on the page.
  */
 html {
   /* A rubber-band scroll is a keyboard sliding out from under a finger. */
@@ -34,7 +34,7 @@ main {
   grid-template-columns: minmax(0, 1fr);
   grid-template-rows:
     auto /* top controls */
-    1fr; /* piano */
+    1fr; /* the instrument */
   gap: var(--ui-space-3);
 }
 main > * {
@@ -51,168 +51,7 @@ main > * {
   min-width: 10rem;
 }
 
-/* ── The keyboard ─────────────────────────────────────────────────── */
-/*
- * White keys are a flex row of equal shares; black keys are absolutely
- * positioned over them at a percentage the component computes, because their
- * spacing is irregular by nature — two, then three — and that irregularity is
- * what makes a keyboard readable without reading the labels.
- */
-#piano {
-  position: relative;
-  height: 100%;
-  min-height: 15rem;
-  user-select: none;
-  touch-action: none; /* a drag across the keys plays them, it does not scroll */
-}
-/* `touch-action` is not inherited, and the touch lands on the key rather than
-   on the box around it — so the rule that stops a scroll has to be on both. */
-#piano .key {
-  touch-action: none;
-  -webkit-user-select: none;
-  user-select: none;
-  -webkit-tap-highlight-color: transparent;
-  -webkit-touch-callout: none; /* a long press is a held note, not a context menu */
-}
-#piano .whites {
-  display: flex;
-  height: 100%;
-  gap: 2px;
-}
-.key {
-  border: 1px solid var(--ui-border);
-  border-radius: 0 0 var(--ui-radius-sm) var(--ui-radius-sm);
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  align-items: center;
-  padding-bottom: var(--ui-space-2);
-  gap: 0.15rem;
-  cursor: pointer;
-}
-.key.white {
-  flex: 1;
-  /* Shrink past the label rather than push the keyboard wider than the screen;
-     the label is a convenience and the width is the instrument. */
-  min-width: 0;
-  background: color-mix(in srgb, var(--ui-text) 90%, var(--ui-accent));
-  color: var(--ui-bg);
-}
-.key.black {
-  position: absolute;
-  top: 0;
-  height: 60%;
-  background: var(--ui-bg);
-  color: var(--ui-text);
-  border-color: var(--ui-bg);
-  /* The left edge the component sets is the *boundary* between two whites, so
-     the key has to straddle it rather than start at it. */
-  transform: translateX(-50%);
-  z-index: 2;
-}
-/* Out of the take's key signature. Faint on purpose: it is a hint while you
-   look for a note, and nothing at all once you are playing. */
-.key.white.outside {
-  background: color-mix(in srgb, var(--ui-text) 80%, var(--ui-surface));
-}
-.key.black.outside {
-  background: color-mix(in srgb, var(--ui-bg) 70%, var(--ui-surface));
-}
-.key.down {
-  background: var(--ui-accent);
-  color: var(--ui-on-accent);
-  box-shadow: 0 0 12px var(--ui-accent);
-}
-.key.black.down {
-  background: color-mix(in srgb, var(--ui-accent) 75%, var(--ui-bg));
-  color: var(--ui-text);
-}
-.cap {
-  font-size: var(--ui-font-size-sm);
-  font-weight: 700;
-}
-.pitch {
-  font-size: 0.6rem;
-  color: var(--ui-muted);
-}
-.key.white .pitch {
-  color: inherit;
-  opacity: 0.6;
-}
-.key.black .pitch {
-  display: none;
-} /* no room, and the cap is what you need */
-
-/* ── The kit ──────────────────────────────────────────────────────── */
-/*
- * The other instrument this page can be. A kit has no order to be irregular
- * about, so it is a plain grid of equal squares — the shape a drum machine has
- * had since the 808, and the reason the kick is where you left it when you
- * change kits. It fills the same block the piano does, so swapping voices does
- * not move anything above it.
- */
-#pads {
-  display: grid;
-  grid-template-columns: repeat(var(--pad-columns, 4), minmax(0, 1fr));
-  gap: var(--ui-space-2);
-  height: 100%;
-  min-height: 15rem;
-  align-content: stretch;
-  touch-action: none; /* a drag across the pads plays them, it does not scroll */
-  user-select: none;
-}
-.pad {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  align-items: flex-start;
-  min-height: 3.5rem;
-  padding: var(--ui-space-2) var(--ui-space-3);
-  color: var(--ui-text);
-  border: 1px solid var(--ui-border);
-  border-radius: var(--ui-radius-lg);
-  background: var(--ui-surface);
-  cursor: pointer;
-  touch-action: none;
-  -webkit-user-select: none;
-  user-select: none;
-  -webkit-tap-highlight-color: transparent;
-  -webkit-touch-callout: none; /* a long press is another hit, not a context menu */
-  /* Off fast, on instantly: a pad that fades *in* reads as latency in the
-     instrument, which is the one thing the live path is trying not to have. */
-  transition:
-    background 140ms ease-out,
-    box-shadow 140ms ease-out;
-}
-.pad:hover {
-  background: var(--ui-surface-hi);
-}
-.pad .piece {
-  font-size: var(--ui-font-size-sm);
-  letter-spacing: 0.02em;
-}
-.pad .cap {
-  font-size: 0.6rem;
-  color: var(--ui-muted);
-  align-self: flex-end;
-}
-.pad.lit {
-  background: var(--ui-accent);
-  color: var(--ui-on-accent);
-  border-color: var(--ui-accent);
-  box-shadow: 0 0 14px var(--ui-accent);
-  transition: none;
-}
-.pad.lit .cap {
-  color: inherit;
-}
-
-/* ── A phone ──────────────────────────────────────────────────────── */
-/*
- * Width decides the layout — a narrow window on a laptop has the same problem a
- * phone does. The pointer being coarse decides the *targets*: a tablet with a
- * mouse is wide and precise. jeff-ui's controls are already thumb-sized.
- */
+/* The page, not the instrument, is what a phone squeezes: less frame. */
 @media (max-width: 760px) {
   body {
     padding: var(--ui-space-3) 0 max(var(--ui-space-3), env(safe-area-inset-bottom));
@@ -221,34 +60,9 @@ main > * {
     width: 96vw;
     gap: var(--ui-space-2);
   }
-  .key .pitch {
-    font-size: 0.5rem;
-  }
-  /* Two columns of thumb-sized pads beats four of slivers. */
-  #pads {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
 }
 
-@media (pointer: coarse) {
-  /* The cap says which letter key plays this note or pad. There is no letter key. */
-  .key .cap,
-  .pad .cap {
-    display: none;
-  }
-  .key .pitch {
-    font-size: 0.62rem;
-  }
-  .key {
-    padding-bottom: var(--ui-space-2);
-  }
-  .pad {
-    min-height: 3.75rem;
-    justify-content: center;
-    align-items: center;
-  }
-}
-
+/* A phone on its side: the instrument takes most of the screen. */
 @media (orientation: landscape) {
   body {
     padding: var(--ui-space-1) 0 max(var(--ui-space-1), env(safe-area-inset-bottom));
@@ -256,8 +70,7 @@ main > * {
   main {
     gap: var(--ui-space-1);
   }
-  #piano,
-  #pads {
+  .instrument {
     min-height: 70vh;
   }
 }

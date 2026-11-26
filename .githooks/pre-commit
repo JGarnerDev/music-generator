@@ -4,7 +4,9 @@
 #   Markdown          markdownlint-cli2 --fix                 never blocks
 #   JS/TS/CSS/HTML    prettier --write, then oxlint --fix     blocks on oxlint errors
 #   Python            ruff format, then ruff check --fix      blocks on ruff errors
-# A missing tool skips its step with a note.
+#   CSS (jeff-ui apps) jeff-ui-css-check                      blocks on raw colors, .ui-* selectors,
+#                                                             :root custom properties; prints line counts
+# A missing tool skips its step with a note (jeff-ui-css-check silently: only jeff-ui apps have it).
 # Setup, once per clone: git config core.hooksPath .githooks
 # Tools: npm i -g markdownlint-cli2@0.13.0; prettier and oxlint are devDependencies (npm install);
 # ruff runs through uvx at the version below.
@@ -56,6 +58,13 @@ if staged '*.ts' '*.tsx' '*.js' '*.jsx' '*.mjs' '*.cjs'; then
     xargs -0 git add < "$list"
   else
     echo "pre-commit: oxlint not found; skipping JS/TS lint (npm install)" >&2
+  fi
+fi
+
+if staged '*.css'; then
+  css_check=$(js_tool jeff-ui-css-check)
+  if [ -n "$css_check" ]; then
+    xargs -0 "$css_check" < "$list" || status=1
   fi
 fi
 

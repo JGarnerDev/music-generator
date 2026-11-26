@@ -2,12 +2,23 @@
 type: doc
 purpose: Notable changes to the engine, scripts, app, schemas and docs, newest first. Bump rules are in CLAUDE.md (Non-negotiables → Versioning).
 audience: [claude, human]
-updated: 2026-11-23
+updated: 2026-11-26
 ---
 
 # Changelog
 
 Grouped `Added` / `Changed` / `Removed` / `Fixed`. New compositions, palettes, voices, plans and renders stay out; they live in git history. The version in [`VERSION`](VERSION) (and `version` in `package.json`) always matches the top entry below.
+
+## [0.5.1] — 2026-11-26
+
+### Changed
+
+- The keys page's piano and drum pads are jeff-ui's `PianoKeys` and `DrumPads` (jeff-ui 3.0.0); `keys.css` keeps only the page layout.
+- The pre-commit hook runs `jeff-ui-css-check` on staged CSS: raw colors, `.ui-*` selectors and `:root` custom properties fail the commit.
+
+### Fixed
+
+- The keys spec's octave test finds the stepper by its `octave` class and the "increase octave" button, not jeff-ui's internal classes.
 
 ## [0.5.0] — 2026-11-23
 

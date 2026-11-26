@@ -353,7 +353,7 @@ CLI, like every other note in this project.
 | `src/app/audio/live.ts` | The realtime voice, the pitch wheel, and waking the context. The only realtime synthesis here. |
 | `src/app/audio/metronome.ts` | The click and the count-in. |
 | `src/app/hooks/useKeyboardSynth.ts` | Key events → notes and the press log. |
-| `src/app/components/DrumPads.tsx` | The drawn kit: the grid, the flash, the drag across pads. |
+| jeff-ui `PianoKeys`, `DrumPads` | The drawn keyboard and kit: the keys, the pads, the drag across them. |
 | `src/app/components/KeysMenu.tsx` | The hamburger — the settings that are not controls. |
 | `src/app/pages/Keys.tsx` + `keys.css` | The page. |
 | `src/dev/take-api.ts` + `take-store.ts` | Saving a take. Dev server only. |
