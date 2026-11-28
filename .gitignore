@@ -49,6 +49,13 @@ tasks/**
 !tasks/*/TODO.md
 !tasks/*/steps/
 !tasks/*/steps/*.md
+# Backlog notes are tracked: tasks/backlog/<name>.md and parked task folders' plans.
+!tasks/backlog/*.md
+!tasks/backlog/*/
+!tasks/backlog/*/PLAN.md
+!tasks/backlog/*/TODO.md
+!tasks/backlog/*/steps/
+!tasks/backlog/*/steps/*.md
 compositions/
 manifest/
 public/*/**

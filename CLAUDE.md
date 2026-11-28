@@ -41,9 +41,10 @@ Claude-specific working rules that don't belong in the human-facing README.
   bumps MAJOR, a new capability bumps MINOR, a fix bumps PATCH. New compositions,
   palettes, voices and renders never bump. A bump edits `VERSION` and `version` in
   `package.json` and prepends a dated `CHANGELOG.md` entry, committed together.
-- **`TODO.md`** is the backlog: remove items once done, keep the **Next:** line true.
+- **`TODO.md`** is the roadmap: remove items once done, keep the **Next:** line true.
   A commission or other big piece of work gets `tasks/<name>/` with `PLAN.md` and
   `TODO.md`.
+- **Backlog:** "put it in the backlog" moves an item's notes to `tasks/backlog/<name>.md` (a task folder to `tasks/backlog/<name>/`) and leaves only its name and link under `## Backlog` at the bottom of `TODO.md`. Don't read `tasks/backlog/` or suggest its items unless Jeff asks; pulling one back reverses the move.
 
 ## How to compose (default loop)
 

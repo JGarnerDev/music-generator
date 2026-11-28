@@ -1,6 +1,6 @@
 ---
 type: doc
-purpose: Prioritized backlog of what to build, plus links to open tasks. Living doc — remove items once done, reorder as reality shifts.
+purpose: Prioritized roadmap of what to build, plus links to open tasks. Living doc — remove items once done, reorder as reality shifts.
 audience: [claude, human]
 updated: 2026-11-22
 read_order: 2
@@ -17,14 +17,14 @@ status: living
 - [ ] [Redwater Act 1](tasks/redwater/TODO.md): music commission from the dnd engine's Redwater campaign. Brief in `tasks/redwater/PLAN.md`; approved pieces are filed beside them (kept local, not in git)
 - [ ] Browser check of the jeff-ui pages (0.4.0): studies height with 44px buttons, the tag shelf labels, the set strip, the keys settings panel and piano colors on a phone
 
-## Backlog
+## Roadmap
 
 Ordered by priority. **P0** = the music itself is the product; nothing ships
 above it. **P1** = makes the core loop good. **P2** = app architecture &
 hosting. **P3** = depth/polish. **P4** = nice-to-have / speculative.
 
 Legend: `[ ]` todo · `[~]` in progress. **Delete an item once it's done** — this
-doc is the *remaining* backlog, not a changelog. Git history is the record of what
+doc is the *remaining* roadmap, not a changelog. Git history is the record of what
 shipped; keep this list short and forward-looking.
 
 ## P0 — The voice shelf
@@ -138,3 +138,9 @@ already four entry points, four stylesheets and three folders.
 - New markdown → frontmatter.
 - New repeatable chore → a `scripts/` npm command, named flags only.
 - `npm test` + `npm run typecheck` stay green.
+
+## Backlog
+
+Name and link only; notes are in `tasks/backlog/`. Don't open them or suggest these as next work unless Jeff asks.
+
+(none yet)
